@@ -11,102 +11,84 @@ from ..logs import logger
 from ..utils.exceptions import DoesNotExist
 
 
-class DatasetModel(object):
+class Dataset(object):
     """
     Client-side model for caching results of querying
     MyTardis's dataset model.
     """
-    def __init__(self, datasetJson):
-        self.json = datasetJson
+    def __init__(self, dataset_dict):
+        self.id = None  # pylint: disable=invalid-name
+        self.description = None
+        self.immutable = None
+        self.resource_uri = None
+        self.__dict__.update(dataset_dict)
 
     @property
-    def datasetId(self):
+    def dataset_id(self):
         """
         Return the dataset ID
         """
-        return self.json['id']
+        return self.__dict__['id']
 
     @property
-    def description(self):
-        """
-        Return the dataset's description
-        """
-        return self.json['description']
-
-    @property
-    def immutable(self):
-        """
-        Return True if the dataset is immutable
-        """
-        return self.json['immutable']
-
-    @property
-    def resourceUri(self):
-        """
-        Return the dataset's MyTardis API resource URI,
-        e.g. /api/v1/dataset/1234/
-        """
-        return self.json['resource_uri']
-
-    @property
-    def viewUri(self):
+    def view_uri(self):
         """
         Return the dataset's view URI, as used in the MyData class's
         OnMyTardis method.
         """
-        return "dataset/%s" % self.json['id']
+        return "dataset/%s" % self.__dict__['id']
 
     @staticmethod
-    def CreateDatasetIfNecessary(folderModel):
+    def create_dataset_if_necessary(folder):
         """
         Create a dataset if we don't already have one for this folder.
 
         First we check if a suitable dataset already exists.
         """
-        experiment = folderModel.experimentModel
+        experiment = folder.experiment
         try:
-            existingDataset = DatasetModel.GetDataset(folderModel)
-            if FLAGS.testRunRunning:
+            existing_dataset = Dataset.get_dataset(folder)
+            if FLAGS.test_run_running:
                 message = "ADDING TO EXISTING DATASET FOR FOLDER: %s\n" \
                     "    URL: %s/%s\n" \
                     "    Description: %s\n" \
                     "    In Experiment: %s/%s" \
-                    % (folderModel.GetRelPath(), SETTINGS.general.myTardisUrl,
-                       existingDataset.viewUri, existingDataset.description,
-                       SETTINGS.general.myTardisUrl,
-                       experiment.viewUri if experiment else "experiment/?")
+                    % (folder.get_rel_path(), SETTINGS.general.mytardis_url,
+                       existing_dataset.view_uri, existing_dataset.description,
+                       SETTINGS.general.mytardis_url,
+                       experiment.view_uri if experiment else "experiment/?")
                 logger.testrun(message)
-            return existingDataset
+            return existing_dataset
         except DoesNotExist:
-            description = folderModel.folderName
+            description = folder.folder_name
             logger.debug("Creating dataset record for folder: " + description)
-            myTardisUrl = SETTINGS.general.myTardisUrl
-            experimentUri = experiment.resourceUri.replace(
-                'mydata_experiment', 'experiment') if experiment else None
-            datasetJson = {
-                "instrument": SETTINGS.general.instrument.resourceUri,
-                "description": description,
-                "experiments": [experimentUri],
-                "immutable": SETTINGS.miscellaneous.immutableDatasets}
-            data = json.dumps(datasetJson)
-            url = "%s/api/v1/dataset/" % myTardisUrl
-            if FLAGS.testRunRunning:
+            if FLAGS.test_run_running:
                 message = "CREATING NEW DATASET FOR FOLDER: %s\n" \
                     "    Description: %s" \
-                    % (folderModel.GetRelPath(), description)
+                    % (folder.get_rel_path(), description)
                 if experiment:  # Could be None in test run.
                     message += "\n    In Experiment: %s/%s" \
-                        % (SETTINGS.general.myTardisUrl, experiment.viewUri)
+                        % (SETTINGS.general.mytardis_url, experiment.view_uri)
                 logger.testrun(message)
                 return None
-            response = requests.post(headers=SETTINGS.defaultHeaders,
+            mytardis_url = SETTINGS.general.mytardis_url
+            exp_uri = experiment.resource_uri.replace(
+                'mydata_experiment', 'experiment') if experiment else None
+            dataset_dict = {
+                "instrument": SETTINGS.general.instrument.resource_uri,
+                "description": description,
+                "experiments": [exp_uri],
+                "immutable": False}
+            data = json.dumps(dataset_dict)
+            url = "%s/api/v1/dataset/" % mytardis_url
+            response = requests.post(headers=SETTINGS.default_headers,
                                      url=url, data=data.encode())
             response.raise_for_status()
-            newDatasetJson = response.json()
-            return DatasetModel(newDatasetJson)
+            new_dataset_dict = response.json()
+            return Dataset(new_dataset_dict)
 
     @staticmethod
-    def GetDataset(folderModel):
+    def get_dataset(folder):
         """
         Get the dataset record for this folder
 
@@ -116,32 +98,32 @@ class DatasetModel(object):
         uploaded, rather than have MyData refuse to upload because a duplicate
         dataset has been created on the server.
         """
-        if not folderModel.experimentModel:
-            # folderModel.experimentModel could be None in testRun
+        if not folder.experiment:
+            # folder.experiment could be None in testRun
             message = "Dataset can't exist because experiment is None"
-            raise DoesNotExist(message, modelClass=DatasetModel)
-        description = urllib.parse.quote(folderModel.folderName.encode('utf-8'))
+            raise DoesNotExist(message, model_class=Dataset)
+        description = urllib.parse.quote(folder.folder_name.encode('utf-8'))
         url = ("%s/api/v1/dataset/?format=json&experiments__id=%s"
-               "&description=%s" % (SETTINGS.general.myTardisUrl,
-                                    folderModel.experimentModel.experimentId,
+               "&description=%s" % (SETTINGS.general.mytardis_url,
+                                    folder.experiment.exp_id,
                                     description))
-        urlWithInstrument = "%s&instrument__id=%s"\
-            % (url, SETTINGS.general.instrument.instrumentId)
+        url_with_instrument = "%s&instrument__id=%s"\
+            % (url, SETTINGS.general.instrument.instrument_id)
         response = requests.get(
-            headers=SETTINGS.defaultHeaders, url=urlWithInstrument)
+            headers=SETTINGS.default_headers, url=url_with_instrument)
         if response.status_code == 400:
             logger.debug(
                 "MyTardis doesn't support filtering datasets by instrument")
-            response = requests.get(headers=SETTINGS.defaultHeaders, url=url)
+            response = requests.get(headers=SETTINGS.default_headers, url=url)
         response.raise_for_status()
-        datasetsJson = response.json()
-        numDatasets = datasetsJson['meta']['total_count']
-        if numDatasets == 0:
+        datasets_dict = response.json()
+        num_datasets = datasets_dict['meta']['total_count']
+        if num_datasets == 0:
             message = "Didn't find dataset for folder %s" % description
-            raise DoesNotExist(message, modelClass=DatasetModel)
-        if numDatasets > 1:
+            raise DoesNotExist(message, model_class=Dataset)
+        if num_datasets > 1:
             logger.warning(
                 "WARNING: Found multiple datasets for folder %s" % description)
-        if numDatasets == 1:
+        if num_datasets == 1:
             logger.debug("Found existing dataset for folder %s" % description)
-        return DatasetModel(datasetsJson['objects'][0])
+        return Dataset(datasets_dict['objects'][0])

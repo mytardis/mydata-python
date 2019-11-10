@@ -6,7 +6,7 @@ import threading
 
 import requests
 
-from ..events.stop import ShouldCancelUpload
+from ..events.stop import should_cancel_upload
 from ..models.datafile import DataFileModel
 from ..models.replica import ReplicaModel
 from ..models.upload import UploadStatus
@@ -14,32 +14,32 @@ from ..utils.exceptions import DoesNotExist
 from ..utils.exceptions import MissingMyDataReplicaApiEndpoint
 
 
-def MonitorProgress(progressPollInterval, uploadModel,
-                    fileSize, monitoringProgress, progressCallback):
+def monitor_progress(progress_poll_interval, upload_model,
+                     file_size, monitoring_progress, progress_callback):
     """
     Monitor progress via RESTful queries.
     """
-    if ShouldCancelUpload(uploadModel) or \
-            (uploadModel.status != UploadStatus.IN_PROGRESS and
-             uploadModel.status != UploadStatus.NOT_STARTED):
+    if should_cancel_upload(upload_model) or \
+            (upload_model.status != UploadStatus.IN_PROGRESS and
+             upload_model.status != UploadStatus.NOT_STARTED):
         return
 
     timer = threading.Timer(
-        progressPollInterval, MonitorProgress,
-        args=[progressPollInterval, uploadModel, fileSize,
-              monitoringProgress, progressCallback])
+        progress_poll_interval, monitor_progress,
+        args=[progress_poll_interval, upload_model, file_size,
+              monitoring_progress, progress_callback])
     timer.start()
-    if uploadModel.status == UploadStatus.NOT_STARTED:
+    if upload_model.status == UploadStatus.NOT_STARTED:
         return
-    if monitoringProgress.isSet():
+    if monitoring_progress.isSet():
         return
-    monitoringProgress.set()
-    if uploadModel.dfoId is None:
-        if uploadModel.dataFileId is not None:
+    monitoring_progress.set()
+    if upload_model.dfo_id is None:
+        if upload_model.datafile_id is not None:
             try:
-                dataFile = DataFileModel.GetDataFileFromId(
-                    uploadModel.dataFileId)
-                uploadModel.dfoId = dataFile.replicas[0].dfoId
+                datafile = DataFileModel.get_datafile_from_id(
+                    upload_model.datafile_id)
+                upload_model.dfo_id = datafile.replicas[0].dfo_id
             except requests.exceptions.RequestException:
                 # If something goes wrong trying to retrieve
                 # the DataFile from the MyTardis API, don't
@@ -51,22 +51,22 @@ def MonitorProgress(progressPollInterval, uploadModel,
                 # worry, just check again later.
                 pass
             except IndexError:
-                # If the dataFile.replicas[0] DFO doesn't exist yet,
+                # If the datafile.replicas[0] DFO doesn't exist yet,
                 # don't worry, just check again later.
                 pass
-    if uploadModel.dfoId:
+    if upload_model.dfo_id:
         try:
-            bytesUploaded = \
-                ReplicaModel.CountBytesUploadedToStaging(uploadModel.dfoId)
-            latestUpdateTime = datetime.now()
+            bytes_uploaded = \
+                ReplicaModel.count_bytes_uploaded_to_staging(upload_model.dfo_id)
+            latest_update_time = datetime.now()
             # If this file already has a partial upload in staging,
             # progress and speed estimates can be misleading.
-            uploadModel.SetLatestTime(latestUpdateTime)
-            if bytesUploaded > uploadModel.bytesUploaded:
-                uploadModel.SetBytesUploaded(bytesUploaded)
-            progressCallback(bytesUploaded, fileSize)
+            upload_model.set_latest_time(latest_update_time)
+            if bytes_uploaded > upload_model.bytes_uploaded:
+                upload_model.set_bytes_uploaded(bytes_uploaded)
+            progress_callback(bytes_uploaded, file_size)
         except requests.exceptions.RequestException:
             timer.cancel()
         except MissingMyDataReplicaApiEndpoint:
             timer.cancel()
-    monitoringProgress.clear()
+    monitoring_progress.clear()

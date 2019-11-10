@@ -1,0 +1,417 @@
+"""
+Test ability to handle experiment-related exceptions.
+"""
+import importlib
+import json
+import os
+
+import pytest
+import requests_mock
+from requests.exceptions import HTTPError
+
+
+@pytest.fixture
+def set_mydata_config_path():
+    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
+        os.path.join('.', 'tests', 'testdata', 'testdata-exp-dataset.cfg'))
+
+
+EXISTING_EXP_RESPONSE = json.dumps({
+    "meta": {
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
+    },
+    "objects": [{
+        "id": 1,
+        "title": "Existing Experiment"
+    }]
+})
+
+EXP1_RESPONSE = json.dumps({
+    "id": 1,
+    "title": "Exp1",
+    "resource_uri": "/api/v1/experiment/1/"
+})
+
+
+EMPTY_EXP_RESPONSE = json.dumps({
+    "meta": {
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 0
+    },
+    "objects": []
+})
+
+
+def test_experiment_exceptions(set_mydata_config_path):
+    """Test ability to handle experiment-related exceptions.
+    """
+    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-statements
+    from mydata import settings
+    settings = importlib.reload(settings)
+    SETTINGS = settings.SETTINGS
+    from mydata.threads.flags import FLAGS
+    from mydata.models.experiment import Experiment
+    from mydata.models.folder import Folder
+    #from mydata.models.settings.validation import validate_settings
+    from mydata.utils.exceptions import DoesNotExist
+
+    # MyData has the concept of a "default experiment",
+    # which depends on the UUID of the MyData instance:
+    SETTINGS.miscellaneous.uuid = "1234567890"
+    #validate_settings()
+
+    mock_user_dict = {
+        "meta": {
+            "limit": 20,
+            "next": None,
+            "offset": 0,
+            "previous": None,
+            "total_count": 1
+        },
+        "objects": [{
+            "id": 1,
+            "username": "testfacility",
+            "first_name": "TestFacility",
+            "last_name": "RoleAccount",
+            "email": "testfacility@example.com",
+            "groups": [{
+                "id": 1,
+                "name": "test-facility-managers"
+            }]
+        }]
+    }
+    mock_user_response = json.dumps(mock_user_dict)
+    with requests_mock.Mocker() as mocker:
+        get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % SETTINGS.general.mytardis_url
+        mocker.get(get_user_api_url, text=mock_user_response)
+        owner = SETTINGS.general.default_owner
+    dataset_folder_name = "Flowers"
+    exp_folder_name = "Exp1"
+    location = os.path.join(SETTINGS.general.data_directory, exp_folder_name)
+
+    # LOOKING UP EXPERIMENTS
+
+    # Try to look up nonexistent experiment record with
+    # experiment title set manually, and with a user folder
+    # name, but no group folder name:
+    user_folder_name = owner.username
+    group_folder_name = None
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+    folder.experiment_title = exp_folder_name
+
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title="
+            "&folder_structure=Experiment%%20/%%20Dataset"
+            "&user_folder_name=testfacility"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        with pytest.raises(DoesNotExist) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.model_class == Experiment
+
+    # Look up existing experiment record with
+    # experiment title set manually, and with a user folder
+    # name, but no group folder name:
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title="
+            "&folder_structure=Experiment%%20/%%20Dataset"
+            "&user_folder_name=testfacility"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EXISTING_EXP_RESPONSE)
+        user_folder_name = owner.username
+        group_folder_name = None
+        folder = Folder(
+            dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        folder.experiment_title = "Existing Experiment"
+        experiment = Experiment.get_exp_for_folder(folder)
+        assert experiment.title == "Existing Experiment"
+
+    # Look up one of many existing experiment records with
+    # experiment title set manually, and with a user folder
+    # name, but no group folder name:
+    mock_exp_dict = {
+        "meta": {
+            "limit": 20,
+            "next": None,
+            "offset": 0,
+            "previous": None,
+            "total_count": 2
+        },
+        "objects": [
+            {
+                "id": 1,
+                "title": "Existing Experiment1"
+            },
+            {
+                "id": 2,
+                "title": "Existing Experiment2"
+            }
+        ]
+    }
+    mock_exp_response = json.dumps(mock_exp_dict)
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title="
+            "&folder_structure=Experiment%%20/%%20Dataset"
+            "&user_folder_name=testfacility"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=mock_exp_response)
+        user_folder_name = owner.username
+        group_folder_name = None
+        folder = Folder(
+            dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        folder.experiment_title = "Multiple Existing Experiments"
+        experiment = Experiment.get_exp_for_folder(folder)
+        assert experiment.title == "Existing Experiment1"
+
+    # Try to look up nonexistent experiment record with
+    # experiment title set manually, and with a group folder
+    # name, but no user folder name:
+    user_folder_name = None
+    group_folder_name = "Test Group1"
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+    folder.experiment_title = exp_folder_name
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Exp1"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+            "&group_folder_name=Test%%20Group1"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        with pytest.raises(DoesNotExist) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.model_class == Experiment
+
+    # Look up existing experiment record with
+    # experiment title set manually, and with a group folder
+    # name, but no user folder name:
+    user_folder_name = None
+    group_folder_name = "Test Group1"
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+    folder.experiment_title = "Existing Experiment"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Existing%%20Experiment"
+            "&folder_structure=Experiment%%20/%%20Dataset&group_folder_name=Test%%20Group1"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EXISTING_EXP_RESPONSE)
+        experiment = Experiment.get_exp_for_folder(folder)
+        assert experiment.title == "Existing Experiment"
+
+    # Try to look up nonexistent experiment record with
+    # experiment title set manually, and with a user folder
+    # name, and a group folder name:
+    user_folder_name = owner.username
+    group_folder_name = "Test Group1"
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+    folder.experiment_title = exp_folder_name
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Exp1"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+            "&group_folder_name=Test%%20Group1"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        with pytest.raises(DoesNotExist) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.model_class == Experiment
+
+    # Look up existing experiment record with
+    # experiment title set manually, and with a group folder
+    # name, and a user folder name:
+    user_folder_name = owner.username
+    group_folder_name = "Test Group1"
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+    folder.experiment_title = "Existing Experiment"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Existing%%20Experiment"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+            "&user_folder_name=testfacility&group_folder_name=Test%%20Group1"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EXISTING_EXP_RESPONSE)
+        experiment = Experiment.get_exp_for_folder(folder)
+        assert experiment.title == "Existing Experiment"
+
+    # Try to look up nonexistent experiment record with
+    # experiment title set manually, with neither a user folder
+    # name, nor a group folder name:
+    user_folder_name = None
+    group_folder_name = None
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+    folder.experiment_title = exp_folder_name
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Exp1"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        with pytest.raises(DoesNotExist) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.model_class == Experiment
+
+    # Look up existing experiment record with
+    # experiment title set manually, and with neither a user folder
+    # name, nor a group folder name:
+    user_folder_name = None
+    group_folder_name = None
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+    folder.experiment_title = "Existing Experiment"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Existing%%20Experiment"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EXISTING_EXP_RESPONSE)
+        experiment = Experiment.get_exp_for_folder(folder)
+        assert experiment.title == "Existing Experiment"
+
+    # Try to look up experiment record with
+    # an invalid API key, which should give 401 (Unauthorized)
+    api_key = SETTINGS.general.api_key
+    SETTINGS.general.api_key = "invalid"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Existing%%20Experiment"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, status_code=401)
+        with pytest.raises(HTTPError) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.response.status_code == 401
+        SETTINGS.general.api_key = api_key
+
+    # Try to look up experiment record with a missing UserProfile
+    # for the authorizing user, which can result in a 404 from the
+    # MyTardis API:
+    folder.experiment_title = "Missing UserProfile"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Missing%%20UserProfile"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, status_code=404)
+        with pytest.raises(HTTPError) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.response.status_code == 404
+
+    # Try to look up experiment record with a missing Schema,
+    # which can result in a 404 from the MyTardis API:
+    folder.experiment_title = "Missing Schema"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Missing%%20Schema"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, status_code=404)
+        with pytest.raises(HTTPError) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.response.status_code == 404
+
+    # Try to look up experiment record and handle a 404 of
+    # unknown origin from the MyTardis API:
+    folder.experiment_title = "Unknown 404"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Unknown%%20404"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, status_code=404)
+        with pytest.raises(HTTPError) as excinfo:
+            _ = Experiment.get_exp_for_folder(folder)
+        assert excinfo.value.response.status_code == 404
+
+    # CREATING EXPERIMENTS
+
+    # Try to create an experiment with a title specified manually
+    # and check that the title is correct:
+    FLAGS.test_run_running = False
+    folder.experiment_title = exp_folder_name
+    with requests_mock.Mocker() as mocker:
+        post_exp_url = "%s/api/v1/mydata_experiment/" % SETTINGS.general.mytardis_url
+        mocker.post(post_exp_url, text=EXP1_RESPONSE, status_code=201)
+        post_objectacl_url = "%s/api/v1/objectacl/" % SETTINGS.general.mytardis_url
+        mocker.post(post_objectacl_url, status_code=201)
+        experiment = Experiment.create_exp_for_folder(folder)
+        assert experiment.title == exp_folder_name
+
+    # Try to create an experiment with a title specified manually,
+    # during a test run
+    FLAGS.test_run_running = True
+    folder.experiment_title = exp_folder_name
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json&title=Exp1"
+            "&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        experiment = Experiment.get_or_create_exp_for_folder(folder)
+        assert experiment == None
+        FLAGS.test_run_running = False
+
+    # Get or create an experiment with a title specified manually,
+    # which already exists during a test run
+    FLAGS.test_run_running = True
+    folder.experiment_title = "Existing Experiment"
+    with requests_mock.Mocker() as mocker:
+        get_exp_url = (
+            "%s/api/v1/mydata_experiment/?format=json"
+            "&title=Existing%%20Experiment&folder_structure=Experiment%%20/%%20Dataset"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_exp_url, text=EXISTING_EXP_RESPONSE)
+        experiment = Experiment.get_or_create_exp_for_folder(folder)
+        assert experiment.title == "Existing Experiment"
+        folder.experiment_title = exp_folder_name
+        FLAGS.test_run_running = False
+
+    # Try to create an experiment record with
+    # an invalid API key, which should give 401 (Unauthorized)
+    api_key = SETTINGS.general.api_key
+    SETTINGS.general.api_key = "invalid"
+    with requests_mock.Mocker() as mocker:
+        post_exp_url = (
+            "%s/api/v1/mydata_experiment/"
+        ) % SETTINGS.general.mytardis_url
+        mocker.post(post_exp_url, status_code=401)
+        with pytest.raises(HTTPError) as excinfo:
+            _ = Experiment.create_exp_for_folder(folder)
+        assert excinfo.value.response.status_code == 401
+        SETTINGS.general.api_key = api_key
+
+    # Now let's test experiment creation with the experiment's
+    # title determined automatically (from the instrument's name
+    # which becomes the default uploader name) and the user folder
+    # name or group folder name):
+    user_folder_name = owner.username
+    group_folder_name = None
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+
+    # Test case where MyTardis API returns a 404, e.g. because a
+    # requested Experiment Schema can't be found.
+    folder.experiment_title = "Request 404 from Fake MyTardis Server"
+    with requests_mock.Mocker() as mocker:
+        post_exp_url = (
+            "%s/api/v1/mydata_experiment/"
+        ) % SETTINGS.general.mytardis_url
+        mocker.post(post_exp_url, status_code=404)
+        with pytest.raises(HTTPError) as excinfo:
+            _ = Experiment.create_exp_for_folder(folder)
+        assert excinfo.value.response.status_code == 404

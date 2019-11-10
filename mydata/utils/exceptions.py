@@ -20,15 +20,9 @@ class DoesNotExist(Exception):
     Does not exist exception. Raised when when a JSON list
     expected to return one object returns zero objects.
     """
-    def __init__(self, message, response=None, modelClass=None):
+    def __init__(self, message, response=None, model_class=None):
         super(DoesNotExist, self).__init__(message, response)
-        self.modelClass = modelClass
-
-    def GetModelClass(self):
-        """
-        Returns model class.
-        """
-        return self.modelClass
+        self.model_class = model_class
 
 
 class SshException(Exception):

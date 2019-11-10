@@ -22,22 +22,22 @@ ERRAND_BOY_MAX_ACCEPTS = 5000000
 ERRAND_BOY_MAX_CHILD_TASKS = 100
 
 
-def StartErrandBoy():
+def start_errand_boy():
     """
     Start errand boy.
     """
-    errandBoyLogger = logging.getLogger("errand_boy.transports.unixsocket")
-    errandBoyLogger.addHandler(logger.streamHandler)
-    errandBoyLogger.addHandler(logger.fileHandler)
+    errand_boy_logger = logging.getLogger("errand_boy.transports.unixsocket")
+    errand_boy_logger.addHandler(logger.streamHandler)
+    errand_boy_logger.addHandler(logger.fileHandler)
 
     if ERRAND_BOY_PROCESS:
-        StopErrandBoy()
+        stop_errand_boy()
 
     if not ERRAND_BOY_TRANSPORT:
         globals()['ERRAND_BOY_TRANSPORT'] = UNIXSocketTransport(
             socket_path='/tmp/errand-boy-%s' % str(uuid.uuid1()))
 
-    def RunErrandBoyServer():
+    def run_errand_boy_server():
         """
         Run the errand boy server.
         """
@@ -47,7 +47,7 @@ def StartErrandBoy():
             max_child_tasks=ERRAND_BOY_MAX_CHILD_TASKS
         )
     globals()['ERRAND_BOY_PROCESS'] = \
-        multiprocessing.Process(target=RunErrandBoyServer)
+        multiprocessing.Process(target=run_errand_boy_server)
     ERRAND_BOY_PROCESS.start()
     count = 0
     while count < 10:
@@ -59,7 +59,7 @@ def StartErrandBoy():
             pass
 
 
-def StopErrandBoy():
+def stop_errand_boy():
     """
     Stop errand boy.
     """

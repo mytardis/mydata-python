@@ -16,7 +16,7 @@ import struct
 import psutil
 import six
 
-from ..events.stop import ShouldCancelUpload
+from ..events.stop import should_cancel_upload
 from ..settings import SETTINGS
 from ..logs import logger
 from ..models.upload import UploadStatus
@@ -28,10 +28,10 @@ from ..threads.locks import LOCKS
 from ..subprocesses import DEFAULT_STARTUP_INFO
 from ..subprocesses import DEFAULT_CREATION_FLAGS
 
-from .progress import MonitorProgress
+from .progress import monitor_progress
 
 if sys.platform.startswith("win"):
-    import win32process
+    import win32process  # pylint: disable=import-error
 
 if sys.platform.startswith("linux"):
     import mydata.linuxsubprocesses as linuxsubprocesses
@@ -55,48 +55,48 @@ class OpenSSH():
         Locate the SSH binaries on various systems. On Windows we bundle a
         Cygwin build of OpenSSH.
         """
-        sixtyFourBitPython = (struct.calcsize('P') * 8 == 64)
-        sixtyFourBitOperatingSystem = sixtyFourBitPython or \
+        sixty_four_bit_python = (struct.calcsize('P') * 8 == 64)
+        sixty_four_bit_operating_system = sixty_four_bit_python or \
             (sys.platform.startswith("win") and win32process.IsWow64Process())
         if "HOME" not in os.environ:
             os.environ["HOME"] = os.path.expanduser('~')
-        if sixtyFourBitOperatingSystem:
-            winOpensshDir = r"win64\openssh-7.3p1-cygwin-2.6.0"
+        if sixty_four_bit_operating_system:
+            win_openssh_dir = r"win64\openssh-7.3p1-cygwin-2.6.0"
         else:
-            winOpensshDir = r"win32\openssh-7.3p1-cygwin-2.8.0"
+            win_openssh_dir = r"win32\openssh-7.3p1-cygwin-2.8.0"
         if hasattr(sys, "frozen"):
-            baseDir = os.path.dirname(sys.executable)
+            base_dir = os.path.dirname(sys.executable)
         else:
-            baseDir = os.path.realpath(
+            base_dir = os.path.realpath(
                 os.path.join(os.path.dirname(__file__), "..", ".."))
-            winOpensshDir = os.path.join("resources", winOpensshDir)
+            win_openssh_dir = os.path.join("resources", win_openssh_dir)
         if sys.platform.startswith("win"):
-            baseDir = os.path.join(baseDir, winOpensshDir)
-            binarySuffix = ".exe"
-            dotSshDir = os.path.join(
-                baseDir, "home", getpass.getuser(), ".ssh")
-            if not os.path.exists(dotSshDir):
-                os.makedirs(dotSshDir)
+            base_dir = os.path.join(base_dir, win_openssh_dir)
+            binary_suffix = ".exe"
+            dot_ssh_dir = os.path.join(
+                base_dir, "home", getpass.getuser(), ".ssh")
+            if not os.path.exists(dot_ssh_dir):
+                os.makedirs(dot_ssh_dir)
         else:
-            baseDir = "/usr/"
-            binarySuffix = ""
+            base_dir = "/usr/"
+            binary_suffix = ""
 
-        binBaseDir = os.path.join(baseDir, "bin")
-        self.ssh = os.path.join(binBaseDir, "ssh" + binarySuffix)
-        self.scp = os.path.join(binBaseDir, "scp" + binarySuffix)
-        self.sshKeyGen = os.path.join(binBaseDir, "ssh-keygen" + binarySuffix)
-        self.mkdir = os.path.join(binBaseDir, "mkdir" + binarySuffix)
-        self.cat = os.path.join(binBaseDir, "cat" + binarySuffix)
+        bin_base_dir = os.path.join(base_dir, "bin")
+        self.ssh = os.path.join(bin_base_dir, "ssh" + binary_suffix)
+        self.scp = os.path.join(bin_base_dir, "scp" + binary_suffix)
+        self.ssh_keygen = os.path.join(bin_base_dir, "ssh-keygen" + binary_suffix)
+        self.mkdir = os.path.join(bin_base_dir, "mkdir" + binary_suffix)
+        self.cat = os.path.join(bin_base_dir, "cat" + binary_suffix)
 
     @staticmethod
-    def DoubleQuote(string):
+    def double_quote(string):
         """
         Return double-quoted string
         """
         return '"' + string.replace('"', r'\"') + '"'
 
     @staticmethod
-    def DoubleQuoteRemotePath(string):
+    def double_quote_remote_path(string):
         """
         Return double-quoted remote path, escaping double quotes,
         backticks and dollar signs
@@ -107,7 +107,7 @@ class OpenSSH():
         return '"%s"' % path
 
     @staticmethod
-    def DefaultSshOptions(connectionTimeout):
+    def default_ssh_options(connection_timeout):
         """
         Returns default SSH options
         """
@@ -115,7 +115,7 @@ class OpenSSH():
             "-oPasswordAuthentication=no",
             "-oNoHostAuthenticationForLocalhost=yes",
             "-oStrictHostKeyChecking=no",
-            "-oConnectTimeout=%s" % int(connectionTimeout)
+            "-oConnectTimeout=%s" % int(connection_timeout)
         ]
 
 
@@ -123,44 +123,44 @@ class KeyPair():
     """
     Represents an SSH key-pair, e.g. (~/.ssh/MyData, ~/.ssh/MyData.pub)
     """
-    def __init__(self, privateKeyFilePath, publicKeyFilePath):
-        self.privateKeyFilePath = privateKeyFilePath
-        self.publicKeyFilePath = publicKeyFilePath
-        self._publicKey = None
+    def __init__(self, private_key_path, public_key_path):
+        self.private_key_path = private_key_path
+        self.public_key_path = public_key_path
+        self._public_key = None
         self._fingerprint = None
-        self.keyType = None
+        self.key_type = None
 
-    def ReadPublicKey(self):
+    def read_public_key(self):
         """
         Read public key, including "ssh-rsa "
         """
-        if self.publicKeyFilePath is not None and \
-                os.path.exists(self.publicKeyFilePath):
-            with open(self.publicKeyFilePath, "r") as pubKeyFile:
-                return pubKeyFile.read()
+        if self.public_key_path is not None and \
+                os.path.exists(self.public_key_path):
+            with open(self.public_key_path, "r") as pubkeyfile:
+                return pubkeyfile.read()
         else:
             raise SshException("Couldn't access MyData.pub in ~/.ssh/")
 
-    def Delete(self):
+    def delete(self):
         """
         Delete SSH keypair
 
         Only used by tests
         """
-        os.remove(self.privateKeyFilePath)
-        if self.publicKeyFilePath is not None:
-            os.remove(self.publicKeyFilePath)
+        os.remove(self.private_key_path)
+        if self.public_key_path is not None:
+            os.remove(self.public_key_path)
 
     @property
-    def publicKey(self):
+    def public_key(self):
         """
         Return public key as string
         """
-        if self._publicKey is None:
-            self._publicKey = self.ReadPublicKey()
-        return self._publicKey
+        if self._public_key is None:
+            self._public_key = self.read_public_key()
+        return self._public_key
 
-    def ReadFingerprintAndKeyType(self):
+    def read_fingerprint_and_key_type(self):
         """
         Use "ssh-keygen -yl -f privateKeyFile" to extract the fingerprint
         and key type.  This only works if the public key file exists.
@@ -177,22 +177,22 @@ class KeyPair():
         See the UploaderModel class's ExistingUploadToStagingRequest
         method in mydata.models.uploader
         """
-        if not os.path.exists(self.privateKeyFilePath):
+        if not os.path.exists(self.private_key_path):
             raise PrivateKeyDoesNotExist("Couldn't find valid private key in "
-                                         "%s" % self.privateKeyFilePath)
-        if self.publicKeyFilePath is None:
-            self.publicKeyFilePath = self.privateKeyFilePath + ".pub"
-        if not os.path.exists(self.publicKeyFilePath):
-            with open(self.publicKeyFilePath, "w") as pubKeyFile:
-                pubKeyFile.write(self.publicKey)
+                                         "%s" % self.private_key_path)
+        if self.public_key_path is None:
+            self.public_key_path = self.private_key_path + ".pub"
+        if not os.path.exists(self.public_key_path):
+            with open(self.public_key_path, "w") as pubkeyfile:
+                pubkeyfile.write(self.public_key)
 
         if sys.platform.startswith('win'):
-            cmdList = [OPENSSH.sshKeyGen, "-E", "md5",
-                       "-yl", "-f", self.privateKeyFilePath]
+            cmd_list = [OPENSSH.ssh_keygen, "-E", "md5",
+                        "-yl", "-f", self.private_key_path]
         else:
-            cmdList = [OPENSSH.sshKeyGen, "-yl", "-f", self.privateKeyFilePath]
-        logger.debug(" ".join(cmdList))
-        proc = subprocess.Popen(cmdList,
+            cmd_list = [OPENSSH.ssh_keygen, "-yl", "-f", self.private_key_path]
+        logger.debug(" ".join(cmd_list))
+        proc = subprocess.Popen(cmd_list,
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
@@ -203,20 +203,20 @@ class KeyPair():
             raise SshException(stdout)
 
         fingerprint = None
-        keyType = None
+        key_type = None
         if stdout is not None:
-            sshKeyGenOutComponents = stdout.split(b" ")
-            if len(sshKeyGenOutComponents) > 1:
-                fingerprint = sshKeyGenOutComponents[1]
+            ssh_keygen_out_components = stdout.split(b" ")
+            if len(ssh_keygen_out_components) > 1:
+                fingerprint = ssh_keygen_out_components[1]
                 if fingerprint.upper().startswith(b"MD5:"):
                     fingerprint = fingerprint[4:]
-            if len(sshKeyGenOutComponents) > 3:
-                keyType = sshKeyGenOutComponents[-1]\
+            if len(ssh_keygen_out_components) > 3:
+                key_type = ssh_keygen_out_components[-1]\
                     .strip().strip(b'(').strip(b')')
 
         if six.PY3:
-            return fingerprint.decode(), keyType.decode()
-        return fingerprint, keyType
+            return fingerprint.decode(), key_type.decode()
+        return fingerprint, key_type
 
     @property
     def fingerprint(self):
@@ -224,31 +224,31 @@ class KeyPair():
         Return public key fingerprint
         """
         if self._fingerprint is None:
-            self._fingerprint, self.keyType = self.ReadFingerprintAndKeyType()
+            self._fingerprint, self.key_type = self.read_fingerprint_and_key_type()
         return self._fingerprint
 
 
-def FindKeyPair(keyName="MyData", keyPath=None):
+def find_key_pair(key_name="MyData", key_path=None):
     """
     Find an SSH key pair
     """
-    if not keyPath:
-        keyPath = GetKeyPairLocation()
-    if os.path.exists(os.path.join(keyPath, keyName)):
-        with open(os.path.join(keyPath, keyName)) as keyFile:
-            for line in keyFile:
+    if not key_path:
+        key_path = get_key_pair_location()
+    if os.path.exists(os.path.join(key_path, key_name)):
+        with open(os.path.join(key_path, key_name)) as key_file:
+            for line in key_file:
                 if re.search(r"BEGIN .* PRIVATE KEY", line):
-                    privateKeyFilePath = os.path.join(keyPath, keyName)
-                    publicKeyFilePath = os.path.join(keyPath, keyName + ".pub")
-                    if not os.path.exists(publicKeyFilePath):
-                        publicKeyFilePath = None
-                    return KeyPair(privateKeyFilePath, publicKeyFilePath)
+                    private_key_path = os.path.join(key_path, key_name)
+                    public_key_path = os.path.join(key_path, key_name + ".pub")
+                    if not os.path.exists(public_key_path):
+                        public_key_path = None
+                    return KeyPair(private_key_path, public_key_path)
     return None
 
 
-def NewKeyPair(keyName=None, keyPath=None, keyComment=None):
+def new_key_pair(key_name=None, key_path=None, key_comment=None):
     """
-    Create an RSA key-pair in ~/.ssh/ (or in keyPath if specified)
+    Create an RSA key-pair in ~/.ssh/ (or in key_path if specified)
     for use with SSH and SCP.
 
     We use shell=True with subprocess to allow entering an empty
@@ -257,29 +257,29 @@ def NewKeyPair(keyName=None, keyPath=None, keyComment=None):
         "Saving key ""/Users/james/.ssh/MyData"" failed:
          passphrase is too short (minimum five characters)
     """
-    if keyName is None:
-        keyName = "MyData"
-    if keyComment is None:
-        keyComment = "MyData Key"
-    if keyPath is None:
-        keyPath = GetKeyPairLocation()
-    if not os.path.exists(keyPath):
-        os.makedirs(keyPath)
+    if key_name is None:
+        key_name = "MyData"
+    if key_comment is None:
+        key_comment = "MyData Key"
+    if key_path is None:
+        key_path = get_key_pair_location()
+    if not os.path.exists(key_path):
+        os.makedirs(key_path)
 
-    privateKeyFilePath = os.path.join(keyPath, keyName)
-    publicKeyFilePath = privateKeyFilePath + ".pub"
+    private_key_path = os.path.join(key_path, key_name)
+    public_key_path = private_key_path + ".pub"
 
     if sys.platform.startswith('win'):
-        quotedPrivateKeyFilePath = \
-            OpenSSH.DoubleQuote(GetCygwinPath(privateKeyFilePath))
+        quoted_private_key_path = \
+            OpenSSH.double_quote(get_cygwin_path(private_key_path))
     else:
-        quotedPrivateKeyFilePath = OpenSSH.DoubleQuote(privateKeyFilePath)
-    cmdList = \
-        [OpenSSH.DoubleQuote(OPENSSH.sshKeyGen),
-         "-f", quotedPrivateKeyFilePath,
+        quoted_private_key_path = OpenSSH.double_quote(private_key_path)
+    cmd_list = \
+        [OpenSSH.double_quote(OPENSSH.ssh_keygen),
+         "-f", quoted_private_key_path,
          "-N", '""',
-         "-C", OpenSSH.DoubleQuote(keyComment)]
-    cmd = " ".join(cmdList)
+         "-C", OpenSSH.double_quote(key_comment)]
+    cmd = " ".join(cmd_list)
     logger.debug(cmd)
     proc = subprocess.Popen(cmd,
                             stdin=subprocess.PIPE,
@@ -293,14 +293,14 @@ def NewKeyPair(keyName=None, keyPath=None, keyComment=None):
     if stdout is None or str(stdout).strip() == "":
         raise SshException("Received unexpected EOF from ssh-keygen.")
     if b"Your identification has been saved" in stdout:
-        return KeyPair(privateKeyFilePath, publicKeyFilePath)
+        return KeyPair(private_key_path, public_key_path)
     if b"already exists" in stdout:
         raise SshException("Private key file \"%s\" already exists."
-                           % privateKeyFilePath)
+                           % private_key_path)
     raise SshException(stdout)
 
 
-def GetKeyPairLocation():
+def get_key_pair_location():
     r"""
     Get a suitable location for the SSH key pair.
 
@@ -313,47 +313,47 @@ def GetKeyPairLocation():
     """
     if sys.platform.startswith("win"):
         return os.path.join(
-            os.path.dirname(SETTINGS.configPath), ".ssh")
+            os.path.dirname(SETTINGS.config_path), ".ssh")
     return os.path.join(os.path.expanduser('~'), ".ssh")
 
-def FindOrCreateKeyPair(keyName="MyData"):
+def find_or_create_key_pair(key_name="MyData"):
     r"""
     Find the MyData SSH key-pair, creating it if necessary
     """
-    keyPath = GetKeyPairLocation()
-    keyPair = FindKeyPair(keyName=keyName, keyPath=keyPath)
-    if not keyPair and sys.platform.startswith("win"):
+    key_path = get_key_pair_location()
+    key_pair = find_key_pair(key_name=key_name, key_path=key_path)
+    if not key_pair and sys.platform.startswith("win"):
         # Didn't find private key in shared config location,
         # so look in traditional ~/.ssh/ location:
-        keyPair = FindKeyPair(keyName=keyName)
-    if not keyPair:
-        keyPair = NewKeyPair(
-            keyName=keyName, keyPath=keyPath,
-            keyComment="%s@%s"
-            % (getpass.getuser(), SETTINGS.general.instrumentName))
-    return keyPair
+        key_pair = find_key_pair(key_name=key_name)
+    if not key_pair:
+        key_pair = new_key_pair(
+            key_name=key_name, key_path=key_path,
+            key_comment="%s@%s"
+            % (getpass.getuser(), SETTINGS.general.instrument_name))
+    return key_pair
 
 
-def SshServerIsReady(username, privateKeyFilePath,
-                     host, port):
+def ssh_server_is_ready(username, private_key_path,
+                        host, port):
     """
     Check if SSH server is ready
     """
     if sys.platform.startswith("win"):
-        privateKeyFilePath = GetCygwinPath(privateKeyFilePath)
+        private_key_path = get_cygwin_path(private_key_path)
 
-    cmdAndArgs = [
+    cmd_and_args = [
         OPENSSH.ssh,
         "-p", str(port),
-        "-i", privateKeyFilePath,
+        "-i", private_key_path,
         "-l", username,
         host,
         "echo Ready"
     ]
-    cmdAndArgs[1:1] = OpenSSH.DefaultSshOptions(
-        SETTINGS.miscellaneous.connectionTimeout)
-    logger.debug(" ".join(cmdAndArgs))
-    proc = subprocess.Popen(cmdAndArgs,
+    cmd_and_args[1:1] = OpenSSH.default_ssh_options(
+        SETTINGS.miscellaneous.connection_timeout)
+    logger.debug(" ".join(cmd_and_args))
+    proc = subprocess.Popen(cmd_and_args,
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
@@ -367,9 +367,9 @@ def SshServerIsReady(username, privateKeyFilePath,
     return returncode == 0
 
 
-def UploadFile(filePath, fileSize, username, privateKeyFilePath,
-               host, port, remoteFilePath, progressCallback,
-               uploadModel):
+def upload_file(file_path, file_size, username, private_key_path,
+                host, port, remote_file_path, progress_callback,
+                upload):
     """
     Upload a file to staging using SCP.
 
@@ -378,105 +378,105 @@ def UploadFile(filePath, fileSize, username, privateKeyFilePath,
     file.
     """
     if sys.platform.startswith("win"):
-        filePath = GetCygwinPath(filePath)
-        privateKeyFilePath = GetCygwinPath(privateKeyFilePath)
+        file_path = get_cygwin_path(file_path)
+        private_key_path = get_cygwin_path(private_key_path)
 
-    progressCallback(current=0, total=fileSize, message="Uploading...")
+    progress_callback(current=0, total=file_size, message="Uploading...")
 
-    monitoringProgress = threading.Event()
-    uploadModel.startTime = datetime.now()
-    MonitorProgress(SETTINGS.miscellaneous.progressPollInterval, uploadModel,
-                    fileSize, monitoringProgress, progressCallback)
+    monitoring_progress = threading.Event()
+    upload.startTime = datetime.now()
+    monitor_progress(SETTINGS.miscellaneous.progress_poll_interval, upload,
+                     file_size, monitoring_progress, progress_callback)
 
-    remoteDir = os.path.dirname(remoteFilePath)
+    remote_dir = os.path.dirname(remote_file_path)
     with LOCKS.createRemoteDir:  # pylint: disable=no-member
-        CreateRemoteDir(remoteDir, username, privateKeyFilePath, host, port)
+        create_remote_dir(remote_dir, username, private_key_path, host, port)
 
-    if ShouldCancelUpload(uploadModel):
-        logger.debug("UploadFile: Aborting upload for %s" % filePath)
+    if should_cancel_upload(upload):
+        logger.debug("upload_file: Aborting upload for %s" % file_path)
         return
 
-    scpCommandList = [
+    scp_command_list = [
         OPENSSH.scp,
         "-v",
         "-P", port,
-        "-i", privateKeyFilePath,
-        filePath,
+        "-i", private_key_path,
+        file_path,
         "%s@%s:%s" % (username, host,
-                      remoteDir
+                      remote_dir
                       .replace('`', r'\\`')
                       .replace('$', r'\\$'))]
-    scpCommandList[2:2] = SETTINGS.miscellaneous.cipherOptions
-    scpCommandList[2:2] = OpenSSH.DefaultSshOptions(
-        SETTINGS.miscellaneous.connectionTimeout)
+    scp_command_list[2:2] = SETTINGS.miscellaneous.cipher_options
+    scp_command_list[2:2] = OpenSSH.default_ssh_options(
+        SETTINGS.miscellaneous.connection_timeout)
 
     if not sys.platform.startswith("linux"):
-        ScpUpload(uploadModel, scpCommandList)
+        scp_upload(upload, scp_command_list)
     else:
-        ScpUploadWithErrandBoy(uploadModel, scpCommandList)
+        scp_upload_with_errand_boy(upload, scp_command_list)
 
-    SetRemoteFilePermissions(
-        remoteFilePath, username, privateKeyFilePath, host, port)
+    set_remote_file_permissions(
+        remote_file_path, username, private_key_path, host, port)
 
-    uploadModel.SetLatestTime(datetime.now())
-    progressCallback(current=fileSize, total=fileSize)
+    upload.SetLatestTime(datetime.now())
+    progress_callback(current=file_size, total=file_size)
 
 
-def ScpUpload(uploadModel, scpCommandList):
+def scp_upload(upload, scp_command_list):
     """
     Perfom an SCP upload using subprocess.Popen
     """
-    scpCommandString = " ".join(scpCommandList)
-    logger.debug(scpCommandString)
+    scp_command_string = " ".join(scp_command_list)
+    logger.debug(scp_command_string)
     try:
-        scpUploadProcess = subprocess.Popen(
-            scpCommandList,
+        scp_upload_process = subprocess.Popen(
+            scp_command_list,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             startupinfo=DEFAULT_STARTUP_INFO,
             creationflags=DEFAULT_CREATION_FLAGS)
-        uploadModel.scpUploadProcessPid = scpUploadProcess.pid
-        WaitForProcessToComplete(scpUploadProcess)
-        stdout, _ = scpUploadProcess.communicate()
-        if scpUploadProcess.returncode != 0:
+        upload.scp_upload_process_pid = scp_upload_process.pid
+        wait_for_process_to_complete(scp_upload_process)
+        stdout, _ = scp_upload_process.communicate()
+        if scp_upload_process.returncode != 0:
             raise ScpException(
-                stdout, scpCommandString, scpUploadProcess.returncode)
+                stdout, scp_command_string, scp_upload_process.returncode)
     except (IOError, OSError) as err:
-        raise ScpException(err, scpCommandString, returncode=255)
+        raise ScpException(err, scp_command_string, returncode=255)
 
 
-def ScpUploadWithErrandBoy(uploadModel, scpCommandList):
+def scp_upload_with_errand_boy(upload, scp_command_list):
     """
     Perfom an SCP upload using Errand Boy (Linux only), which triggers
     a subprocess in a separate Python process via a Unix domain socket.
 
     https://github.com/greyside/errand-boy
     """
-    scpCommandString = " ".join(scpCommandList)
-    logger.debug(scpCommandString)
+    scp_command_string = " ".join(scp_command_list)
+    logger.debug(scp_command_string)
     with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
         try:
-            scpUploadProcess = session.subprocess.Popen(
-                scpCommandList, stdout=subprocess.PIPE,
+            scp_upload_process = session.subprocess.Popen(
+                scp_command_list, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, close_fds=True,
                 preexec_fn=os.setpgrp)
-            uploadModel.status = UploadStatus.IN_PROGRESS
-            uploadModel.scpUploadProcessPid = scpUploadProcess.pid
+            upload.status = UploadStatus.IN_PROGRESS
+            upload.scp_upload_process_pid = scp_upload_process.pid
 
-            WaitForProcessToComplete(scpUploadProcess)
-            stdout, stderr = scpUploadProcess.communicate()
-            if scpUploadProcess.returncode != 0:
+            wait_for_process_to_complete(scp_upload_process)
+            stdout, stderr = scp_upload_process.communicate()
+            if scp_upload_process.returncode != 0:
                 if stdout and not stderr:
                     stderr = stdout
                 raise ScpException(
-                    stderr, scpCommandString, scpUploadProcess.returncode)
+                    stderr, scp_command_string, scp_upload_process.returncode)
         except (IOError, OSError) as err:
-            raise ScpException(err, scpCommandString, returncode=255)
+            raise ScpException(err, scp_command_string, returncode=255)
 
 
-def SetRemoteFilePermissions(remoteFilePath, username, privateKeyFilePath,
-                             host, port):
+def set_remote_file_permissions(remote_file_path, username, private_key_path,
+                                host, port):
     """
     Ensure that the mytardis account (via the mytardis group) has read and
     write access to the uploaded data so that it can be moved from staging into
@@ -487,46 +487,46 @@ def SetRemoteFilePermissions(remoteFilePath, username, privateKeyFilePath,
     command, so we could investigate switching from scp to rsync, but rsync is
     likely to be slower in most cases.
     """
-    chmodCmdAndArgs = \
+    chmod_cmd_and_args = \
         [OPENSSH.ssh,
          "-p", port,
          "-n",
          "-c", SETTINGS.miscellaneous.cipher,
-         "-i", privateKeyFilePath,
+         "-i", private_key_path,
          "-l", username,
          host,
-         "chmod 660 %s" % OpenSSH.DoubleQuoteRemotePath(remoteFilePath)]
-    chmodCmdAndArgs[1:1] = OpenSSH.DefaultSshOptions(
-        SETTINGS.miscellaneous.connectionTimeout)
-    logger.debug(" ".join(chmodCmdAndArgs))
+         "chmod 660 %s" % OpenSSH.double_quote_remote_path(remote_file_path)]
+    chmod_cmd_and_args[1:1] = OpenSSH.default_ssh_options(
+        SETTINGS.miscellaneous.connection_timeout)
+    logger.debug(" ".join(chmod_cmd_and_args))
     if not sys.platform.startswith("linux"):
-        chmodProcess = \
-            subprocess.Popen(chmodCmdAndArgs,
+        chmod_process = \
+            subprocess.Popen(chmod_cmd_and_args,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
                              startupinfo=DEFAULT_STARTUP_INFO,
                              creationflags=DEFAULT_CREATION_FLAGS)
-        stdout, _ = chmodProcess.communicate()
-        if chmodProcess.returncode != 0:
-            raise SshException(stdout, chmodProcess.returncode)
+        stdout, _ = chmod_process.communicate()
+        if chmod_process.returncode != 0:
+            raise SshException(stdout, chmod_process.returncode)
     else:
         with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
             try:
-                chmodProcess = session.subprocess.Popen(
-                    chmodCmdAndArgs, stdout=subprocess.PIPE,
+                chmod_process = session.subprocess.Popen(
+                    chmod_cmd_and_args, stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE, close_fds=True,
                     preexec_fn=os.setpgrp)
-                stdout, stderr = chmodProcess.communicate()
-                if chmodProcess.returncode != 0:
+                stdout, stderr = chmod_process.communicate()
+                if chmod_process.returncode != 0:
                     if stdout and not stderr:
                         stderr = stdout
-                    raise SshException(stderr, chmodProcess.returncode)
+                    raise SshException(stderr, chmod_process.returncode)
             except (IOError, OSError) as err:
                 raise SshException(err, returncode=255)
 
 
-def WaitForProcessToComplete(process):
+def wait_for_process_to_complete(process):
     """
     subprocess's communicate should do this automatically,
     but sometimes it polls too aggressively, putting unnecessary
@@ -536,54 +536,54 @@ def WaitForProcessToComplete(process):
         poll = process.poll()
         if poll is not None:
             break
-        time.sleep(SLEEP_FACTOR * SETTINGS.advanced.maxUploadThreads)
+        time.sleep(SLEEP_FACTOR * SETTINGS.advanced.max_upload_threads)
 
 
-def CreateRemoteDir(remoteDir, username, privateKeyFilePath, host, port):
+def create_remote_dir(remote_dir, username, private_key_path, host, port):
     """
     Create a remote directory over SSH
     """
-    if remoteDir not in REMOTE_DIRS_CREATED:
-        mkdirCmdAndArgs = \
+    if remote_dir not in REMOTE_DIRS_CREATED:
+        mkdir_cmd_and_args = \
             [OPENSSH.ssh,
              "-p", port,
              "-n",
              "-c", SETTINGS.miscellaneous.cipher,
-             "-i", privateKeyFilePath,
+             "-i", private_key_path,
              "-l", username,
              host,
-             "mkdir -m 2770 -p %s" % remoteDir]
-        mkdirCmdAndArgs[1:1] = OpenSSH.DefaultSshOptions(
-            SETTINGS.miscellaneous.connectionTimeout)
-        logger.debug(" ".join(mkdirCmdAndArgs))
+             "mkdir -m 2770 -p %s" % remote_dir]
+        mkdir_cmd_and_args[1:1] = OpenSSH.default_ssh_options(
+            SETTINGS.miscellaneous.connection_timeout)
+        logger.debug(" ".join(mkdir_cmd_and_args))
         if not sys.platform.startswith("linux"):
-            mkdirProcess = \
-                subprocess.Popen(mkdirCmdAndArgs,
+            mkdir_process = \
+                subprocess.Popen(mkdir_cmd_and_args,
                                  stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT,
                                  startupinfo=DEFAULT_STARTUP_INFO,
                                  creationflags=DEFAULT_CREATION_FLAGS)
-            stdout, _ = mkdirProcess.communicate()
-            if mkdirProcess.returncode != 0:
-                raise SshException(stdout, mkdirProcess.returncode)
+            stdout, _ = mkdir_process.communicate()
+            if mkdir_process.returncode != 0:
+                raise SshException(stdout, mkdir_process.returncode)
         else:
             with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
                 try:
-                    mkdirProcess = session.subprocess.Popen(
-                        mkdirCmdAndArgs, stdout=subprocess.PIPE,
+                    mkdir_process = session.subprocess.Popen(
+                        mkdir_cmd_and_args, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, close_fds=True,
                         preexec_fn=os.setpgrp)
-                    stdout, stderr = mkdirProcess.communicate()
-                    if mkdirProcess.returncode != 0:
+                    stdout, stderr = mkdir_process.communicate()
+                    if mkdir_process.returncode != 0:
                         if stdout and not stderr:
                             stderr = stdout
-                        raise SshException(stderr, mkdirProcess.returncode)
+                        raise SshException(stderr, mkdir_process.returncode)
                 except (IOError, OSError) as err:
                     raise SshException(err, returncode=255)
-        REMOTE_DIRS_CREATED[remoteDir] = True
+        REMOTE_DIRS_CREATED[remote_dir] = True
 
-def GetCygwinPath(path):
+def get_cygwin_path(path):
     """
     Converts "C:\\path\\to\\file" to "/cygdrive/C/path/to/file".
     """
@@ -592,11 +592,11 @@ def GetCygwinPath(path):
     if match:
         return "/cygdrive/" + match.groups()[0] + \
             match.groups()[1].replace("\\", "/")
-    raise Exception("OpenSSH.GetCygwinPath: %s doesn't look like "
+    raise Exception("OpenSSH.get_cygwin_path: %s doesn't look like "
                     "a valid path." % path)
 
 
-def CleanUpScpAndSshProcesses():
+def clean_up_scp_and_ssh_processes():
     """
     SCP can leave orphaned SSH processes which need to be cleaned up.
     On Windows, we bundle our own SSH binary with MyData, so we can
@@ -604,19 +604,19 @@ def CleanUpScpAndSshProcesses():
     matches MyData's SSH path.  On other platforms, we can use proc.cmdline()
     to ensure that the SSH process we're killing uses MyData's private key.
     """
-    if not SETTINGS.uploaderModel:
+    if not SETTINGS.uploader:
         return
     try:
-        privateKeyPath = SETTINGS.uploaderModel.sshKeyPair.privateKeyFilePath
+        private_key_path = SETTINGS.uploader.sshKeyPair.private_key_path
     except AttributeError:
-        # If sshKeyPair or privateKeyFilePath hasn't been defined yet,
+        # If sshKeyPair or private_key_path hasn't been defined yet,
         # then there won't be any SCP or SSH processes to kill.
         return
     for proc in psutil.process_iter():
         try:
             if proc.exe() == OPENSSH.ssh or proc.exe() == OPENSSH.scp:
                 try:
-                    if privateKeyPath in proc.cmdline() or \
+                    if private_key_path in proc.cmdline() or \
                             sys.platform.startswith("win"):
                         proc.kill()
                 except:

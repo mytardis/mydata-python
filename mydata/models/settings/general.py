@@ -18,7 +18,7 @@ class GeneralSettingsModel(BaseSettingsModel):
         super(GeneralSettingsModel, self).__init__()
 
         # Saved in MyData.cfg:
-        self.mydataConfig = dict()
+        self.mydata_config = dict()
 
         self.fields = [
             'instrument_name',
@@ -41,23 +41,23 @@ class GeneralSettingsModel(BaseSettingsModel):
             username="",
             api_key="")
 
-        self._defaultOwner = None
+        self._default_owner = None
         self._instrument = None
         self._facility = None
 
     @property
-    def instrumentName(self):
+    def instrument_name(self):
         """
         Get instrument name
         """
-        return self.mydataConfig['instrument_name']
+        return self.mydata_config['instrument_name']
 
-    @instrumentName.setter
-    def instrumentName(self, instrumentName):
+    @instrument_name.setter
+    def instrument_name(self, instrument_name):
         """
         Set instrument name
         """
-        self.mydataConfig['instrument_name'] = instrumentName
+        self.mydata_config['instrument_name'] = instrument_name
         self._instrument = None
 
     @property
@@ -69,29 +69,29 @@ class GeneralSettingsModel(BaseSettingsModel):
         if self._instrument:
             return self._instrument
         try:
-            self._instrument = InstrumentModel.GetInstrument(
-                self.facility, self.instrumentName)
+            self._instrument = InstrumentModel.get_instrument(
+                self.facility, self.instrument_name)
         except DoesNotExist:
             logger.info("No instrument record with name \"%s\" was found "
                         "in facility \"%s\", so we will create one."
-                        % (self.instrumentName, self.facilityName))
-            self._instrument = InstrumentModel.CreateInstrument(
-                self.facility, self.instrumentName)
+                        % (self.instrument_name, self.facility_name))
+            self._instrument = InstrumentModel.create_instrument(
+                self.facility, self.instrument_name)
         return self._instrument
 
     @property
-    def facilityName(self):
+    def facility_name(self):
         """
         Get facility name
         """
-        return self.mydataConfig['facility_name']
+        return self.mydata_config['facility_name']
 
-    @facilityName.setter
-    def facilityName(self, facilityName):
+    @facility_name.setter
+    def facility_name(self, facility_name):
         """
         Set facility name
         """
-        self.mydataConfig['facility_name'] = facilityName
+        self.mydata_config['facility_name'] = facility_name
         self._facility = None
 
     @property
@@ -102,76 +102,76 @@ class GeneralSettingsModel(BaseSettingsModel):
         from ..facility import FacilityModel
         if self._facility:
             return self._facility
-        facilities = FacilityModel.GetMyFacilities()
+        facilities = FacilityModel.get_my_facilities()
         for facility in facilities:
-            if self.facilityName == facility.name:
+            if self.facility_name == facility.name:
                 self._facility = facility
         return self._facility
 
     @property
-    def contactName(self):
+    def contact_name(self):
         """
         Get contact name
         """
-        return self.mydataConfig['contact_name']
+        return self.mydata_config['contact_name']
 
-    @contactName.setter
-    def contactName(self, contactName):
+    @contact_name.setter
+    def contact_name(self, contact_name):
         """
         Set contact name
         """
-        self.mydataConfig['contact_name'] = contactName
+        self.mydata_config['contact_name'] = contact_name
 
     @property
-    def contactEmail(self):
+    def contact_email(self):
         """
         Set contact email
         """
-        return self.mydataConfig['contact_email']
+        return self.mydata_config['contact_email']
 
-    @contactEmail.setter
-    def contactEmail(self, contactEmail):
+    @contact_email.setter
+    def contact_email(self, contact_email):
         """
         Set contact email
         """
-        self.mydataConfig['contact_email'] = contactEmail
+        self.mydata_config['contact_email'] = contact_email
 
     @property
-    def dataDirectory(self):
+    def data_directory(self):
         """
         Get root data directory
         """
-        return self.mydataConfig['data_directory']
+        return self.mydata_config['data_directory']
 
-    @dataDirectory.setter
-    def dataDirectory(self, dataDirectory):
+    @data_directory.setter
+    def data_directory(self, data_directory):
         """
         Set root data directory
         """
-        self.mydataConfig['data_directory'] = dataDirectory
+        self.mydata_config['data_directory'] = data_directory
 
     @property
-    def myTardisUrl(self):
+    def mytardis_url(self):
         """
         Get MyTardis URL
         """
-        return self.mydataConfig['mytardis_url']
+        return self.mydata_config['mytardis_url']
 
     @property
-    def myTardisApiUrl(self):
+    def mytardis_api_url(self):
         """
         Get MyTardis API URL
         """
-        return self.mydataConfig['mytardis_url'] + "/api/v1/?format=json"
+        return self.mydata_config['mytardis_url'] + "/api/v1/?format=json"
 
-    @myTardisUrl.setter
-    def myTardisUrl(self, myTardisUrl):
+    @mytardis_url.setter
+    def mytardis_url(self, mytardis_url):
         """
         Set MyTardis API URL
         """
-        self.mydataConfig['mytardis_url'] = \
-            myTardisUrl.rstrip('/') if myTardisUrl else myTardisUrl
-        self._defaultOwner = None
+        self.mydata_config['mytardis_url'] = \
+            mytardis_url.rstrip('/') if mytardis_url else mytardis_url
+        self._default_owner = None
         self._instrument = None
         self._facility = None
 
@@ -180,49 +180,49 @@ class GeneralSettingsModel(BaseSettingsModel):
         """
         Get MyTardis username (should be a facility manager)
         """
-        return self.mydataConfig['username']
+        return self.mydata_config['username']
 
     @username.setter
     def username(self, username):
         """
         Set MyTardis username (should be a facility manager)
         """
-        self.mydataConfig['username'] = username
-        self._defaultOwner = None
+        self.mydata_config['username'] = username
+        self._default_owner = None
         self._instrument = None
         self._facility = None
 
     @property
-    def defaultOwner(self):
+    def default_owner(self):
         """
         Get user model for the specified MyTardis username
         """
         from ..user import UserModel
-        if not self._defaultOwner:
-            self._defaultOwner = UserModel.GetUserByUsername(self.username)
-        return self._defaultOwner
+        if not self._default_owner:
+            self._default_owner = UserModel.get_user_by_username(self.username)
+        return self._default_owner
 
-    @defaultOwner.setter
-    def defaultOwner(self, defaultOwner):
+    @default_owner.setter
+    def default_owner(self, default_owner):
         """
         Set default user model for assigning experiment ACLs.
         Only used by tests.
         """
-        self._defaultOwner = defaultOwner
+        self._default_owner = default_owner
 
     @property
-    def apiKey(self):
+    def api_key(self):
         """
         Get API key
         """
-        return self.mydataConfig['api_key']
+        return self.mydata_config['api_key']
 
-    @apiKey.setter
-    def apiKey(self, apiKey):
+    @api_key.setter
+    def api_key(self, api_key):
         """
         Set API key
         """
-        self.mydataConfig['api_key'] = apiKey
-        self._defaultOwner = None
+        self.mydata_config['api_key'] = api_key
+        self._default_owner = None
         self._instrument = None
         self._facility = None

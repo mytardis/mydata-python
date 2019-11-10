@@ -15,30 +15,29 @@ class UserModel():
     """
     Model class for MyTardis API v1's UserResource.
     """
-    userNotFoundString = "USER NOT FOUND IN MYTARDIS"
+    user_not_found_string = "USER NOT FOUND IN MYTARDIS"
 
-    def __init__(self, dataViewId=None, username=None,
-                 fullName=None, email=None,
-                 userRecordJson=None, userNotFoundInMyTardis=False):
-        self.userId = None
-        self.dataViewId = dataViewId
+    def __init__(self, username=None,
+                 full_name=None, email=None,
+                 user_dict=None, user_not_found_in_mytardis=False):
+        self.user_id = None
         self._username = username
-        self._fullName = fullName
+        self._full_name = full_name
         self._email = email
         self.groups = []
-        self.userNotFoundInMyTardis = userNotFoundInMyTardis
+        self.user_not_found_in_mytardis = user_not_found_in_mytardis
 
-        if userRecordJson is not None:
-            self.userId = userRecordJson['id']
+        if user_dict is not None:
+            self.user_id = user_dict['id']
             if username is None:
-                self._username = userRecordJson['username']
-            if fullName is None:
-                self._fullName = userRecordJson['first_name'] + " " + \
-                    userRecordJson['last_name']
+                self._username = user_dict['username']
+            if full_name is None:
+                self._full_name = user_dict['first_name'] + " " + \
+                    user_dict['last_name']
             if email is None:
-                self._email = userRecordJson['email']
-            for group in userRecordJson['groups']:
-                self.groups.append(GroupModel(groupJson=group))
+                self._email = user_dict['email']
+            for group_dict in user_dict['groups']:
+                self.groups.append(GroupModel(group_dict=group_dict))
 
     @property
     def username(self):
@@ -49,7 +48,7 @@ class UserModel():
         if self._username:
             username = self._username
         else:
-            username = UserModel.userNotFoundString
+            username = UserModel.user_not_found_string
         return username
 
     @username.setter
@@ -60,23 +59,23 @@ class UserModel():
         self._username = username
 
     @property
-    def fullName(self):
+    def full_name(self):
         """
         Return the user's full name or a string indicating
         that the user was not found on the MyTardis server
         """
-        if self._fullName:
-            fullName = self._fullName
+        if self._full_name:
+            full_name = self._full_name
         else:
-            fullName = UserModel.userNotFoundString
-        return fullName
+            full_name = UserModel.user_not_found_string
+        return full_name
 
-    @fullName.setter
-    def fullName(self, fullName):
+    @full_name.setter
+    def full_name(self, full_name):
         """
         Set the user's full name
         """
-        self._fullName = fullName
+        self._full_name = full_name
 
     @property
     def email(self):
@@ -87,7 +86,7 @@ class UserModel():
         if self._email:
             email = self._email
         else:
-            email = UserModel.userNotFoundString
+            email = UserModel.user_not_found_string
         return email
 
     @email.setter
@@ -97,85 +96,85 @@ class UserModel():
         """
         self._email = email
 
-    def GetValueForKey(self, key):
+    def get_value_for_key(self, key):
         """
         Return value of field from the User model
         to display in the Users or Folders view
         """
         if hasattr(self, key) and getattr(self, key, None):
             return getattr(self, key)
-        if key in ('username', 'fullName', 'email') and \
-                self.userNotFoundInMyTardis:
-            value = UserModel.userNotFoundString
+        if key in ('username', 'full_name', 'email') and \
+                self.user_not_found_in_mytardis:
+            value = UserModel.user_not_found_string
         else:
             value = None
         return value
 
     @staticmethod
-    def GetUserByUsername(username):
+    def get_user_by_username(username):
         """
         Get user by username
 
         :raises requests.exceptions.HTTPError:
         """
         url = "%s/api/v1/user/?format=json&username=%s" \
-            % (SETTINGS.general.myTardisUrl, username)
-        response = requests.get(url=url, headers=SETTINGS.defaultHeaders)
+            % (SETTINGS.general.mytardis_url, username)
+        response = requests.get(url=url, headers=SETTINGS.default_headers)
         response.raise_for_status()
-        userRecordsJson = response.json()
-        numUserRecordsFound = userRecordsJson['meta']['total_count']
+        user_dicts = response.json()
+        num_user_records_found = user_dicts['meta']['total_count']
 
-        if numUserRecordsFound == 0:
+        if num_user_records_found == 0:
             raise DoesNotExist(
                 message="User \"%s\" was not found in MyTardis" % username,
                 response=response)
         logger.debug("Found user record for username '" + username + "'.")
         return UserModel(username=username,
-                         userRecordJson=userRecordsJson['objects'][0])
+                         user_dict=user_dicts['objects'][0])
 
     @staticmethod
-    def GetUserByEmail(email):
+    def get_user_by_email(email):
         """
         Get user by email
 
         :raises requests.exceptions.HTTPError:
         """
         url = "%s/api/v1/user/?format=json&email__iexact=%s" \
-            % (SETTINGS.general.myTardisUrl,
+            % (SETTINGS.general.mytardis_url,
                urllib.parse.quote(email.encode('utf-8')))
-        response = requests.get(url=url, headers=SETTINGS.defaultHeaders)
+        response = requests.get(url=url, headers=SETTINGS.default_headers)
         response.raise_for_status()
-        userRecordsJson = response.json()
-        numUserRecordsFound = userRecordsJson['meta']['total_count']
+        user_dicts = response.json()
+        num_user_records_found = user_dicts['meta']['total_count']
 
-        if numUserRecordsFound == 0:
+        if num_user_records_found == 0:
             raise DoesNotExist(
                 message="User with email \"%s\" was not found in MyTardis"
                 % email,
                 response=response)
         logger.debug("Found user record for email '" + email + "'.")
-        return UserModel(userRecordJson=userRecordsJson['objects'][0])
+        return UserModel(user_dict=user_dicts['objects'][0])
 
     @staticmethod
-    def GetUserForFolder(userFolderName, userNotFoundInMyTardis=False):
+    def get_user_for_folder(user_folder_name, user_not_found_in_mytardis=False):
         """
         Return a UserModel for a username or email folder
 
-        Set userNotFoundInMyTardis to True if you already know there is
+        Set user_not_found_in_mytardis to True if you already know there is
         no corresponding user record in MyTardis, but you want to create
         a "USER NOT FOUND" dummy record to render in MyData's users table.
         """
-        folderStructure = SETTINGS.advanced.folderStructure
-        if folderStructure.startswith("Username"):
-            if userNotFoundInMyTardis:
+        folder_structure = SETTINGS.advanced.folder_structure
+        if folder_structure.startswith("Username"):
+            if user_not_found_in_mytardis:
                 return UserModel(
-                    username=userFolderName, userNotFoundInMyTardis=True)
-            return UserModel.GetUserByUsername(userFolderName)
-        if folderStructure.startswith("Email"):
-            if userNotFoundInMyTardis:
+                    username=user_folder_name, user_not_found_in_mytardis=True)
+            return UserModel.get_user_by_username(user_folder_name)
+        if folder_structure.startswith("Email"):
+            if user_not_found_in_mytardis:
                 return UserModel(
-                    email=userFolderName, userNotFoundInMyTardis=True)
-            return UserModel.GetUserByEmail(userFolderName)
+                    email=user_folder_name, user_not_found_in_mytardis=True)
+            return UserModel.get_user_by_email(user_folder_name)
         return None
 
 class UserProfileModel():

@@ -1,70 +1,61 @@
 """
 Model class for MyTardis API v1's StorageBoxResource.
 """
-from ..utils import UnderscoreToCamelcase
-
-
 class StorageBox():
     """
     Model class for MyTardis API v1's StorageBoxResource.
     """
-    def __init__(self, storageBoxJson):
-        self.json = storageBoxJson
-        self.storageBoxId = None
-        self.djangoStorageClass = None
-        self.maxSize = None
+    def __init__(self, storagebox_dict):
+        self.storage_box_id = None
+        self.django_storage_class = None
+        self.max_size = None
         self.status = None
         self.name = None
         self.description = None
-        self.masterBox = None
+        self.master_box = None
         self.options = []
         self.attributes = []
-        if storageBoxJson is not None:
-            for key in storageBoxJson:
-                attr = UnderscoreToCamelcase(key)
+        if storagebox_dict is not None:
+            for attr in storagebox_dict:
                 if attr == "id":
-                    attr = "storageBoxId"
+                    attr = "storage_box_id"
                 if hasattr(self, attr):
-                    self.__dict__[attr] = storageBoxJson[key]
+                    self.__dict__[attr] = storagebox_dict[attr]
             self.options = []
-            for optionJson in storageBoxJson['options']:
-                self.options.append(StorageBoxOption(optionJson=optionJson))
+            for option_dict in storagebox_dict['options']:
+                self.options.append(StorageBoxOption(option_dict=option_dict))
             self.attributes = []
-            for attrJson in storageBoxJson['attributes']:
-                self.attributes.append(StorageBoxAttribute(attrJson=attrJson))
+            for attr_dict in storagebox_dict['attributes']:
+                self.attributes.append(StorageBoxAttribute(attr_dict=attr_dict))
 
 
 class StorageBoxOption():
     """
     Model class for MyTardis API v1's StorageBoxOptionResource.
     """
-    def __init__(self, optionJson):
-        self.json = optionJson
-        self.storageBoxOptionId = None
+    def __init__(self, option_dict):
+        self.storageboxoption_id = None
         self.key = None
         self.value = None
-        if optionJson is not None:
-            for key in optionJson:
-                attr = UnderscoreToCamelcase(key)
+        if option_dict is not None:
+            for attr in option_dict:
                 if attr == "id":
-                    attr = "storageBoxOptionId"
+                    attr = "storageboxoption_id"
                 if hasattr(self, attr):
-                    self.__dict__[attr] = optionJson[key]
+                    self.__dict__[attr] = option_dict[attr]
 
 
 class StorageBoxAttribute():
     """
     Model class for MyTardis API v1's StorageBoxAttributeResource.
     """
-    def __init__(self, attrJson):
-        self.json = attrJson
-        self.storageBoxAttributeId = None
+    def __init__(self, attr_dict):
+        self.storageboxattribute_id = None
         self.key = None
         self.value = None
-        if attrJson is not None:
-            for key in attrJson:
-                attr = UnderscoreToCamelcase(key)
+        if attr_dict is not None:
+            for attr in attr_dict:
                 if attr == "id":
-                    attr = "storageBoxAttributeId"
+                    attr = "storageboxattribute_id"
                 if hasattr(self, attr):
-                    self.__dict__[attr] = attrJson[key]
+                    self.__dict__[attr] = attr_dict[attr]

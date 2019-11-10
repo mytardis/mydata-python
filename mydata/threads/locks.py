@@ -4,7 +4,7 @@ Locks for thread synchronization
 import threading
 
 LOCK_NAMES = [
-    'scanningFolders', 'createUploader', 'requestStagingAccess',
+    'scanning_folders', 'createUploader', 'requestStagingAccess',
     'updateCache', 'closeCache', 'displayModalDialog',
     'updateLastErrorMessage', 'updateLastConfirmationQuestion',
     'addVerification', 'addUpload', 'finishedCounting', 'getOrCreateExp',
@@ -15,7 +15,7 @@ class ThreadingLocks():
     """
     Locks for thread synchronization.
 
-    Each lock can be accessed as LOCKS.[lockName] e.g. LOCKS.updateCache
+    Each lock can be accessed as LOCKS.[lock_name] e.g. LOCKS.updateCache
     where LOCKS is the singleton instance of the ThreadingLocks class.
 
     Usage:
@@ -31,10 +31,10 @@ class ThreadingLocks():
         always be the LOCKS instance.
         """
         self._locks = dict()
-        for lockName in LOCK_NAMES:
-            self._locks[lockName] = threading.Lock()
-            setattr(ThreadingLocks, lockName,
-                    property(lambda self, key=lockName: self._locks[key]))
+        for lock_name in LOCK_NAMES:
+            self._locks[lock_name] = threading.Lock()
+            setattr(ThreadingLocks, lock_name,
+                    property(lambda self, key=lock_name: self._locks[key]))
 
 
 LOCKS = ThreadingLocks()

@@ -9,7 +9,7 @@ import signal
 import traceback
 
 from ..logs import logger
-from ..utils import HumanReadableSizeString
+from ..utils import human_readable_size_string
 
 
 class UploadStatus():
@@ -36,66 +36,65 @@ class UploadModel():
     """
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, dataViewId, folderModel, dataFileIndex):
-        self.dataViewId = dataViewId
-        self.dataFileIndex = dataFileIndex
-        self.dataFileId = None
-        self.folderName = folderModel.folderName
-        self.subdirectory = folderModel.GetDataFileDirectory(dataFileIndex)
-        self.filename = folderModel.GetDataFileName(dataFileIndex)
+    def __init__(self, folder, datafile_index):
+        self.datafile_index = datafile_index
+        self.datafile_id = None
+        self.folder_name = folder.name
+        self.subdirectory = folder.GetDataFileDirectory(datafile_index)
+        self.filename = folder.GetDataFileName(datafile_index)
         # Human-readable string displayed in data view:
-        self.filesizeString = ""
+        self.filesize_string = ""
 
         # Number of bytes uploaded (used to render progress bar):
-        self.bytesUploaded = 0
+        self.bytes_uploaded = 0
         self.progress = 0  # Percentage used to render progress bar
         self.status = UploadStatus.NOT_STARTED
         self.message = ""
         self.speed = ""
         self.traceback = None
-        self._fileSize = 0  # File size long integer in bytes
+        self._file_size = 0  # File size long integer in bytes
         self.canceled = False
         self.retries = 0
 
         # Only used with UploadMethod.HTTP_POST:
-        self.bufferedReader = None
+        self.buffered_reader = None
 
         # Only used with UploadMethod.VIA_STAGING:
-        self.scpUploadProcessPid = None
-        self._existingUnverifiedDatafile = None
+        self.scp_upload_process_pid = None
+        self._existing_unverified_datafile = None
         # The DataFileObject ID, also known as the replica ID:
-        self.dfoId = None
+        self.dfo_id = None
         # Number of bytes previously uploaded, or None if the file is not yet
         # on the staging area:
-        self.bytesUploadedPreviously = None
+        self.bytes_uploaded_previously = None
 
-        self.startTime = None
+        self.start_time = None
         # The latest time at which upload progress has been measured:
-        self.latestTime = None
+        self.latest_time = None
 
         # After the file is uploaded, MyData will request verification
         # after a short delay.  During that delay, the countdown timer
         # will be stored in the UploadModel so that it can be canceled
         # if necessary:
-        self.verificationTimer = None
+        self.verification_timer = None
 
-    def SetBytesUploaded(self, bytesUploaded):
+    def set_bytes_uploaded(self, bytes_uploaded):
         """
         Set the number of bytes uploaded and update
         the elapsed time and upload speed.
         """
-        self.bytesUploaded = bytesUploaded
-        if self.bytesUploaded and self.latestTime:
-            elapsedTime = self.latestTime - self.startTime
-            if elapsedTime.total_seconds():
-                speedMBs = (float(self.bytesUploaded) / 1000000.0 /
-                            elapsedTime.total_seconds())
-                if speedMBs >= 1.0:
-                    self.speed = "%3.1f MB/s" % speedMBs
+        self.bytes_uploaded = bytes_uploaded
+        if self.bytes_uploaded and self.latest_time:
+            elapsed_time = self.latest_time - self.start_time
+            if elapsed_time.total_seconds():
+                speed_mbs = (float(self.bytes_uploaded) / 1000000.0 /
+                             elapsed_time.total_seconds())
+                if speed_mbs >= 1.0:
+                    self.speed = "%3.1f MB/s" % speed_mbs
                 else:
-                    self.speed = "%3.1f KB/s" % (speedMBs * 1000.0)
+                    self.speed = "%3.1f KB/s" % (speed_mbs * 1000.0)
 
-    def SetProgress(self, progress):
+    def set_progress(self, progress):
         """
         Set upload progress and update UploadStatus.
         """
@@ -103,32 +102,32 @@ class UploadModel():
         if 0 < progress < 100:
             self.status = UploadStatus.IN_PROGRESS
 
-    def SetLatestTime(self, latestTime):
+    def set_latest_time(self, latest_time):
         """
         Set the latest time at which this upload is/was still progressing.
 
         This is updated while the upload is still in progress, so we can
         provide real time upload speed estimates.
         """
-        self.latestTime = latestTime
-        if self.bytesUploaded and self.latestTime:
-            elapsedTime = self.latestTime - self.startTime
-            if elapsedTime.total_seconds():
-                speedMBs = (float(self.bytesUploaded) / 1000000.0 /
-                            elapsedTime.total_seconds())
-                if speedMBs >= 1.0:
-                    self.speed = "%3.1f MB/s" % speedMBs
+        self.latest_time = latest_time
+        if self.bytes_uploaded and self.latest_time:
+            elapsed_time = self.latest_time - self.start_time
+            if elapsed_time.total_seconds():
+                speed_mbs = (float(self.bytes_uploaded) / 1000000.0 /
+                             elapsed_time.total_seconds())
+                if speed_mbs >= 1.0:
+                    self.speed = "%3.1f MB/s" % speed_mbs
                 else:
-                    self.speed = "%3.1f KB/s" % (speedMBs * 1000.0)
+                    self.speed = "%3.1f KB/s" % (speed_mbs * 1000.0)
 
-    def GetValueForKey(self, key):
+    def get_value_for_key(self, key):
         """
         Return value of field from the UploadModel
         to display in the Uploads view
         """
         return getattr(self, key)
 
-    def GetRelativePathToUpload(self):
+    def get_relative_path_to_upload(self):
         """
         Get the local path to this UploadModel's file,
         relative to the dataset folder
@@ -139,63 +138,63 @@ class UploadModel():
             relpath = self.filename
         return relpath
 
-    def Cancel(self):
+    def cancel(self):
         """
         Abort this upload
         """
         try:
             self.canceled = True
             self.status = UploadStatus.CANCELED
-            if self.verificationTimer:
+            if self.verification_timer:
                 try:
-                    self.verificationTimer.cancel()
+                    self.verification_timer.cancel()
                 except:
                     logger.error(traceback.format_exc())
-            if self.bufferedReader is not None:
-                self.bufferedReader.close()
+            if self.buffered_reader is not None:
+                self.buffered_reader.close()
                 logger.debug("Closed buffered reader for \"" +
-                             self.GetRelativePathToUpload() +
+                             self.get_relative_path_to_upload() +
                              "\".")
-            if self.scpUploadProcessPid:
+            if self.scp_upload_process_pid:
                 if sys.platform.startswith("win"):
-                    os.kill(self.scpUploadProcessPid, signal.SIGABRT)
+                    os.kill(self.scp_upload_process_pid, signal.SIGABRT)
                 else:
-                    os.kill(self.scpUploadProcessPid, signal.SIGKILL)
+                    os.kill(self.scp_upload_process_pid, signal.SIGKILL)
         except:
             logger.warning(traceback.format_exc())
 
     @property
-    def fileSize(self):
+    def file_size(self):
         """
         Return the file-to-be-uploaded's file size
         """
-        return self._fileSize
+        return self._file_size
 
-    @fileSize.setter
-    def fileSize(self, fileSize):
+    @file_size.setter
+    def file_size(self, file_size):
         """
         Record the file-to-be-uploaded's file size and update the
         human-readable string version of the file size
         """
-        self._fileSize = fileSize
-        self.filesizeString = HumanReadableSizeString(self._fileSize)
+        self._file_size = file_size
+        self.filesize_string = human_readable_size_string(self._file_size)
 
     @property
-    def existingUnverifiedDatafile(self):
+    def existing_unverified_datafile(self):
         """
         Return the existing unverified DataFile record (if any)
         associated with this upload
         """
-        return self._existingUnverifiedDatafile
+        return self._existing_unverified_datafile
 
-    @existingUnverifiedDatafile.setter
-    def existingUnverifiedDatafile(self, existingUnverifiedDatafile):
+    @existing_unverified_datafile.setter
+    def existing_unverified_datafile(self, existing_unverified_datafile):
         """
         Record an existing unverified DataFile
         """
-        self._existingUnverifiedDatafile = existingUnverifiedDatafile
-        if self._existingUnverifiedDatafile:
-            self.dataFileId = self._existingUnverifiedDatafile.datafileId
-            replicas = self._existingUnverifiedDatafile.replicas
+        self._existing_unverified_datafile = existing_unverified_datafile
+        if self._existing_unverified_datafile:
+            self.datafile_id = self._existing_unverified_datafile.datafileId
+            replicas = self._existing_unverified_datafile.replicas
             if len(replicas) == 1:
-                self.dfoId = replicas[0].dfoId
+                self.dfo_id = replicas[0].dfo_id

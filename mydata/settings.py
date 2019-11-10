@@ -9,4 +9,4 @@ import os
 
 from mydata.models.settings import SettingsModel
 
-SETTINGS = SettingsModel(configPath=os.environ.get('MYDATA_CONFIG_PATH'))
+SETTINGS = SettingsModel(config_path=os.environ.get('MYDATA_CONFIG_PATH'))

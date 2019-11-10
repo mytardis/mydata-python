@@ -11,7 +11,7 @@ class AdvancedSettingsModel():
     """
     def __init__(self):
         # Saved in MyData.cfg:
-        self.mydataConfig = dict()
+        self.mydata_config = dict()
 
         self.fields = [
             'folder_structure',
@@ -25,147 +25,147 @@ class AdvancedSettingsModel():
         ]
 
     @property
-    def folderStructure(self):
+    def folder_structure(self):
         """
         Get folder structure
         """
-        return self.mydataConfig['folder_structure']
+        return self.mydata_config['folder_structure']
 
-    @folderStructure.setter
-    def folderStructure(self, folderStructure):
+    @folder_structure.setter
+    def folder_structure(self, folder_structure):
         """
         Set folder structure
         """
-        self.mydataConfig['folder_structure'] = folderStructure
+        self.mydata_config['folder_structure'] = folder_structure
 
     @property
-    def userOrGroupString(self):
+    def user_or_group_string(self):
         """
         Used when reporting progress on user/group folder scanning.
         """
-        if "Group" in self.mydataConfig['folder_structure']:
-            userOrGroupString = "user group"
+        if "Group" in self.mydata_config['folder_structure']:
+            user_or_group_string = "user group"
         else:
-            userOrGroupString = "user"
-        return userOrGroupString
+            user_or_group_string = "user"
+        return user_or_group_string
 
     @property
-    def validateFolderStructure(self):
+    def validate_folder_structure(self):
         """
         Returns True if folder structure should be validated
         """
-        return self.mydataConfig['validate_folder_structure']
+        return self.mydata_config['validate_folder_structure']
 
-    @validateFolderStructure.setter
-    def validateFolderStructure(self, validateFolderStructure):
+    @validate_folder_structure.setter
+    def validate_folder_structure(self, validate_folder_structure):
         """
         Set this to True if folder structure should be validated
         """
-        self.mydataConfig['validate_folder_structure'] = \
-            validateFolderStructure
+        self.mydata_config['validate_folder_structure'] = \
+            validate_folder_structure
 
     @property
-    def startAutomaticallyOnLogin(self):
+    def start_automatically_on_login(self):
         """
         Returns True if MyData should start automatically on login
         """
-        return self.mydataConfig['start_automatically_on_login']
+        return self.mydata_config['start_automatically_on_login']
 
-    @startAutomaticallyOnLogin.setter
-    def startAutomaticallyOnLogin(self, startAutomaticallyOnLogin):
+    @start_automatically_on_login.setter
+    def start_automatically_on_login(self, start_automatically_on_login):
         """
         Set this to True if MyData should start automatically on login
         """
-        self.mydataConfig['start_automatically_on_login'] = \
-            startAutomaticallyOnLogin
+        self.mydata_config['start_automatically_on_login'] = \
+            start_automatically_on_login
 
     @property
-    def uploadInvalidUserOrGroupFolders(self):
+    def upload_invalid_user_or_group_folders(self):
         """
         Returns True if data folders should be scanned and uploaded even if
         MyData can't find a MyTardis user (or group) record corresponding to
         the the user (or group) folder.
         """
-        return self.mydataConfig['upload_invalid_user_folders']
+        return self.mydata_config['upload_invalid_user_folders']
 
-    @uploadInvalidUserOrGroupFolders.setter
-    def uploadInvalidUserOrGroupFolders(self, uploadInvalidUserOrGroupFolders):
+    @upload_invalid_user_or_group_folders.setter
+    def upload_invalid_user_or_group_folders(self, upload_invalid_user_or_group_folders):
         """
         Set this to True if data folders should be scanned and uploaded even if
         MyData can't find a MyTardis user (or group) record corresponding to
         the the user (or group) folder.
         """
-        self.mydataConfig['upload_invalid_user_folders'] = \
-            uploadInvalidUserOrGroupFolders
+        self.mydata_config['upload_invalid_user_folders'] = \
+            upload_invalid_user_or_group_folders
 
     @property
-    def datasetGrouping(self):
+    def dataset_grouping(self):
         """
         Return dataset grouping (how datasets are collected into experiments).
         """
-        return self.mydataConfig['dataset_grouping']
+        return self.mydata_config['dataset_grouping']
 
-    @datasetGrouping.setter
-    def datasetGrouping(self, datasetGrouping):
+    @dataset_grouping.setter
+    def dataset_grouping(self, dataset_grouping):
         """
         Set dataset grouping (how datasets are collected into experiments).
         """
-        self.mydataConfig['dataset_grouping'] = datasetGrouping
+        self.mydata_config['dataset_grouping'] = dataset_grouping
 
     @property
-    def groupPrefix(self):
+    def group_prefix(self):
         """
         Return prefix prepended to group folder name to match MyTardis group
         """
-        return self.mydataConfig['group_prefix']
+        return self.mydata_config['group_prefix']
 
-    @groupPrefix.setter
-    def groupPrefix(self, groupPrefix):
+    @group_prefix.setter
+    def group_prefix(self, group_prefix):
         """
         Set prefix prepended to group folder name to match MyTardis group
         """
-        self.mydataConfig['group_prefix'] = groupPrefix
+        self.mydata_config['group_prefix'] = group_prefix
 
     @property
-    def maxUploadThreads(self):
+    def max_upload_threads(self):
         """
         Return the maximum number of concurrent uploads
         """
-        return int(self.mydataConfig['max_upload_threads'])
+        return int(self.mydata_config['max_upload_threads'])
 
-    @maxUploadThreads.setter
-    def maxUploadThreads(self, maxUploadThreads):
+    @max_upload_threads.setter
+    def max_upload_threads(self, max_upload_threads):
         """
         Set the maximum number of concurrent uploads
         """
-        self.mydataConfig['max_upload_threads'] = maxUploadThreads
+        self.mydata_config['max_upload_threads'] = max_upload_threads
 
     @property
-    def maxUploadRetries(self):
+    def max_upload_retries(self):
         """
         Get the maximum number of retries per upload
         """
-        return int(self.mydataConfig['max_upload_retries'])
+        return int(self.mydata_config['max_upload_retries'])
 
-    @maxUploadRetries.setter
-    def maxUploadRetries(self, maxUploadRetries):
+    @max_upload_retries.setter
+    def max_upload_retries(self, max_upload_retries):
         """
         Set the maximum number of retries per upload
         """
-        self.mydataConfig['max_upload_retries'] = maxUploadRetries
+        self.mydata_config['max_upload_retries'] = max_upload_retries
 
-    def SetDefaults(self):
+    def set_defaults(self):
         """
         Set default values for configuration parameters
         that will appear in MyData.cfg for fields in the
         Settings Dialog's Filter tab
         """
-        self.mydataConfig['folder_structure'] = "Username / Dataset"
-        self.mydataConfig['dataset_grouping'] = \
+        self.mydata_config['folder_structure'] = "Username / Dataset"
+        self.mydata_config['dataset_grouping'] = \
             "Instrument Name - Dataset Owner's Full Name"
-        self.mydataConfig['group_prefix'] = ""
-        self.mydataConfig['validate_folder_structure'] = True
-        self.mydataConfig['max_upload_threads'] = 5
-        self.mydataConfig['max_upload_retries'] = 1
-        self.mydataConfig['start_automatically_on_login'] = True
-        self.mydataConfig['upload_invalid_user_folders'] = True
+        self.mydata_config['group_prefix'] = ""
+        self.mydata_config['validate_folder_structure'] = True
+        self.mydata_config['max_upload_threads'] = 5
+        self.mydata_config['max_upload_retries'] = 1
+        self.mydata_config['start_automatically_on_login'] = True
+        self.mydata_config['upload_invalid_user_folders'] = True

@@ -43,7 +43,7 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
         super(MiscellaneousSettingsModel, self).__init__()
 
         # Saved in MyData.cfg:
-        self.mydataConfig = dict()
+        self.mydata_config = dict()
 
         self.fields = [
             'locked',
@@ -52,9 +52,7 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
             'max_verification_threads',
             'fake_md5_sum',
             'cipher',
-            'use_none_cipher',
             'progress_poll_interval',
-            'immutable_datasets',
             'cache_datafile_lookups',
             'connection_timeout'
         ]
@@ -66,9 +64,7 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
             max_verification_threads=5,
             fake_md5_sum=False,
             cipher="aes128-ctr",
-            use_none_cipher=False,
             progress_poll_interval=1.0,
-            immutable_datasets=False,
             cache_datafile_lookups=True,
             connection_timeout=10.0)
 
@@ -84,7 +80,7 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
 
         Return True if settings are locked
         """
-        return self.mydataConfig['locked']
+        return self.mydata_config['locked']
 
     @locked.setter
     def locked(self, locked):
@@ -93,34 +89,34 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
 
         Set this to True to lock settings
         """
-        self.mydataConfig['locked'] = locked
+        self.mydata_config['locked'] = locked
 
     @property
     def uuid(self):
         """
         Get this MyData instance's unique ID
         """
-        return self.mydataConfig['uuid']
+        return self.mydata_config['uuid']
 
     @uuid.setter
     def uuid(self, uuid):
         """
         Set this MyData instance's unique ID
         """
-        self.mydataConfig['uuid'] = uuid
+        self.mydata_config['uuid'] = uuid
 
     @property
-    def fakeMd5Sum(self):
+    def fake_md5_sum(self):
         """
         Whether to use a fake MD5 sum to save time.
         It can be set later via the MyTardis API.
         Until it is set properly, the file won't be
         verified on MyTardis.
         """
-        return self.mydataConfig['fake_md5_sum']
+        return self.mydata_config['fake_md5_sum']
 
     @property
-    def verificationDelay(self):
+    def verification_delay(self):
         """
         Upon a successful upload, MyData will request verification
         after a short delay, defaulting to 3 seconds:
@@ -128,24 +124,24 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
         :return: the delay in seconds
         :rtype: float
         """
-        return self.mydataConfig['verification_delay']
+        return self.mydata_config['verification_delay']
 
     @property
-    def maxVerificationThreads(self):
+    def max_verification_threads(self):
         """
         Return the maximum number of concurrent DataFile lookups
         """
-        return int(self.mydataConfig['max_verification_threads'])
+        return int(self.mydata_config['max_verification_threads'])
 
-    @maxVerificationThreads.setter
-    def maxVerificationThreads(self, maxVerificationThreads):
+    @max_verification_threads.setter
+    def max_verification_threads(self, max_verification_threads):
         """
         Set the maximum number of concurrent DataFile lookups
         """
-        self.mydataConfig['max_verification_threads'] = maxVerificationThreads
+        self.mydata_config['max_verification_threads'] = max_verification_threads
 
     @staticmethod
-    def GetFakeMd5Sum():
+    def get_fake_md5sum():
         """
         The fake MD5 sum to use when self.FakeMd5Sum()
         is True.
@@ -157,33 +153,17 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
         """
         SSH Cipher for SCP uploads.
         """
-        return self.mydataConfig['cipher']
+        return self.mydata_config['cipher']
 
     @property
-    def useNoneCipher(self):
-        """
-        If True, self.mydataConfig['cipher'] is ignored.
-        """
-        return self.mydataConfig['use_none_cipher']
-
-    @useNoneCipher.setter
-    def useNoneCipher(self, useNoneCipher):
-        """
-        If True, self.mydataConfig['cipher is ignored.
-        """
-        self.mydataConfig['use_none_cipher'] = useNoneCipher
-
-    @property
-    def cipherOptions(self):
+    def cipher_options(self):
         """
         SSH Cipher Options for SCP uploads.
         """
-        if self.mydataConfig['use_none_cipher']:
-            return ["-oNoneEnabled=yes", "-oNoneSwitch=yes"]
-        return ["-c", self.mydataConfig['cipher']]
+        return ["-c", self.mydata_config['cipher']]
 
     @property
-    def progressPollInterval(self):
+    def progress_poll_interval(self):
         """
         Upload progress is queried periodically via the MyTardis API.
         Returns the interval in seconds between RESTful progress queries.
@@ -191,71 +171,55 @@ class MiscellaneousSettingsModel(BaseSettingsModel):
         :return: the interval in seconds
         :rtype: float
         """
-        return self.mydataConfig['progress_poll_interval']
+        return self.mydata_config['progress_poll_interval']
 
     @property
-    def immutableDatasets(self):
-        """
-        Returns True if MyData will set immutable to True
-        for newly created datasets
-        """
-        return self.mydataConfig['immutable_datasets']
-
-    @immutableDatasets.setter
-    def immutableDatasets(self, immutableDatasets):
-        """
-        If True, MyData will set immutable to True
-        for newly created datasets
-        """
-        self.mydataConfig['immutable_datasets'] = immutableDatasets
-
-    @property
-    def cacheDataFileLookups(self):
+    def cache_datafile_lookups(self):
         """
         Returns True if MyData will cache local paths and dataset IDs of
         datafiles which have been previously found to be verified on MyTardis.
         """
-        return self.mydataConfig['cache_datafile_lookups']
+        return self.mydata_config['cache_datafile_lookups']
 
-    @cacheDataFileLookups.setter
-    def cacheDataFileLookups(self, cacheDataFileLookups):
+    @cache_datafile_lookups.setter
+    def cache_datafile_lookups(self, cache_datafile_lookups):
         """
         Set this to True if MyData should cache local paths and dataset IDs of
         datafiles which have been previously found to be verified on MyTardis.
         """
-        self.mydataConfig['cache_datafile_lookups'] = cacheDataFileLookups
+        self.mydata_config['cache_datafile_lookups'] = cache_datafile_lookups
 
     @property
-    def connectionTimeout(self):
+    def connection_timeout(self):
         """
         Timeout (in seconds) used for HTTP responses and SSH connections
 
         :return: the timeout in seconds
         :rtype: float
         """
-        return self.mydataConfig['connection_timeout']
+        return self.mydata_config['connection_timeout']
 
-    @connectionTimeout.setter
-    def connectionTimeout(self, connectionTimeout):
+    @connection_timeout.setter
+    def connection_timeout(self, connection_timeout):
         """
         Timeout (in seconds) used for HTTP responses and SSH connections
 
-        :param connectionTimeout: the timeout in seconds
-        :type connectionTimeout: float
+        :param connection_timeout: the timeout in seconds
+        :type connection_timeout: float
         """
-        self.mydataConfig['connection_timeout'] = connectionTimeout
+        self.mydata_config['connection_timeout'] = connection_timeout
 
-    def SetDefaultForField(self, field):
+    def set_default_for_field(self, field):
         """
         Set default value for one field.
         """
-        self.mydataConfig[field] = self.default[field]
+        self.mydata_config[field] = self.default[field]
         if field == 'cipher':
             if sys.platform.startswith("win"):
-                self.mydataConfig['cipher'] = \
+                self.mydata_config['cipher'] = \
                     "aes128-gcm@openssh.com,aes128-ctr"
             else:
                 # On Mac/Linux, we don't bundle SSH binaries, we
                 # just use the installed SSH version, which might
                 # be too old to support aes128-gcm@openssh.com
-                self.mydataConfig['cipher'] = "aes128-ctr"
+                self.mydata_config['cipher'] = "aes128-ctr"

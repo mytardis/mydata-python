@@ -13,14 +13,14 @@ from urllib.parse import urlparse
 from ...constants import APPNAME
 from ...logs import logger
 from ...threads.locks import LOCKS
-from ...utils import CreateConfigPathIfNecessary
+from ...utils import create_config_path_if_necessary
 from .general import GeneralSettingsModel
 from .schedule import ScheduleSettingsModel
 from .filters import FiltersSettingsModel
 from .advanced import AdvancedSettingsModel
 from .miscellaneous import MiscellaneousSettingsModel
 from .miscellaneous import LastSettingsUpdateTrigger
-from .serialize import LoadSettings
+from .serialize import load_settings
 
 
 class SettingsModel():
@@ -28,28 +28,28 @@ class SettingsModel():
     Model class for the settings displayed in the settings dialog
     and saved to disk in MyData.cfg
     """
-    def __init__(self, configPath, checkForUpdates=True):
+    def __init__(self, config_path, check_for_updates=True):
         super(SettingsModel, self).__init__()
 
         # Previous settings, so we can roll back if validation fails:
         self.previous = dict(
-            general=dict(mydataConfig=dict()),
-            schedule=dict(mydataConfig=dict()),
-            filters=dict(mydataConfig=dict()),
-            advanced=dict(mydataConfig=dict()),
-            miscellaneous=dict(mydataConfig=dict()),
-            lastSettingsUpdateTrigger=None)
+            general=dict(mydata_config=dict()),
+            schedule=dict(mydata_config=dict()),
+            filters=dict(mydata_config=dict()),
+            advanced=dict(mydata_config=dict()),
+            miscellaneous=dict(mydata_config=dict()),
+            last_settings_update_trigger=None)
 
         # The location on disk of MyData.cfg
         # e.g. "C:\\ProgramData\\Monash University\\MyData\\MyData.cfg" or
         # "/Users/jsmith/Library/Application Support/MyData/MyData.cfg":
-        self._configPath = configPath
+        self._config_path = config_path
 
-        self.verifiedDatafilesCache = dict()
+        self._verified_datafiles_cache = dict()
 
-        self._uploaderModel = None
+        self._uploader = None
 
-        self.lastSettingsUpdateTrigger = \
+        self.last_settings_update_trigger = \
             LastSettingsUpdateTrigger.READ_FROM_DISK
 
         self.models = dict(
@@ -59,10 +59,10 @@ class SettingsModel():
             advanced=AdvancedSettingsModel(),
             miscellaneous=MiscellaneousSettingsModel())
 
-        self.SetDefaultConfig()
+        self.set_default_config()
 
         try:
-            LoadSettings(self, checkForUpdates=checkForUpdates)
+            load_settings(self, check_for_updates=check_for_updates)
         except:
             logger.error(traceback.format_exc())
 
@@ -106,15 +106,15 @@ class SettingsModel():
         Set a config item by field name.
         """
         if key in self.general.fields:
-            self.general.mydataConfig[key] = item
+            self.general.mydata_config[key] = item
         elif key in self.schedule.fields:
-            self.schedule.mydataConfig[key] = item
+            self.schedule.mydata_config[key] = item
         elif key in self.filters.fields:
-            self.filters.mydataConfig[key] = item
+            self.filters.mydata_config[key] = item
         elif key in self.advanced.fields:
-            self.advanced.mydataConfig[key] = item
+            self.advanced.mydata_config[key] = item
         elif key in self.miscellaneous.fields:
-            self.miscellaneous.mydataConfig[key] = item
+            self.miscellaneous.mydata_config[key] = item
         else:
             raise KeyError(key)
 
@@ -123,19 +123,19 @@ class SettingsModel():
         Get a config item by field name.
         """
         if key in self.general.fields:
-            return self.general.mydataConfig[key]
+            return self.general.mydata_config[key]
         if key in self.schedule.fields:
-            return self.schedule.mydataConfig[key]
+            return self.schedule.mydata_config[key]
         if key in self.filters.fields:
-            return self.filters.mydataConfig[key]
+            return self.filters.mydata_config[key]
         if key in self.advanced.fields:
-            return self.advanced.mydataConfig[key]
+            return self.advanced.mydata_config[key]
         if key in self.miscellaneous.fields:
-            return self.miscellaneous.mydataConfig[key]
+            return self.miscellaneous.mydata_config[key]
         raise KeyError(key)
 
     @property
-    def uploaderModel(self):
+    def uploader(self):
         """
         Get the uploader (MyData instance) model
 
@@ -143,55 +143,55 @@ class SettingsModel():
         simultaneously, so it requires locking.
         """
         from ..uploader import UploaderModel
-        if self._uploaderModel:
-            return self._uploaderModel
+        if self._uploader:
+            return self._uploader
         try:
             LOCKS.createUploader.acquire()  # pylint: disable=no-member
-            self._uploaderModel = UploaderModel(self)
-            return self._uploaderModel
+            self._uploader = UploaderModel(self)
+            return self._uploader
         finally:
             LOCKS.createUploader.release()  # pylint: disable=no-member
 
-    @uploaderModel.setter
-    def uploaderModel(self, uploaderModel):
+    @uploader.setter
+    def uploader(self, uploader):
         """
         Set uploader model (representing this MyData instance)
         """
-        self._uploaderModel = uploaderModel
+        self._uploader = uploader
 
-    def Update(self, settings):
+    def update(self, settings):
         """
         Update this instance from another
         """
-        self.general.mydataConfig.update(settings.general.mydataConfig)
-        self.schedule.mydataConfig.update(settings.schedule.mydataConfig)
-        self.filters.mydataConfig.update(settings.filters.mydataConfig)
-        self.advanced.mydataConfig.update(settings.advanced.mydataConfig)
-        self.miscellaneous.mydataConfig.update(
-            settings.miscellaneous.mydataConfig)
-        self.lastSettingsUpdateTrigger = settings.lastSettingsUpdateTrigger
+        self.general.mydata_config.update(settings.general.mydata_config)
+        self.schedule.mydata_config.update(settings.schedule.mydata_config)
+        self.filters.mydata_config.update(settings.filters.mydata_config)
+        self.advanced.mydata_config.update(settings.advanced.mydata_config)
+        self.miscellaneous.mydata_config.update(
+            settings.miscellaneous.mydata_config)
+        self.last_settings_update_trigger = settings.last_settings_update_trigger
 
-    def SavePrevious(self):
+    def save_previous(self):
         """
         Save current settings to self.previous so we can roll back if necessary
         """
-        self.previous['general']['mydataConfig'].update(
-            self.general.mydataConfig)
-        self.previous['schedule']['mydataConfig'].update(
-            self.schedule.mydataConfig)
-        self.previous['filters']['mydataConfig'].update(
-            self.filters.mydataConfig)
-        self.previous['advanced']['mydataConfig'].update(
-            self.advanced.mydataConfig)
-        self.previous['miscellaneous']['mydataConfig'].update(
-            self.miscellaneous.mydataConfig)
-        self.previous['lastSettingsUpdateTrigger'] = \
-            self.lastSettingsUpdateTrigger
+        self.previous['general']['mydata_config'].update(
+            self.general.mydata_config)
+        self.previous['schedule']['mydata_config'].update(
+            self.schedule.mydata_config)
+        self.previous['filters']['mydata_config'].update(
+            self.filters.mydata_config)
+        self.previous['advanced']['mydata_config'].update(
+            self.advanced.mydata_config)
+        self.previous['miscellaneous']['mydata_config'].update(
+            self.miscellaneous.mydata_config)
+        self.previous['last_settings_update_trigger'] = \
+            self.last_settings_update_trigger
 
-    def RollBack(self):
+    def roll_back(self):
         """
         If settings validation fails, call this method to roll back the
-        updates made to SETTINGS from SaveFieldsFromDialog.
+        updates made to SETTINGS from save_fields_from_dialog.
 
         If a user changes a valid field to an invalid field in the Settings
         dialog and clicks OK, settings validation will fail, and the Settings
@@ -208,113 +208,113 @@ class SettingsModel():
         decided that it was simpler to just have a single global SETTINGS
         instance which can be rolled back if necessary.
         """
-        self.general.mydataConfig.update(
-            self.previous['general']['mydataConfig'])
-        self.schedule.mydataConfig.update(
-            self.previous['schedule']['mydataConfig'])
-        self.filters.mydataConfig.update(
-            self.previous['filters']['mydataConfig'])
-        self.advanced.mydataConfig.update(
-            self.previous['advanced']['mydataConfig'])
-        self.miscellaneous.mydataConfig.update(
-            self.previous['miscellaneous']['mydataConfig'])
-        self.lastSettingsUpdateTrigger = \
-            self.previous['lastSettingsUpdateTrigger']
+        self.general.mydata_config.update(
+            self.previous['general']['mydata_config'])
+        self.schedule.mydata_config.update(
+            self.previous['schedule']['mydata_config'])
+        self.filters.mydata_config.update(
+            self.previous['filters']['mydata_config'])
+        self.advanced.mydata_config.update(
+            self.previous['advanced']['mydata_config'])
+        self.miscellaneous.mydata_config.update(
+            self.previous['miscellaneous']['mydata_config'])
+        self.last_settings_update_trigger = \
+            self.previous['last_settings_update_trigger']
 
-    def RequiredFieldIsBlank(self):
+    def required_field_is_blank(self):
         """
         Return True if a required field is blank
         """
-        return self.general.instrumentName == "" or \
-            self.general.facilityName == "" or \
-            self.general.contactName == "" or \
-            self.general.contactEmail == "" or \
-            self.general.dataDirectory == "" or \
-            self.general.myTardisUrl == "" or \
+        return self.general.instrument_name == "" or \
+            self.general.facility_name == "" or \
+            self.general.contact_name == "" or \
+            self.general.contact_email == "" or \
+            self.general.data_directory == "" or \
+            self.general.mytardis_url == "" or \
             self.general.username == "" or \
-            self.general.apiKey == ""
+            self.general.api_key == ""
 
-    def SetDefaultConfig(self):
+    def set_default_config(self):
         """
         Set default values for configuration parameters
         that will appear in MyData.cfg
         """
-        self.general.SetDefaults()
-        self.schedule.SetDefaults()
-        self.filters.SetDefaults()
-        self.advanced.SetDefaults()
-        self.miscellaneous.SetDefaults()
+        self.general.set_defaults()
+        self.schedule.set_defaults()
+        self.filters.set_defaults()
+        self.advanced.set_defaults()
+        self.miscellaneous.set_defaults()
 
     @property
-    def defaultHeaders(self):
+    def default_headers(self):
         """
         Default HTTP headers, providing authorization for MyTardis API.
         """
         return {
             "Authorization": "ApiKey %s:%s" % (self.general.username,
-                                               self.general.apiKey),
+                                               self.general.api_key),
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
 
     @property
-    def verifiedDatafilesCachePath(self):
+    def verified_datafiles_cache(self):
         """
         We use a serialized dictionary to cache DataFile lookup results.
         We'll use a separate cache file for each MyTardis server we connect to.
         """
-        parsed = urlparse(self.general.myTardisUrl)
+        parsed = urlparse(self.general.mytardis_url)
         return os.path.join(
-            os.path.dirname(self.configPath),
+            os.path.dirname(self.config_path),
             "verified-files-%s-%s.pkl" %
             (parsed.scheme, parsed.netloc))
 
-    def InitializeVerifiedDatafilesCache(self):
+    def initialize_verified_datafiles_cache(self):
         """
         We use a serialized dictionary to cache DataFile lookup results.
         We'll use a separate cache file for each MyTardis server we connect to.
         """
         try:
-            if os.path.exists(self.verifiedDatafilesCachePath):
-                with open(self.verifiedDatafilesCachePath, 'rb') as cacheFile:
-                    self.verifiedDatafilesCache = pickle.load(cacheFile)
+            if os.path.exists(self._verified_datafiles_cache):
+                with open(self._verified_datafiles_cache, 'rb') as cache_file:
+                    self._verified_datafiles_cache = pickle.load(cache_file)
             else:
-                self.verifiedDatafilesCache = dict()
+                self._verified_datafiles_cache = dict()
         except:
-            self.verifiedDatafilesCache = dict()
+            self._verified_datafiles_cache = dict()
             logger.warning(traceback.format_exc())
 
-    def SaveVerifiedDatafilesCache(self):
+    def save_verified_datafiles_cache(self):
         """
         We use a serialized dictionary to cache DataFile lookup results.
         We'll use a separate cache file for each MyTardis server we connect to.
         """
         with LOCKS.closeCache:  # pylint: disable=no-member
             try:
-                with open(self.verifiedDatafilesCachePath,
-                          'wb') as cacheFile:
-                    pickle.dump(self.verifiedDatafilesCache, cacheFile)
+                with open(self._verified_datafiles_cache,
+                          'wb') as cache_file:
+                    pickle.dump(self._verified_datafiles_cache, cache_file)
             except:
                 logger.warning("Couldn't save verified datafiles cache.")
                 logger.warning(traceback.format_exc())
 
     @property
-    def configPath(self):
+    def config_path(self):
         """
         The location on disk of MyData.cfg
         e.g. "C:\\ProgramData\\Monash University\\MyData\\MyData.cfg" or
         "/Users/jsmith/Library/Application Support/MyData/MyData.cfg"
         """
-        if not self._configPath:
-            appdirPath = CreateConfigPathIfNecessary()
-            self._configPath = os.path.join(appdirPath, APPNAME + '.cfg')
-        return self._configPath
+        if not self._config_path:
+            appdir_path = create_config_path_if_necessary()
+            self._config_path = os.path.join(appdir_path, APPNAME + '.cfg')
+        return self._config_path
 
-    @configPath.setter
-    def configPath(self, configPath):
+    @config_path.setter
+    def config_path(self, config_path):
         """
         The location on disk of MyData.cfg
         e.g. "C:\\ProgramData\\Monash University\\MyData\\MyData.cfg" or
         "/Users/jsmith/Library/Application Support/MyData/MyData.cfg"
         """
-        self._configPath = configPath
+        self._config_path = config_path

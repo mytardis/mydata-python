@@ -18,7 +18,7 @@ from ..logs import logger
 from ..threads.locks import LOCKS
 
 
-def PidIsRunning(pid):
+def pid_is_running(pid):
     """
     Check if a process with PID pid is running.
     """
@@ -33,7 +33,7 @@ def PidIsRunning(pid):
         return False
 
 
-def HumanReadableSizeString(num):
+def human_readable_size_string(num):
     """
     Returns human-readable string.
     """
@@ -44,25 +44,7 @@ def HumanReadableSizeString(num):
     return "%3.1f %s" % (num, 'TB')
 
 
-def UnderscoreToCamelcase(value):
-    """
-    Convert underscore_separated to camelCase.
-    """
-    output = ""
-    firstWordPassed = False
-    for word in value.split("_"):
-        if not word:
-            output += "_"
-            continue
-        if firstWordPassed:
-            output += word.capitalize()
-        else:
-            output += word.lower()
-        firstWordPassed = True
-    return output
-
-
-def BytesToHuman(numBytes):
+def bytes_to_human(num_bytes):
     """
     Returns human-readable string.
     """
@@ -71,13 +53,13 @@ def BytesToHuman(numBytes):
     for index, symbol in enumerate(symbols):
         prefix[symbol] = 1 << (index + 1) * 10
     for symbol in reversed(symbols):
-        if numBytes >= prefix[symbol]:
-            value = float(numBytes) / prefix[symbol]
+        if num_bytes >= prefix[symbol]:
+            value = float(num_bytes) / prefix[symbol]
             return '%.1f%s' % (value, symbol)
-    return "%sB" % numBytes
+    return "%sB" % num_bytes
 
 
-def SafeStr(err, inputEnc=sys.getfilesystemencoding(), outputEnc='utf-8'):
+def safe_str(err, input_enc=sys.getfilesystemencoding(), output_enc='utf-8'):
     # pylint: disable=anomalous-unicode-escape-in-string
     """
     Safely return a string representation of an exception, possibly including
@@ -125,19 +107,19 @@ def SafeStr(err, inputEnc=sys.getfilesystemencoding(), outputEnc='utf-8'):
     try:
         return str(err)
     except UnicodeDecodeError:
-        inputEnc = inputEnc or 'utf-8'
+        input_enc = input_enc or 'utf-8'
         if isinstance(err, (IOError, OSError)):
             decoded = "%s: [Errno %s] %s: '%s'" \
                 % (type(err).__name__, err.errno,
-                   err.strerror.decode(inputEnc),
-                   err.filename.decode(inputEnc))
+                   err.strerror.decode(input_enc),
+                   err.filename.decode(input_enc))
         else:
-            decoded = err.args[0].decode(inputEnc)
+            decoded = err.args[0].decode(input_enc)
     normalized = unicodedata.normalize('NFC', decoded)
-    return normalized.encode(outputEnc)
+    return normalized.encode(output_enc)
 
 
-def Compare(obj1, obj2):
+def compare(obj1, obj2):
     """
     Compare the two objects obj1 and obj2 and return an integer according
     to the outcome. The return value is negative if obj1 < obj2, zero if
@@ -146,48 +128,48 @@ def Compare(obj1, obj2):
     return (obj1 > obj2) - (obj1 < obj2)
 
 
-def OpenUrl(url, new=0, autoraise=True):
+def open_url(url, new=0, autoraise=True):
     """
     Open URL in web browser or just check URL is accessible if running tests.
     """
     webbrowser.open(url, new, autoraise)
 
 
-def CreateConfigPathIfNecessary():
+def create_config_path_if_necessary():
     """
     Create path for saving MyData.cfg if it doesn't already exist.
     """
     if sys.platform.startswith("win"):
         # We use a setup wizard on Windows which runs with admin
-        # privileges, so we can ensure that the appdirPath below,
+        # privileges, so we can ensure that the appdir_path below,
         # i.e. C:\ProgramData\Monash University\MyData\ is
         # writeable by all users.
-        appdirPath = appdirs.site_config_dir(APPNAME, APPAUTHOR)
+        appdir_path = appdirs.site_config_dir(APPNAME, APPAUTHOR)
     else:
         # On Mac, we currently use a DMG drag-and-drop installation, so
         # we can't create a system-wide MyData.cfg writeable by all users.
-        appdirPath = appdirs.user_data_dir(APPNAME, APPAUTHOR)
-    if not os.path.exists(appdirPath):
-        os.makedirs(appdirPath)
-    return appdirPath
+        appdir_path = appdirs.user_data_dir(APPNAME, APPAUTHOR)
+    if not os.path.exists(appdir_path):
+        os.makedirs(appdir_path)
+    return appdir_path
 
 
-def InitializeTrustedCertsPath():
+def initialize_trusted_certs_path():
     """
     Tell the requests module where to find the CA (Certificate Authority)
     certificates bundled with MyData.
     """
     if hasattr(sys, "frozen"):
         if sys.platform.startswith("darwin"):
-            certPath = os.path.realpath(os.path.join(
+            cert_path = os.path.realpath(os.path.join(
                 os.path.dirname(sys.executable), '..', 'Resources'))
         else:
-            certPath = os.path.dirname(sys.executable)
+            cert_path = os.path.dirname(sys.executable)
         os.environ['REQUESTS_CA_BUNDLE'] = \
-            os.path.join(certPath, 'cacert.pem')
+            os.path.join(cert_path, 'cacert.pem')
 
 
-def GnomeShellIsRunning():
+def gnome_shell_is_running():
     """
     Check if the GNOME Shell desktop environment is running.
     Helper function for CheckIfSystemTrayFunctionalityMissing.
@@ -202,7 +184,7 @@ def GnomeShellIsRunning():
     return False
 
 
-def MyDataInstallLocation():
+def mydata_install_location():
     """
     Return MyData install location
     """

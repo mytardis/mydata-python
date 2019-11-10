@@ -21,7 +21,7 @@ class FiltersSettingsModel(BaseSettingsModel):
         super(FiltersSettingsModel, self).__init__()
 
         # Saved in MyData.cfg:
-        self.mydataConfig = dict()
+        self.mydata_config = dict()
 
         self.fields = [
             'user_filter',
@@ -60,249 +60,249 @@ class FiltersSettingsModel(BaseSettingsModel):
         )
 
     @property
-    def userFilter(self):
+    def user_filter(self):
         """
         Get glob for matching user folders
         """
-        return self.mydataConfig['user_filter']
+        return self.mydata_config['user_filter']
 
-    @userFilter.setter
-    def userFilter(self, userFilter):
+    @user_filter.setter
+    def user_filter(self, user_filter):
         """
         Set glob for matching user folders
         """
-        self.mydataConfig['user_filter'] = userFilter
+        self.mydata_config['user_filter'] = user_filter
 
     @property
-    def datasetFilter(self):
+    def dataset_filter(self):
         """
         Get glob for matching dataset folders
         """
-        return self.mydataConfig['dataset_filter']
+        return self.mydata_config['dataset_filter']
 
-    @datasetFilter.setter
-    def datasetFilter(self, datasetFilter):
+    @dataset_filter.setter
+    def dataset_filter(self, dataset_filter):
         """
         Set glob for matching dataset folders
         """
-        self.mydataConfig['dataset_filter'] = datasetFilter
+        self.mydata_config['dataset_filter'] = dataset_filter
 
     @property
-    def experimentFilter(self):
+    def experiment_filter(self):
         """
         Get glob for matching experiment folders
         """
-        return self.mydataConfig['experiment_filter']
+        return self.mydata_config['experiment_filter']
 
-    @experimentFilter.setter
-    def experimentFilter(self, experimentFilter):
+    @experiment_filter.setter
+    def experiment_filter(self, experiment_filter):
         """
         Set glob for matching experiment folders
         """
-        self.mydataConfig['experiment_filter'] = experimentFilter
+        self.mydata_config['experiment_filter'] = experiment_filter
 
     @property
-    def ignoreOldDatasets(self):
+    def ignore_old_datasets(self):
         """
         Returns True if MyData should ignore old dataset folders
         """
-        return self.mydataConfig['ignore_old_datasets']
+        return self.mydata_config['ignore_old_datasets']
 
-    @ignoreOldDatasets.setter
-    def ignoreOldDatasets(self, ignoreOldDatasets):
+    @ignore_old_datasets.setter
+    def ignore_old_datasets(self, ignore_old_datasets):
         """
         Set this to True if MyData should ignore old dataset folders
         """
-        self.mydataConfig['ignore_old_datasets'] = ignoreOldDatasets
+        self.mydata_config['ignore_old_datasets'] = ignore_old_datasets
 
     @property
-    def ignoreOldDatasetIntervalNumber(self):
+    def ignore_old_datasets_interval_number(self):
         """
         Return the number of days/weeks/months used to define an old dataset
         """
-        return self.mydataConfig['ignore_interval_number']
+        return self.mydata_config['ignore_interval_number']
 
-    @ignoreOldDatasetIntervalNumber.setter
-    def ignoreOldDatasetIntervalNumber(self, ignoreOldDatasetIntervalNumber):
+    @ignore_old_datasets_interval_number.setter
+    def ignore_old_datasets_interval_number(self, ignore_old_datasets_interval_number):
         """
         Set the number of days/weeks/months used to define an old dataset
         """
-        self.mydataConfig['ignore_interval_number'] = \
-            ignoreOldDatasetIntervalNumber
+        self.mydata_config['ignore_interval_number'] = \
+            ignore_old_datasets_interval_number
 
     @property
-    def ignoreOldDatasetIntervalUnit(self):
+    def ignore_old_datasets_interval_unit(self):
         """
         Return the time interval unit (days/weeks/months)
         used to define an old dataset
         """
-        return self.mydataConfig['ignore_interval_unit']
+        return self.mydata_config['ignore_interval_unit']
 
-    @ignoreOldDatasetIntervalUnit.setter
-    def ignoreOldDatasetIntervalUnit(self, ignoreOldDatasetIntervalUnit):
+    @ignore_old_datasets_interval_unit.setter
+    def ignore_old_datasets_interval_unit(self, ignore_old_datasets_interval_unit):
         """
         Set the time interval unit (days/weeks/months)
         used to define an old dataset
         """
-        self.mydataConfig['ignore_interval_unit'] = \
-            ignoreOldDatasetIntervalUnit
+        self.mydata_config['ignore_interval_unit'] = \
+            ignore_old_datasets_interval_unit
 
     @property
-    def ignoreOldDatasetIntervalSeconds(self):
+    def ignore_old_datasets_interval_seconds(self):
         """
         Return the interval (in seconds) beyond which
         old datasets will be ignored.
         """
-        singularIgnoreIntervalUnit = \
-            self.mydataConfig['ignore_interval_unit'].rstrip('s')
-        return self.mydataConfig['ignore_interval_number'] * \
-            SECONDS[singularIgnoreIntervalUnit]
+        singular_ignore_interval_unit = \
+            self.mydata_config['ignore_interval_unit'].rstrip('s')
+        return self.mydata_config['ignore_interval_number'] * \
+            SECONDS[singular_ignore_interval_unit]
 
     @property
-    def ignoreNewDatasets(self):
+    def ignore_new_datasets(self):
         """
         Returns True if MyData should ignore new dataset folders
         """
-        return self.mydataConfig['ignore_new_datasets']
+        return self.mydata_config['ignore_new_datasets']
 
-    @ignoreNewDatasets.setter
-    def ignoreNewDatasets(self, ignoreNewDatasets):
+    @ignore_new_datasets.setter
+    def ignore_new_datasets(self, ignore_new_datasets):
         """
         Set this to True if MyData should ignore new dataset folders
         """
-        self.mydataConfig['ignore_new_datasets'] = ignoreNewDatasets
+        self.mydata_config['ignore_new_datasets'] = ignore_new_datasets
 
     @property
-    def ignoreNewDatasetIntervalNumber(self):
+    def ignore_new_datasets_interval_number(self):
         """
         Return the number of days/weeks/months used to define an new dataset
         """
-        return self.mydataConfig['ignore_new_interval_number']
+        return self.mydata_config['ignore_new_interval_number']
 
-    @ignoreNewDatasetIntervalNumber.setter
-    def ignoreNewDatasetIntervalNumber(self, ignoreNewDatasetIntervalNumber):
+    @ignore_new_datasets_interval_number.setter
+    def ignore_new_datasets_interval_number(self, ignore_new_datasets_interval_number):
         """
         Set the number of days/weeks/months used to define an new dataset
         """
-        self.mydataConfig['ignore_new_interval_number'] = \
-            ignoreNewDatasetIntervalNumber
+        self.mydata_config['ignore_new_interval_number'] = \
+            ignore_new_datasets_interval_number
 
     @property
-    def ignoreNewDatasetIntervalUnit(self):
+    def ignore_new_datasets_interval_unit(self):
         """
         Return the time interval unit (days/weeks/months)
         used to define an new dataset
         """
-        return self.mydataConfig['ignore_new_interval_unit']
+        return self.mydata_config['ignore_new_interval_unit']
 
-    @ignoreNewDatasetIntervalUnit.setter
-    def ignoreNewDatasetIntervalUnit(self, ignoreNewDatasetIntervalUnit):
+    @ignore_new_datasets_interval_unit.setter
+    def ignore_new_datasets_interval_unit(self, ignore_new_datasets_interval_unit):
         """
         Set the time interval unit (days/weeks/months)
         used to define an new dataset
         """
-        self.mydataConfig['ignore_new_interval_unit'] = \
-            ignoreNewDatasetIntervalUnit
+        self.mydata_config['ignore_new_interval_unit'] = \
+            ignore_new_datasets_interval_unit
 
     @property
-    def ignoreNewDatasetIntervalSeconds(self):
+    def ignore_new_datasets_interval_seconds(self):
         """
         Return the interval (in seconds) beyond which
         old datasets will be ignored.
         """
-        singularIgnoreIntervalUnit = \
-            self.mydataConfig['ignore_new_interval_unit'].rstrip('s')
-        return self.mydataConfig['ignore_new_interval_number'] * \
-            SECONDS[singularIgnoreIntervalUnit]
+        singular_ignore_interval_unit = \
+            self.mydata_config['ignore_new_interval_unit'].rstrip('s')
+        return self.mydata_config['ignore_new_interval_number'] * \
+            SECONDS[singular_ignore_interval_unit]
 
     @property
-    def ignoreNewFiles(self):
+    def ignore_new_files(self):
         """
         Returns True if MyData should ignore recently modified files
         """
-        return self.mydataConfig['ignore_new_files']
+        return self.mydata_config['ignore_new_files']
 
-    @ignoreNewFiles.setter
-    def ignoreNewFiles(self, ignoreNewFiles):
+    @ignore_new_files.setter
+    def ignore_new_files(self, ignore_new_files):
         """
         Set this to True if MyData should ignore recently modified files
         """
-        self.mydataConfig['ignore_new_files'] = ignoreNewFiles
+        self.mydata_config['ignore_new_files'] = ignore_new_files
 
     @property
-    def ignoreNewFilesMinutes(self):
+    def ignore_new_files_minutes(self):
         """
         Return the number of minutes used to define a recently modified file
         """
-        return self.mydataConfig['ignore_new_files_minutes']
+        return self.mydata_config['ignore_new_files_minutes']
 
-    @ignoreNewFilesMinutes.setter
-    def ignoreNewFilesMinutes(self, ignoreNewFilesMinutes):
+    @ignore_new_files_minutes.setter
+    def ignore_new_files_minutes(self, ignore_new_files_minutes):
         """
         Set the number of minutes used to define a recently modified file
         """
-        self.mydataConfig['ignore_new_files_minutes'] = ignoreNewFilesMinutes
+        self.mydata_config['ignore_new_files_minutes'] = ignore_new_files_minutes
 
     @property
-    def useIncludesFile(self):
+    def use_includes_file(self):
         """
         Return True if using an includes file to only upload files matching
         glob patterns listed in the includes file.
         """
-        return self.mydataConfig['use_includes_file']
+        return self.mydata_config['use_includes_file']
 
-    @useIncludesFile.setter
-    def useIncludesFile(self, useIncludesFile):
+    @use_includes_file.setter
+    def use_includes_file(self, use_includes_file):
         """
         Set to True if using an includes file to only upload files matching
         glob patterns listed in the includes file.
         """
-        self.mydataConfig['use_includes_file'] = useIncludesFile
+        self.mydata_config['use_includes_file'] = use_includes_file
 
     @property
-    def includesFile(self):
+    def includes_file(self):
         """
         Return path to an includes file, used to only upload files matching
         glob patterns listed in the includes file.
         """
-        return self.mydataConfig['includes_file']
+        return self.mydata_config['includes_file']
 
-    @includesFile.setter
-    def includesFile(self, includesFile):
+    @includes_file.setter
+    def includes_file(self, includes_file):
         """
         Set path to an includes file, used to only upload files matching
         glob patterns listed in the includes file.
         """
-        self.mydataConfig['includes_file'] = includesFile
+        self.mydata_config['includes_file'] = includes_file
 
     @property
-    def useExcludesFile(self):
+    def use_excludes_file(self):
         """
         Return True if using an excludes file to prevent uploads of files
         matching glob patterns listed in the excludes file.
         """
-        return self.mydataConfig['use_excludes_file']
+        return self.mydata_config['use_excludes_file']
 
-    @useExcludesFile.setter
-    def useExcludesFile(self, useExcludesFile):
+    @use_excludes_file.setter
+    def use_excludes_file(self, use_excludes_file):
         """
         Set to True if using an excludes file to prevent uploads of files
         matching glob patterns listed in the excludes file.
         """
-        self.mydataConfig['use_excludes_file'] = useExcludesFile
+        self.mydata_config['use_excludes_file'] = use_excludes_file
 
     @property
-    def excludesFile(self):
+    def excludes_file(self):
         """
         Return path to an excludes file, used to only upload files matching
         glob patterns listed in the excludes file.
         """
-        return self.mydataConfig['excludes_file']
+        return self.mydata_config['excludes_file']
 
-    @excludesFile.setter
-    def excludesFile(self, excludesFile):
+    @excludes_file.setter
+    def excludes_file(self, excludes_file):
         """
         Set path to an excludes file, used to only upload files matching
         glob patterns listed in the excludes file.
         """
-        self.mydataConfig['excludes_file'] = excludesFile
+        self.mydata_config['excludes_file'] = excludes_file

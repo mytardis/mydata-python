@@ -18,7 +18,7 @@ class ScheduleSettingsModel(BaseSettingsModel):
         super(ScheduleSettingsModel, self).__init__()
 
         # Saved in MyData.cfg:
-        self.mydataConfig = dict()
+        self.mydata_config = dict()
 
         self.fields = [
             'schedule_type',
@@ -55,185 +55,183 @@ class ScheduleSettingsModel(BaseSettingsModel):
             timer_minutes=15)
 
     @property
-    def scheduleType(self):
+    def schedule_type(self):
         """
         Get schedule type
         """
-        return self.mydataConfig['schedule_type']
+        return self.mydata_config['schedule_type']
 
-    @scheduleType.setter
-    def scheduleType(self, scheduleType):
+    @schedule_type.setter
+    def schedule_type(self, schedule_type):
         """
         Set schedule type
         """
-        self.mydataConfig['schedule_type'] = scheduleType
+        self.mydata_config['schedule_type'] = schedule_type
 
     @property
-    def mondayChecked(self):
+    def monday_checked(self):
         """
         Return True if Monday is ticked
         """
-        return self.mydataConfig['monday_checked']
+        return self.mydata_config['monday_checked']
 
-    @mondayChecked.setter
-    def mondayChecked(self, checked):
+    @monday_checked.setter
+    def monday_checked(self, checked):
         """
         Set this to True to tick the Monday checkbox in the Schedule tab.
         """
-        self.mydataConfig['monday_checked'] = checked
+        self.mydata_config['monday_checked'] = checked
 
     @property
-    def tuesdayChecked(self):
+    def tuesday_checked(self):
         """
         Return True if Tuesday is ticked
         """
-        return self.mydataConfig['tuesday_checked']
+        return self.mydata_config['tuesday_checked']
 
-    @tuesdayChecked.setter
-    def tuesdayChecked(self, checked):
+    @tuesday_checked.setter
+    def tuesday_checked(self, checked):
         """
         Set this to True to tick the Tuesday checkbox in the Schedule tab.
         """
-        self.mydataConfig['tuesday_checked'] = checked
+        self.mydata_config['tuesday_checked'] = checked
 
     @property
-    def wednesdayChecked(self):
+    def wednesday_checked(self):
         """
         Return True if Wednesday is ticked
         """
-        return self.mydataConfig['wednesday_checked']
+        return self.mydata_config['wednesday_checked']
 
-    @wednesdayChecked.setter
-    def wednesdayChecked(self, checked):
+    @wednesday_checked.setter
+    def wednesday_checked(self, checked):
         """
         Set this to True to tick the Wednesday checkbox in the Schedule tab.
         """
-        self.mydataConfig['wednesday_checked'] = checked
+        self.mydata_config['wednesday_checked'] = checked
 
     @property
-    def thursdayChecked(self):
+    def thursday_checked(self):
         """
         Return True if Thursday is ticked
         """
-        return self.mydataConfig['thursday_checked']
+        return self.mydata_config['thursday_checked']
 
-    @thursdayChecked.setter
-    def thursdayChecked(self, checked):
+    @thursday_checked.setter
+    def thursday_checked(self, checked):
         """
         Set this to True to tick the Thursday checkbox in the Schedule tab.
         """
-        self.mydataConfig['thursday_checked'] = checked
+        self.mydata_config['thursday_checked'] = checked
 
     @property
-    def fridayChecked(self):
+    def friday_checked(self):
         """
         Return True if Friday is ticked
         """
-        return self.mydataConfig['friday_checked']
+        return self.mydata_config['friday_checked']
 
-    @fridayChecked.setter
-    def fridayChecked(self, checked):
+    @friday_checked.setter
+    def friday_checked(self, checked):
         """
         Set this to True to tick the Friday checkbox in the Schedule tab.
         """
-        self.mydataConfig['friday_checked'] = checked
+        self.mydata_config['friday_checked'] = checked
 
     @property
-    def saturdayChecked(self):
+    def saturday_checked(self):
         """
         Return True if Saturday is ticked
         """
-        return self.mydataConfig['saturday_checked']
+        return self.mydata_config['saturday_checked']
 
-    @saturdayChecked.setter
-    def saturdayChecked(self, checked):
+    @saturday_checked.setter
+    def saturday_checked(self, checked):
         """
         Set this to True to tick the Saturday checkbox in the Schedule tab.
         """
-        self.mydataConfig['saturday_checked'] = checked
+        self.mydata_config['saturday_checked'] = checked
 
     @property
-    def sundayChecked(self):
+    def sunday_checked(self):
         """
         Return True if Sunday is ticked
         """
-        return self.mydataConfig['sunday_checked']
+        return self.mydata_config['sunday_checked']
 
-    @sundayChecked.setter
-    def sundayChecked(self, checked):
+    @sunday_checked.setter
+    def sunday_checked(self, checked):
         """
         Set this to True to tick the Sunday checkbox in the Schedule tab.
         """
-        self.mydataConfig['sunday_checked'] = checked
+        self.mydata_config['sunday_checked'] = checked
 
     @property
-    def scheduledDate(self):
+    def scheduled_date(self):
         """
         Get scheduled date
         """
-        return self.mydataConfig['scheduled_date']
+        return self.mydata_config['scheduled_date']
 
-    @scheduledDate.setter
-    def scheduledDate(self, scheduledDate):
+    @scheduled_date.setter
+    def scheduled_date(self, scheduled_date):
         """
         Set scheduled date
         """
-        self.mydataConfig['scheduled_date'] = scheduledDate
+        self.mydata_config['scheduled_date'] = scheduled_date
 
     @property
-    def scheduledTime(self):
+    def scheduled_time(self):
         """
         Get scheduled time
         """
-        return self.mydataConfig['scheduled_time']
+        return self.mydata_config['scheduled_time']
 
-    @scheduledTime.setter
-    def scheduledTime(self, scheduledTime):
+    @scheduled_time.setter
+    def scheduled_time(self, scheduled_time):
         """
         Set scheduled time
         """
-        self.mydataConfig['scheduled_time'] = scheduledTime
+        self.mydata_config['scheduled_time'] = scheduled_time
 
     @property
-    def timerMinutes(self):
+    def timer_minutes(self):
         """
         Get timer interval in minutes
         """
-        return self.mydataConfig['timer_minutes']
+        return self.mydata_config['timer_minutes']
 
-    @timerMinutes.setter
-    def timerMinutes(self, timerMinutes):
+    @timer_minutes.setter
+    def timer_minutes(self, timer_minutes):
         """
         Set timer interval in minutes
         """
-        self.mydataConfig['timer_minutes'] = timerMinutes
+        self.mydata_config['timer_minutes'] = timer_minutes
 
     @property
-    def timerFromTime(self):
+    def timer_from_time(self):
         """
         Get time when timer begins
         """
-        return self.mydataConfig['timer_from_time']
+        return self.mydata_config['timer_from_time']
 
-    @timerFromTime.setter
-    def timerFromTime(self, timerFromTime):
+    @timer_from_time.setter
+    def timer_from_time(self, timer_from_time):
         """
         Set time when timer begins
         """
-        self.mydataConfig['timer_from_time'] = timerFromTime
+        self.mydata_config['timer_from_time'] = timer_from_time
 
     @property
-    def timerToTime(self):
+    def timer_to_time(self):
         """
         Get time when timer stops
         """
-        return self.mydataConfig['timer_to_time']
+        return self.mydata_config['timer_to_time']
 
-    @timerToTime.setter
-    def timerToTime(self, timerToTime):
+    @timer_to_time.setter
+    def timer_to_time(self, timer_to_time):
         """
         Set time when timer stops
         """
-        self.mydataConfig['timer_to_time'] = timerToTime
-
-        self.mydataConfig['api_key'] = ""
+        self.mydata_config['timer_to_time'] = timer_to_time
