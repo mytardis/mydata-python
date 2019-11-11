@@ -14,7 +14,7 @@ from ..settings import SETTINGS
 from ..logs import logger
 
 
-class Folder(object):
+class Folder():
     """
     Model class representing a data folder which may or may not
     have a corresponding dataset record in MyTardis.

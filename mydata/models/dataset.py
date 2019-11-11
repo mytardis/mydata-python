@@ -11,7 +11,7 @@ from ..logs import logger
 from ..utils.exceptions import DoesNotExist
 
 
-class Dataset(object):
+class Dataset():
     """
     Client-side model for caching results of querying
     MyTardis's dataset model.

@@ -1,124 +1,33 @@
 """
 Test ability to handle dataset-related exceptions.
 """
-import importlib
 import json
 import os
 
-import pytest
 import requests_mock
-from requests.exceptions import HTTPError
 
-from mydata.threads.flags import FLAGS
+from tests.mocks import (
+    MOCK_USER_RESPONSE,
+    MOCK_FACILITY_RESPONSE,
+    MOCK_INSTRUMENT_RESPONSE,
+    MOCK_EXISTING_DATASET_RESPONSE
+)
 
-@pytest.fixture
-def set_mydata_config_path():
-    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
-        os.path.join('.', 'tests', 'testdata', 'testdata-exp-dataset.cfg'))
+from tests.fixtures import set_exp_dataset_config
 
 
-def test_dataset_exceptions(set_mydata_config_path):
+def test_dataset_exceptions(set_exp_dataset_config):
     """Test ability to handle dataset-related exceptions.
     """
-    from mydata import settings
-    settings = importlib.reload(settings)
-    from mydata.models import facility
-    facility = importlib.reload(facility)
-    from mydata.models import folder
-    folder = importlib.reload(folder)
-    SETTINGS = settings.SETTINGS
-    assert SETTINGS.config_path == os.environ['MYDATA_CONFIG_PATH']
+    from mydata.settings import SETTINGS
     from mydata.models.dataset import Dataset
     from mydata.models.experiment import Experiment
     from mydata.models.folder import Folder
-    from mydata.models.settings.validation import validate_settings
-
-    mock_api_endpoints = {
-        "dataset": {
-            "list_endpoint": "/api/v1/dataset/",
-            "schema": "/api/v1/dataset/schema/"
-        },
-        "experiment": {
-            "list_endpoint": "/api/v1/experiment/",
-            "schema": "/api/v1/experiment/schema/"
-        }
-    }
-    mock_api_response = json.dumps(mock_api_endpoints)
-    mock_user_dict = {
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "username": "testfacility",
-            "first_name": "TestFacility",
-            "last_name": "RoleAccount",
-            "email": "testfacility@example.com",
-            "groups": [{
-                "id": 1,
-                "name": "test-facility-managers"
-            }]
-        }]
-    }
-    mock_user_response = json.dumps(mock_user_dict)
-    mock_facility_dict = {
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "name": "Test Facility",
-            "manager_group": {
-                "id": 1,
-                "name": "test-facility-managers"
-            }
-        }]
-    }
-    mock_facility_response = json.dumps(mock_facility_dict)
-    mock_instrument_dict = {
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "name": "Test Instrument",
-            "facility": {
-                "id": 1,
-                "name": "Test Facility",
-                "manager_group": {
-                    "id": 1,
-                    "name": "test-facility-managers"
-                }
-            }
-        }]
-    }
-    mock_instrument_response = json.dumps(mock_instrument_dict)
-    with requests_mock.Mocker() as mocker:
-        list_api_endpoints_url = "%s/api/v1/?format=json" % SETTINGS.general.mytardis_url
-        mocker.get(list_api_endpoints_url, text=mock_api_response)
-        get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % SETTINGS.general.mytardis_url
-        mocker.get(get_user_api_url, text=mock_user_response)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
-        mocker.get(get_facility_api_url, text=mock_facility_response)
-        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
-        mocker.get(get_instrument_api_url, text=mock_instrument_response)
-        validate_settings()
+    from mydata.threads.flags import FLAGS
 
     with requests_mock.Mocker() as mocker:
         get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % SETTINGS.general.mytardis_url
-        mocker.get(get_user_api_url, text=mock_user_response)
+        mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
         owner = SETTINGS.general.default_owner
     dataset_folder_name = "Flowers"
     exp_folder_name = "Exp1"
@@ -131,7 +40,7 @@ def test_dataset_exceptions(set_mydata_config_path):
     folder = Folder(dataset_folder_name, location,
                     user_folder_name, group_folder_name, owner)
     folder.experimentTitle = "Existing Experiment"
-    mock_exp_dict = {
+    mock_exp_response = json.dumps({
         "meta": {
             "limit": 20,
             "next": None,
@@ -143,8 +52,7 @@ def test_dataset_exceptions(set_mydata_config_path):
             "id": 1,
             "title": "Existing Experiment"
         }]
-    }
-    mock_exp_response = json.dumps(mock_exp_dict)
+    })
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
             "%s/api/v1/mydata_experiment/?format=json&title="
@@ -157,7 +65,7 @@ def test_dataset_exceptions(set_mydata_config_path):
     folder.experiment = experiment
     FLAGS.test_run_running = False
 
-    mock_dataset_dict = {
+    mock_dataset_response = json.dumps({
         "meta": {
             "limit": 20,
             "next": None,
@@ -169,18 +77,23 @@ def test_dataset_exceptions(set_mydata_config_path):
             "id": 1,
             "description": "Flowers"
         }]
-    }
-    mock_dataset_response = json.dumps(mock_dataset_dict)
+    })
     with requests_mock.Mocker() as mocker:
         get_dataset_url = (
             "%s/api/v1/dataset/?format=json&experiments__id=1"
             "&description=Flowers&instrument__id=1"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_dataset_url, text=mock_dataset_response)
+        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
+        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
+        get_instrument_api_url = (
+            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
+        ) % SETTINGS.general.mytardis_url
+        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         dataset = Dataset.create_dataset_if_necessary(folder)
         assert dataset.description == dataset_folder_name
 
-    mock_dataset_dict = {
+    mock_dataset_response = json.dumps({
         "meta": {
             "limit": 20,
             "next": None,
@@ -190,8 +103,7 @@ def test_dataset_exceptions(set_mydata_config_path):
         },
         "objects": [
         ]
-    }
-    mock_dataset_response = json.dumps(mock_dataset_dict)
+    })
     with requests_mock.Mocker() as mocker:
         get_dataset_url = (
             "%s/api/v1/dataset/?format=json&experiments__id=1"
@@ -202,31 +114,19 @@ def test_dataset_exceptions(set_mydata_config_path):
         # and ensure that no exception is raised:
         FLAGS.test_run_running = True
         dataset = Dataset.create_dataset_if_necessary(folder)
-        assert dataset == None
+        assert dataset is None
         FLAGS.test_run_running = False
 
-    mock_dataset_dict = {
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "description": "Existing Dataset"
-        }]
-    }
-    mock_dataset_response = json.dumps(mock_dataset_dict)
+    # Simulate retrieving existing dataset record during test run
+    # and ensure that no exception is raised:
     with requests_mock.Mocker() as mocker:
         get_dataset_url = (
             "%s/api/v1/dataset/?format=json&experiments__id=1"
             "&description=Existing%%20Dataset&instrument__id=1"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_dataset_url, text=mock_dataset_response)
-        # Simulate retrieving existing dataset record during test run
-        # and ensure that no exception is raised:
+        mocker.get(get_dataset_url, text=MOCK_EXISTING_DATASET_RESPONSE)
+        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
+        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
         FLAGS.test_run_running = True
         folder.data_view_fields['folder_name'] = "Existing Dataset"
         dataset = Dataset.create_dataset_if_necessary(folder)

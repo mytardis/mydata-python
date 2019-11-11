@@ -4,32 +4,24 @@ Test ability to handle replica-related exceptions.
 'replica' is the name of the MyTardis API resource
 endpoint for DataFileObjects (DFOs).
 """
-import importlib
 import json
-import os
 import pytest
 
 import requests_mock
 from requests.exceptions import HTTPError
 
-
-@pytest.fixture
-def set_mydata_config_path():
-    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
-        os.path.join('.', 'tests', 'testdata', 'testdata-exp-dataset.cfg'))
+from tests.fixtures import set_exp_dataset_config
 
 
-def test_replica_exceptions(set_mydata_config_path):
+def test_replica_exceptions(set_exp_dataset_config):
     """Test ability to handle replica-related exceptions.
 
     'replica' is the name of the MyTardis API resource
     endpoint for DataFileObjects (DFOs).
     """
-    from mydata import settings
-    settings = importlib.reload(settings)
+    from mydata.settings import SETTINGS
     from mydata.models.datafile import DataFile
     from mydata.models.replica import Replica
-    SETTINGS = settings.SETTINGS
 
     mock_datafile_response = json.dumps({
         "id": 1,

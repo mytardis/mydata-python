@@ -11,10 +11,10 @@ from ..settings import SETTINGS
 from ..threads.flags import FLAGS
 from ..logs import logger
 from ..utils.exceptions import DoesNotExist
-from .objectacl import ObjectAclModel
+from .objectacl import ObjectACL
 
 
-class Experiment(object):
+class Experiment():
     """
     Model class for MyTardis API v1's ExperimentResource.
     """
@@ -160,7 +160,7 @@ class Experiment(object):
         logger.debug(message)
 
         facility_managers_group = SETTINGS.general.facility.manager_group
-        ObjectAclModel.share_exp_with_group(
+        ObjectACL.share_exp_with_group(
             created_exp, facility_managers_group, is_owner=True)
         # Avoid creating a duplicate ObjectACL if the user folder's
         # username matches the facility manager's username.
@@ -168,11 +168,11 @@ class Experiment(object):
         # invalid user (without a MyTardis user ID).
         if SETTINGS.general.username != folder.owner.username and \
                 owner_user_id is not None:
-            ObjectAclModel.share_exp_with_user(created_exp, folder.owner)
+            ObjectACL.share_exp_with_user(created_exp, folder.owner)
         if folder.group is not None and \
                 folder.group.group_id != \
                 facility_managers_group.group_id:
-            ObjectAclModel.share_exp_with_group(
+            ObjectACL.share_exp_with_group(
                 created_exp, folder.group, is_owner=True)
         return created_exp
 

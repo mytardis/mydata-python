@@ -1,7 +1,6 @@
 """
 Test ability to handle experiment-related exceptions.
 """
-import importlib
 import json
 import os
 
@@ -9,54 +8,24 @@ import pytest
 import requests_mock
 from requests.exceptions import HTTPError
 
+from tests.mocks import (
+    MOCK_FACILITY_RESPONSE,
+    MOCK_INSTRUMENT_RESPONSE,
+    EXISTING_EXP_RESPONSE,
+    EXP1_RESPONSE,
+    EMPTY_EXP_RESPONSE
+)
 
-@pytest.fixture
-def set_mydata_config_path():
-    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
-        os.path.join('.', 'tests', 'testdata', 'testdata-exp-dataset.cfg'))
-
-
-EXISTING_EXP_RESPONSE = json.dumps({
-    "meta": {
-        "limit": 20,
-        "next": None,
-        "offset": 0,
-        "previous": None,
-        "total_count": 1
-    },
-    "objects": [{
-        "id": 1,
-        "title": "Existing Experiment"
-    }]
-})
-
-EXP1_RESPONSE = json.dumps({
-    "id": 1,
-    "title": "Exp1",
-    "resource_uri": "/api/v1/experiment/1/"
-})
+from tests.fixtures import set_exp_dataset_config
 
 
-EMPTY_EXP_RESPONSE = json.dumps({
-    "meta": {
-        "limit": 20,
-        "next": None,
-        "offset": 0,
-        "previous": None,
-        "total_count": 0
-    },
-    "objects": []
-})
-
-
-def test_experiment_exceptions(set_mydata_config_path):
+def test_experiment_exceptions(set_exp_dataset_config):
     """Test ability to handle experiment-related exceptions.
     """
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-statements
-    from mydata import settings
-    settings = importlib.reload(settings)
-    SETTINGS = settings.SETTINGS
+
+    from mydata.settings import SETTINGS
     from mydata.threads.flags import FLAGS
     from mydata.models.experiment import Experiment
     from mydata.models.folder import Folder
@@ -333,6 +302,10 @@ def test_experiment_exceptions(set_mydata_config_path):
         mocker.post(post_exp_url, text=EXP1_RESPONSE, status_code=201)
         post_objectacl_url = "%s/api/v1/objectacl/" % SETTINGS.general.mytardis_url
         mocker.post(post_objectacl_url, status_code=201)
+        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
+        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
+        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
+        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         experiment = Experiment.create_exp_for_folder(folder)
         assert experiment.title == exp_folder_name
 
@@ -347,7 +320,7 @@ def test_experiment_exceptions(set_mydata_config_path):
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
         experiment = Experiment.get_or_create_exp_for_folder(folder)
-        assert experiment == None
+        assert experiment is None
         FLAGS.test_run_running = False
 
     # Get or create an experiment with a title specified manually,
@@ -374,6 +347,10 @@ def test_experiment_exceptions(set_mydata_config_path):
             "%s/api/v1/mydata_experiment/"
         ) % SETTINGS.general.mytardis_url
         mocker.post(post_exp_url, status_code=401)
+        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
+        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
+        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
+        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         with pytest.raises(HTTPError) as excinfo:
             _ = Experiment.create_exp_for_folder(folder)
         assert excinfo.value.response.status_code == 401
@@ -396,6 +373,10 @@ def test_experiment_exceptions(set_mydata_config_path):
             "%s/api/v1/mydata_experiment/"
         ) % SETTINGS.general.mytardis_url
         mocker.post(post_exp_url, status_code=404)
+        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
+        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
+        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
+        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         with pytest.raises(HTTPError) as excinfo:
             _ = Experiment.create_exp_for_folder(folder)
         assert excinfo.value.response.status_code == 404

@@ -9,7 +9,7 @@ from ..settings import SETTINGS
 from ..logs import logger
 
 
-class ObjectAclModel(object):
+class ObjectACL():
     """
     Model class for MyTardis API v1's ObjectACLResource.
     """
@@ -25,7 +25,7 @@ class ObjectAclModel(object):
 
         object_acl_dict = {
             "pluginId": "django_user",
-            "entityId": str(user.userId),
+            "entityId": str(user.user_id),
             "content_object": experiment.resource_uri.replace("mydata_", ""),
             "content_type": "experiment",
             "object_id": experiment.exp_id,

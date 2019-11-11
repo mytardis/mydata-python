@@ -1,29 +1,19 @@
 """
 Test folder model
 """
-import importlib
 import os
 import sys
 import tempfile
 
-import pytest
-
-@pytest.fixture
-def set_mydata_config_path():
-    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
-        os.path.join('.', 'tests', 'testdata', 'testdata-username-dataset-post.cfg'))
+from tests.fixtures import set_username_dataset_config
+from tests.utils import unload_modules
 
 
-def test_folder_model(set_mydata_config_path):
+def test_folder_model(set_username_dataset_config):
     """
     Test folder model
     """
-    from mydata import settings
-    settings = importlib.reload(settings)
-    from mydata.models import folder
-    folder = importlib.reload(folder)
-    SETTINGS = settings.SETTINGS
-
+    from mydata.settings import SETTINGS
     from mydata.models.folder import Folder
     from mydata.models.user import User
 

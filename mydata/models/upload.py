@@ -17,7 +17,7 @@ class UploadStatus():
     Enumerated data type.
 
     This is used to update the status seen in the Uploads view.
-    Stored in an UploadModel instance's status attribute, this
+    Stored in an Upload model instance's status attribute, this
     field
     """
     # pylint: disable=invalid-name
@@ -29,7 +29,7 @@ class UploadStatus():
     CANCELED = 5
 
 
-class UploadModel():
+class Upload():
     """
     Model class for a datafile upload, which appears as one row in
     the Uploads view of MyData's main window.
@@ -74,7 +74,7 @@ class UploadModel():
 
         # After the file is uploaded, MyData will request verification
         # after a short delay.  During that delay, the countdown timer
-        # will be stored in the UploadModel so that it can be canceled
+        # will be stored in the Upload instance so that it can be canceled
         # if necessary:
         self.verification_timer = None
 
@@ -122,14 +122,14 @@ class UploadModel():
 
     def get_value_for_key(self, key):
         """
-        Return value of field from the UploadModel
+        Return value of field from the Upload instance
         to display in the Uploads view
         """
         return getattr(self, key)
 
     def get_relative_path_to_upload(self):
         """
-        Get the local path to this UploadModel's file,
+        Get the local path to this Upload instance's file,
         relative to the dataset folder
         """
         if self.subdirectory != "":

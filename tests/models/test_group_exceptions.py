@@ -1,51 +1,33 @@
 """
 Test ability to handle group-related exceptions.
 """
-import importlib
 import json
-import os
 
 import pytest
 import requests_mock
 
 from requests.exceptions import HTTPError
 
-
-@pytest.fixture
-def set_mydata_config_path():
-    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
-        os.path.join('.', 'tests', 'testdata', 'testdata-exp-dataset.cfg'))
+from tests.mocks import MOCK_GROUP_RESPONSE
+from tests.fixtures import set_exp_dataset_config
 
 
-def test_group_exceptions(set_mydata_config_path):
+def test_group_exceptions(set_exp_dataset_config):
     """Test ability to handle group-related exceptions.
     """
-    from mydata import settings
+    from mydata.settings import SETTINGS
     from mydata.models.group import Group
     from mydata.utils.exceptions import DoesNotExist
-    settings = importlib.reload(settings)
-    SETTINGS = settings.SETTINGS  # pylint: disable=invalid-name
+
+    assert SETTINGS.general.mytardis_url == 'http://127.0.0.1:9000'
 
     # Test retrieving a valid group record (using the Group model's
     # get_group_by_name method) and ensure that no exception is raised:
-    mock_group_response = json.dumps({
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "name": "TestFacility-Group1",
-        }]
-    })
     with requests_mock.Mocker() as mocker:
         get_group_url = (
             "%s/api/v1/group/?format=json&name=TestFacility-Group1"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_group_url, text=mock_group_response)
+        mocker.get(get_group_url, text=MOCK_GROUP_RESPONSE)
         group = Group.get_group_by_name("TestFacility-Group1")
         assert group.name == "TestFacility-Group1"
         assert group.get_value_for_key('name') == group.name

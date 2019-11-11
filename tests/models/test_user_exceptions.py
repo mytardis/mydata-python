@@ -1,9 +1,7 @@
 """
 Test ability to handle user-related exceptions.
 """
-import importlib
 import json
-import os
 
 import pytest
 import requests_mock
@@ -12,20 +10,14 @@ from requests.exceptions import HTTPError
 
 from mydata.utils.exceptions import DoesNotExist
 
-
-@pytest.fixture
-def set_mydata_config_path():
-    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
-        os.path.join('.', 'tests', 'testdata', 'testdata-exp-dataset.cfg'))
+from tests.fixtures import set_exp_dataset_config
 
 
-def test_user_exceptions(set_mydata_config_path):
+def test_user_exceptions(set_exp_dataset_config):
     """Test ability to handle user-related exceptions.
     """
-    from mydata import settings
+    from mydata.settings import SETTINGS
     from mydata.models.user import User
-    settings = importlib.reload(settings)
-    SETTINGS = settings.SETTINGS  # pylint: disable=invalid-name
 
     # Test retrieving default owner's user record (using the User model's
     # get_user_by_username method) and ensure that no exception is raised:

@@ -4,7 +4,7 @@ Thread-safe flags
 import threading
 
 
-class ThreadSafeFlags(object):
+class ThreadSafeFlags():
     """
     Thread-safe flags
     """
