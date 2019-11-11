@@ -60,13 +60,11 @@ def test_experiment_exceptions(set_mydata_config_path):
     from mydata.threads.flags import FLAGS
     from mydata.models.experiment import Experiment
     from mydata.models.folder import Folder
-    #from mydata.models.settings.validation import validate_settings
     from mydata.utils.exceptions import DoesNotExist
 
     # MyData has the concept of a "default experiment",
     # which depends on the UUID of the MyData instance:
     SETTINGS.miscellaneous.uuid = "1234567890"
-    #validate_settings()
 
     mock_user_dict = {
         "meta": {
@@ -297,20 +295,6 @@ def test_experiment_exceptions(set_mydata_config_path):
             _ = Experiment.get_exp_for_folder(folder)
         assert excinfo.value.response.status_code == 401
         SETTINGS.general.api_key = api_key
-
-    # Try to look up experiment record with a missing UserProfile
-    # for the authorizing user, which can result in a 404 from the
-    # MyTardis API:
-    folder.experiment_title = "Missing UserProfile"
-    with requests_mock.Mocker() as mocker:
-        get_exp_url = (
-            "%s/api/v1/mydata_experiment/?format=json&title=Missing%%20UserProfile"
-            "&folder_structure=Experiment%%20/%%20Dataset"
-        ) % SETTINGS.general.mytardis_url
-        mocker.get(get_exp_url, status_code=404)
-        with pytest.raises(HTTPError) as excinfo:
-            _ = Experiment.get_exp_for_folder(folder)
-        assert excinfo.value.response.status_code == 404
 
     # Try to look up experiment record with a missing Schema,
     # which can result in a 404 from the MyTardis API:

@@ -10,10 +10,10 @@ from ..settings import SETTINGS
 from ..logs import logger
 from ..utils.exceptions import DoesNotExist
 from ..utils.exceptions import DuplicateKey
-from .facility import FacilityModel
+from .facility import Facility
 
 
-class InstrumentModel():
+class Instrument():
     """
     Model class for MyTardis API v1's InstrumentResource.
     """
@@ -21,7 +21,7 @@ class InstrumentModel():
         self.name = name
         self.json = instrument_dict
         self.instrument_id = instrument_dict['id']
-        self.facility = FacilityModel(facility_dict=instrument_dict['facility'])
+        self.facility = Facility(facility_dict=instrument_dict['facility'])
 
     @property
     def resource_uri(self):
@@ -46,7 +46,7 @@ class InstrumentModel():
         response = requests.post(headers=headers, url=url, data=data.encode())
         response.raise_for_status()
         instrument_dict = response.json()
-        return InstrumentModel(name=name, instrument_dict=instrument_dict)
+        return Instrument(name=name, instrument_dict=instrument_dict)
 
     @staticmethod
     def get_instrument(facility, name):
@@ -66,18 +66,18 @@ class InstrumentModel():
         if num_instruments_found == 0:
             message = "Instrument \"%s\" was not found in MyTardis" % name
             logger.warning(message)
-            raise DoesNotExist(message, response, model_class=InstrumentModel)
+            raise DoesNotExist(message, response, model_class=Instrument)
         logger.debug("Found instrument record for name \"%s\" "
                      "in facility \"%s\"" % (name, facility.name))
         instrument_dict = instruments_dict['objects'][0]
-        return InstrumentModel(name=name, instrument_dict=instrument_dict)
+        return Instrument(name=name, instrument_dict=instrument_dict)
 
     @staticmethod
     def rename_instrument(facility_name, old_name, new_name):
         """
         Rename the instrument
         """
-        facilities = FacilityModel.get_my_facilities()
+        facilities = Facility.get_my_facilities()
         facility = None
         for facil in facilities:
             if facility_name == facil.name:
@@ -88,13 +88,13 @@ class InstrumentModel():
                             "SettingsModel's rename_instrument.")
         try:
             old_instrument = \
-                InstrumentModel.get_instrument(facility, old_name)
+                Instrument.get_instrument(facility, old_name)
         except DoesNotExist:
             raise Exception("Instrument record for old instrument "
                             "name not found in SettingsModel's "
                             "rename_instrument.")
         try:
-            _ = InstrumentModel.get_instrument(facility, new_name)
+            _ = Instrument.get_instrument(facility, new_name)
             raise DuplicateKey("Instrument with name \"%s\" "
                                "already exists" % new_name)
         except DoesNotExist:

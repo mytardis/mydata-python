@@ -18,7 +18,7 @@ from ...logs import logger
 from ...threads.flags import FLAGS
 from ...utils.exceptions import InvalidSettings
 from ...utils.exceptions import UserAborted
-from ..facility import FacilityModel
+from ..facility import Facility
 
 
 def validate_settings(set_status_message=None):
@@ -368,7 +368,7 @@ def check_facility(set_status_message):
         message = "Please enter a valid facility name."
         suggestion = None
         try:
-            facilities = FacilityModel.get_my_facilities()
+            facilities = Facility.get_my_facilities()
             if len(facilities) == 1:
                 suggestion = facilities[0].name
             raise InvalidSettings(message, "facility_name", suggestion)
@@ -378,7 +378,7 @@ def check_facility(set_status_message):
             logger.exception("Failed to look up accessible facilities")
             raise InvalidSettings(message, "facility_name")
     if SETTINGS.general.facility is None:
-        facilities = FacilityModel.get_my_facilities()
+        facilities = Facility.get_my_facilities()
         message = "Facility \"%s\" was not found in MyTardis." \
             % SETTINGS.general.facility_name
         if facilities:
@@ -411,7 +411,7 @@ def check_instrument(set_status_message):
     if set_status_message:
         set_status_message(message)
     try:
-        # Try to get the InstrumentModel from the instrument name:
+        # Try to get the Instrument from the instrument name:
         _ = SETTINGS.general.instrument
     except HTTPError as err:
         message = str(err)

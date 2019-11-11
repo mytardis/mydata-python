@@ -13,29 +13,27 @@ from ..settings import SETTINGS
 from ..logs import logger
 from ..utils.exceptions import DoesNotExist
 from ..utils.exceptions import MultipleObjectsReturned
-from .replica import ReplicaModel
+from .replica import Replica
 
 
-class DataFileModel():
+class DataFile():
     """
     Model class for MyTardis API v1's DataFileResource.
     """
     # pylint: disable=too-many-instance-attributes
     def __init__(self, dataset, datafile_dict):
-        self.datafile_id = None
+        self.id = None  # pylint: disable=invalid-name
         self.filename = None
         self.directory = None
         self.size = None
         self.replicas = []
         if datafile_dict is not None:
             for key in datafile_dict:
-                if key == "id":
-                    key = "datafile_id"
                 if hasattr(self, key):
                     self.__dict__[key] = datafile_dict[key]
             self.replicas = []
             for replica_dict in datafile_dict['replicas']:
-                self.replicas.append(ReplicaModel(replica_dict=replica_dict))
+                self.replicas.append(Replica(replica_dict=replica_dict))
         # This needs to go after self.__dict__[key] = datafile_dict[key]
         # so we get the full dataset model, not just the API resource string:
         self.dataset = dataset
@@ -65,7 +63,7 @@ class DataFileModel():
                 message="Multiple datafiles matching %s were found in MyTardis"
                 % filename,
                 response=response)
-        return DataFileModel(
+        return DataFile(
             dataset=dataset, datafile_dict=datafiles_dict['objects'][0])
 
     @staticmethod
@@ -81,7 +79,7 @@ class DataFileModel():
         response = requests.get(url=url, headers=SETTINGS.default_headers)
         response.raise_for_status()
         datafile_dict = response.json()
-        return DataFileModel(dataset=None, datafile_dict=datafile_dict)
+        return DataFile(dataset=None, datafile_dict=datafile_dict)
 
     @staticmethod
     def verify(datafile_id):

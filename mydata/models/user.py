@@ -8,10 +8,10 @@ from six.moves import urllib
 from ..settings import SETTINGS
 from ..utils.exceptions import DoesNotExist
 from ..logs import logger
-from .group import GroupModel
+from .group import Group
 
 
-class UserModel():
+class User():
     """
     Model class for MyTardis API v1's UserResource.
     """
@@ -37,7 +37,7 @@ class UserModel():
             if email is None:
                 self._email = user_dict['email']
             for group_dict in user_dict['groups']:
-                self.groups.append(GroupModel(group_dict=group_dict))
+                self.groups.append(Group(group_dict=group_dict))
 
     @property
     def username(self):
@@ -48,7 +48,7 @@ class UserModel():
         if self._username:
             username = self._username
         else:
-            username = UserModel.user_not_found_string
+            username = User.user_not_found_string
         return username
 
     @username.setter
@@ -67,7 +67,7 @@ class UserModel():
         if self._full_name:
             full_name = self._full_name
         else:
-            full_name = UserModel.user_not_found_string
+            full_name = User.user_not_found_string
         return full_name
 
     @full_name.setter
@@ -86,7 +86,7 @@ class UserModel():
         if self._email:
             email = self._email
         else:
-            email = UserModel.user_not_found_string
+            email = User.user_not_found_string
         return email
 
     @email.setter
@@ -105,7 +105,7 @@ class UserModel():
             return getattr(self, key)
         if key in ('username', 'full_name', 'email') and \
                 self.user_not_found_in_mytardis:
-            value = UserModel.user_not_found_string
+            value = User.user_not_found_string
         else:
             value = None
         return value
@@ -129,8 +129,7 @@ class UserModel():
                 message="User \"%s\" was not found in MyTardis" % username,
                 response=response)
         logger.debug("Found user record for username '" + username + "'.")
-        return UserModel(username=username,
-                         user_dict=user_dicts['objects'][0])
+        return User(username=username, user_dict=user_dicts['objects'][0])
 
     @staticmethod
     def get_user_by_email(email):
@@ -153,12 +152,12 @@ class UserModel():
                 % email,
                 response=response)
         logger.debug("Found user record for email '" + email + "'.")
-        return UserModel(user_dict=user_dicts['objects'][0])
+        return User(user_dict=user_dicts['objects'][0])
 
     @staticmethod
     def get_user_for_folder(user_folder_name, user_not_found_in_mytardis=False):
         """
-        Return a UserModel for a username or email folder
+        Return a User for a username or email folder
 
         Set user_not_found_in_mytardis to True if you already know there is
         no corresponding user record in MyTardis, but you want to create
@@ -167,18 +166,12 @@ class UserModel():
         folder_structure = SETTINGS.advanced.folder_structure
         if folder_structure.startswith("Username"):
             if user_not_found_in_mytardis:
-                return UserModel(
+                return User(
                     username=user_folder_name, user_not_found_in_mytardis=True)
-            return UserModel.get_user_by_username(user_folder_name)
+            return User.get_user_by_username(user_folder_name)
         if folder_structure.startswith("Email"):
             if user_not_found_in_mytardis:
-                return UserModel(
+                return User(
                     email=user_folder_name, user_not_found_in_mytardis=True)
-            return UserModel.get_user_by_email(user_folder_name)
+            return User.get_user_by_email(user_folder_name)
         return None
-
-class UserProfileModel():
-    """
-    Used with the DoesNotExist exception when a 404 from MyTardis's API
-    is assumed to have been caused by a missing user profile record.
-    """

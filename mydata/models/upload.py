@@ -194,7 +194,7 @@ class UploadModel():
         """
         self._existing_unverified_datafile = existing_unverified_datafile
         if self._existing_unverified_datafile:
-            self.datafile_id = self._existing_unverified_datafile.datafileId
+            self.datafile_id = self._existing_unverified_datafile.id
             replicas = self._existing_unverified_datafile.replicas
             if len(replicas) == 1:
                 self.dfo_id = replicas[0].dfo_id

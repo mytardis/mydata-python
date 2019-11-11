@@ -5,10 +5,10 @@ Model class for MyTardis API v1's FacilityResource.
 import requests
 
 from ..settings import SETTINGS
-from .group import GroupModel
+from .group import Group
 
 
-class FacilityModel():
+class Facility():
     """
     Model class for MyTardis API v1's FacilityResource.
     """
@@ -23,7 +23,7 @@ class FacilityModel():
             if name is None:
                 self.name = facility_dict['name']
             self.manager_group = \
-                GroupModel(group_dict=facility_dict['manager_group'])
+                Group(group_dict=facility_dict['manager_group'])
 
     @property
     def resource_uri(self):
@@ -46,5 +46,5 @@ class FacilityModel():
         response.raise_for_status()
         facilities_dict = response.json()
         for facility_dict in facilities_dict['objects']:
-            facilities.append(FacilityModel(facility_dict=facility_dict))
+            facilities.append(Facility(facility_dict=facility_dict))
         return facilities

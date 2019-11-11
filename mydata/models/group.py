@@ -10,7 +10,7 @@ from ..logs import logger
 from ..utils.exceptions import DoesNotExist
 
 
-class GroupModel():
+class Group():
     """
     Model class for MyTardis API v1's GroupResource.
     """
@@ -55,4 +55,4 @@ class GroupModel():
                 message="Group \"%s\" was not found in MyTardis" % name,
                 response=response)
         logger.debug("Found group record for name '" + name + "'.")
-        return GroupModel(name=name, group_dict=groups_dict['objects'][0])
+        return Group(name=name, group_dict=groups_dict['objects'][0])

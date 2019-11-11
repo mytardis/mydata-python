@@ -63,19 +63,19 @@ class GeneralSettingsModel(BaseSettingsModel):
     @property
     def instrument(self):
         """
-        Return the InstrumentModel for the specified instrument name
+        Return the Instrument for the specified instrument name
         """
-        from ..instrument import InstrumentModel
+        from ..instrument import Instrument
         if self._instrument:
             return self._instrument
         try:
-            self._instrument = InstrumentModel.get_instrument(
+            self._instrument = Instrument.get_instrument(
                 self.facility, self.instrument_name)
         except DoesNotExist:
             logger.info("No instrument record with name \"%s\" was found "
                         "in facility \"%s\", so we will create one."
                         % (self.instrument_name, self.facility_name))
-            self._instrument = InstrumentModel.create_instrument(
+            self._instrument = Instrument.create_instrument(
                 self.facility, self.instrument_name)
         return self._instrument
 
@@ -97,12 +97,12 @@ class GeneralSettingsModel(BaseSettingsModel):
     @property
     def facility(self):
         """
-        Return the FacilityModel for the specified facility name
+        Return the Facility for the specified facility name
         """
-        from ..facility import FacilityModel
+        from ..facility import Facility
         if self._facility:
             return self._facility
-        facilities = FacilityModel.get_my_facilities()
+        facilities = Facility.get_my_facilities()
         for facility in facilities:
             if self.facility_name == facility.name:
                 self._facility = facility
@@ -197,9 +197,9 @@ class GeneralSettingsModel(BaseSettingsModel):
         """
         Get user model for the specified MyTardis username
         """
-        from ..user import UserModel
+        from ..user import User
         if not self._default_owner:
-            self._default_owner = UserModel.get_user_by_username(self.username)
+            self._default_owner = User.get_user_by_username(self.username)
         return self._default_owner
 
     @default_owner.setter

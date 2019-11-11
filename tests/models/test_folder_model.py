@@ -25,14 +25,14 @@ def test_folder_model(set_mydata_config_path):
     SETTINGS = settings.SETTINGS
 
     from mydata.models.folder import Folder
-    from mydata.models.user import UserModel
+    from mydata.models.user import User
 
     with tempfile.NamedTemporaryFile() as temp_file:
         includes_file_path = temp_file.name
     with tempfile.NamedTemporaryFile() as temp_file:
         excludes_file_path = temp_file.name
 
-    testuser1 = UserModel(username="testuser1")
+    testuser1 = User(username="testuser1")
     name = "Flowers"
     location = os.path.join(SETTINGS.general.data_directory, "testuser1")
     user_folder_name = "testuser1"

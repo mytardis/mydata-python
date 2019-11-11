@@ -7,14 +7,14 @@ import requests
 from ..settings import SETTINGS
 
 
-class ReplicaModel():
+class Replica():
     """
     The Replica model has been removed from MyTardis and replaced by
     the DataFileObject model.  But MyTardis's API still returns
     JSON labeled as "replicas" within each DataFileResource.
     """
     def __init__(self, replica_dict=None):
-        self.replica_id = None
+        self.id = None  # pylint: disable=invalid-name
         self.uri = None
         self.datafile_resource_uri = None
         self.verified = None
@@ -22,8 +22,6 @@ class ReplicaModel():
 
         if replica_dict is not None:
             for key in replica_dict:
-                if key == "id":
-                    key = "replica_id"
                 if hasattr(self, key):
                     self.__dict__[key] = replica_dict[key]
             self.datafile_resource_uri = replica_dict['datafile']
@@ -48,7 +46,7 @@ class ReplicaModel():
         Returns primary key of the DataFileObject (DFO),
         (also known as a Replica in the MyTardis API).
         """
-        return self.replica_id
+        return self.id
 
     @dfo_id.setter
     def dfo_id(self, dfo_id):
@@ -57,4 +55,4 @@ class ReplicaModel():
 
         Only used in tests.
         """
-        self.replica_id = dfo_id
+        self.id = dfo_id

@@ -7,8 +7,8 @@ import threading
 import requests
 
 from ..events.stop import should_cancel_upload
-from ..models.datafile import DataFileModel
-from ..models.replica import ReplicaModel
+from ..models.datafile import DataFile
+from ..models.replica import Replica
 from ..models.upload import UploadStatus
 from ..utils.exceptions import DoesNotExist
 from ..utils.exceptions import MissingMyDataReplicaApiEndpoint
@@ -37,7 +37,7 @@ def monitor_progress(progress_poll_interval, upload_model,
     if upload_model.dfo_id is None:
         if upload_model.datafile_id is not None:
             try:
-                datafile = DataFileModel.get_datafile_from_id(
+                datafile = DataFile.get_datafile_from_id(
                     upload_model.datafile_id)
                 upload_model.dfo_id = datafile.replicas[0].dfo_id
             except requests.exceptions.RequestException:
@@ -57,7 +57,7 @@ def monitor_progress(progress_poll_interval, upload_model,
     if upload_model.dfo_id:
         try:
             bytes_uploaded = \
-                ReplicaModel.count_bytes_uploaded_to_staging(upload_model.dfo_id)
+                Replica.count_bytes_uploaded_to_staging(upload_model.dfo_id)
             latest_update_time = datetime.now()
             # If this file already has a partial upload in staging,
             # progress and speed estimates can be misleading.
