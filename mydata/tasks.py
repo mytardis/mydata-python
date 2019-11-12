@@ -83,6 +83,8 @@ def scan_for_user_folders(found_user_cb, found_exp_folder_cb, found_dataset_cb):
             user = User.get_user_for_folder(
                 user_folder_name, user_not_found_in_mytardis=True)
 
+        found_user_cb(user)
+
         user_folder_path = os.path.join(
             SETTINGS.general.data_directory, user_folder_name)
         logger.debug("Folder structure: " + folder_structure)
@@ -113,8 +115,6 @@ def scan_for_user_folders(found_user_cb, found_exp_folder_cb, found_dataset_cb):
                 found_exp_folder_cb, found_dataset_cb, mytardis_folder_path,
                 user, user_folder_name)
         raise_exception_if_user_aborted()
-
-        found_user_cb(user)
 
 
 def scan_for_group_folders(found_group_cb, found_exp_folder_cb, found_dataset_cb):
