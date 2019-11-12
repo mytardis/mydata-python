@@ -1,9 +1,9 @@
 """
-Test ability to scan the Group / Dataset folder structure.
+Test ability to scan the Group / Instrument folder structure.
 """
 import requests_mock
 
-from tests.fixtures import set_group_dataset_config
+from tests.fixtures import set_group_instrument_config
 
 from tests.mocks import (
     MOCK_USER_RESPONSE,
@@ -13,8 +13,8 @@ from tests.mocks import (
     MOCK_INSTRUMENT_RESPONSE
 )
 
-def test_scan_group_dataset_folders(set_group_dataset_config):
-    """Test ability to scan the Group / Dataset folder structure.
+def test_scan_group_instrument_folders(set_group_instrument_config):
+    """Test ability to scan the Group / Instrument folder structure.
     """
     from mydata.settings import SETTINGS
     from mydata.tasks import scan_folders
@@ -46,5 +46,9 @@ def test_scan_group_dataset_folders(set_group_dataset_config):
         scan_folders(found_user, found_group, found_dataset)
 
     assert sorted([group.name for group in groups]) == ["TestFacility-Group1", "TestFacility-Group2"]
-    assert sorted([folder.name for folder in folders]) == ["Birds", "Flowers"]
-    assert sum([folder.num_files for folder in folders]) == 5
+    assert sorted([folder.name for folder in folders]) == [
+	"Dataset 001", "Dataset 002", "Dataset 003", "Dataset 004",
+	"Dataset 005", "Dataset 006", "Dataset 007", "Dataset 008"
+    ]
+
+    assert sum([folder.num_files for folder in folders]) == 8

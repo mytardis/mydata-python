@@ -67,3 +67,15 @@ def set_group_dataset_config(request):
         unload_modules()
 
     request.addfinalizer(teardown)
+
+
+@pytest.fixture
+def set_group_instrument_config(request):
+    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
+        os.path.join('.', 'tests', 'testdata', 'testdata-group-instrument.cfg'))
+    assert 'mydata.settings' not in sys.modules
+
+    def teardown():
+        unload_modules()
+
+    request.addfinalizer(teardown)

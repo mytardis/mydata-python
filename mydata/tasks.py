@@ -19,7 +19,7 @@ from .utils.exceptions import (
     InvalidFolderStructure)
 
 
-def scan_folders(found_user_or_group_callback, found_dataset_callback):
+def scan_folders(found_user_callback, found_group_callback, found_dataset_callback):
     """
     Scan dataset folders.
     """
@@ -29,9 +29,9 @@ def scan_folders(found_user_or_group_callback, found_dataset_callback):
     logger.debug("FoldersModel.scan_folders(): Scanning " + data_dir + "...")
     if folder_structure.startswith("Username") or \
             folder_structure.startswith("Email"):
-        scan_for_user_folders(found_user_or_group_callback, found_dataset_callback)
+        scan_for_user_folders(found_user_callback, found_dataset_callback)
     elif folder_structure.startswith("User Group"):
-        scan_for_group_folders(found_user_or_group_callback, found_dataset_callback)
+        scan_for_group_folders(found_group_callback, found_dataset_callback)
     elif folder_structure.startswith("Experiment"):
         scan_for_experiment_folders(found_dataset_callback, data_dir, default_owner)
     elif folder_structure.startswith("Dataset"):
@@ -40,14 +40,13 @@ def scan_folders(found_user_or_group_callback, found_dataset_callback):
         raise InvalidFolderStructure("Unknown folder structure.")
 
 
-def scan_for_user_folders(found_user_or_group_callback, found_dataset_callback):
+def scan_for_user_folders(found_user_callback, found_dataset_callback):
     """
     Scan for user folders.
     """
     folder_structure = SETTINGS.advanced.folder_structure
     upload_invalid_user_or_group_folders = \
         SETTINGS.advanced.upload_invalid_user_or_group_folders
-    num_user_folders_scanned = 0
     for user_folder_name in \
             user_folder_names(SETTINGS.general.data_directory):
         raise_exception_if_user_aborted()
@@ -101,18 +100,16 @@ def scan_for_user_folders(found_user_or_group_callback, found_dataset_callback):
                 found_dataset_callback, mytardis_folder_path, user, user_folder_name)
         raise_exception_if_user_aborted()
 
-        num_user_folders_scanned += 1
-        found_user_or_group_callback(num_user_folders_scanned)
+        found_user_callback(user)
 
 
-def scan_for_group_folders(found_user_or_group_callback, found_dataset_callback):
+def scan_for_group_folders(found_group_callback, found_dataset_callback):
     """
     Scan for group folders.
     """
     folder_structure = SETTINGS.advanced.folder_structure
     upload_invalid_user_or_group_folders = \
         SETTINGS.advanced.upload_invalid_user_or_group_folders
-    num_group_folders_scanned = 0
     for group_folder_name in \
             group_folder_names(SETTINGS.general.data_directory):
         raise_exception_if_user_aborted()
@@ -138,7 +135,7 @@ def scan_for_group_folders(found_user_or_group_callback, found_dataset_callback)
         default_owner = SETTINGS.general.default_owner
         if folder_structure == \
                 'User Group / Instrument / Full Name / Dataset':
-            import_group_folders(group_folder_path, group)
+            import_group_folders(found_dataset_callback, group_folder_path, group)
         elif folder_structure == 'User Group / Experiment / Dataset':
             scan_for_experiment_folders(
                 found_dataset_callback, group_folder_path, owner=default_owner, group=group,
@@ -150,8 +147,7 @@ def scan_for_group_folders(found_user_or_group_callback, found_dataset_callback)
         else:
             raise InvalidFolderStructure("Unknown folder structure.")
         raise_exception_if_user_aborted()
-        num_group_folders_scanned += 1
-        found_user_or_group_callback(num_group_folders_scanned)
+        found_group_callback(group)
 
 
 def scan_for_dataset_folders(
@@ -254,7 +250,7 @@ def scan_for_experiment_folders(
             found_dataset_callback(folder)
 
 
-def import_group_folders(group_folder_path, group):
+def import_group_folders(found_dataset_callback, group_folder_path, group):
     """
     Imports folders structured according to the
     "User Group / Instrument / Researcher's Name / Dataset"
