@@ -60,6 +60,13 @@ def test_validate_settings(set_exp_dataset_config):
         assert "Please enter a valid instrument name" in str(excinfo.value)
         SETTINGS.general.instrument_name = old_value
 
+        old_value = SETTINGS.general.facility_name
+        SETTINGS.general.facility_name = ""
+        with pytest.raises(InvalidSettings) as excinfo:
+            validate_settings()
+        assert "Please enter a valid facility name" in str(excinfo.value)
+        SETTINGS.general.facility_name = old_value
+
         old_value = SETTINGS.general.contact_name
         SETTINGS.general.contact_name = ""
         with pytest.raises(InvalidSettings) as excinfo:
