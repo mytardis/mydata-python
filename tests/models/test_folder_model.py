@@ -6,7 +6,6 @@ import sys
 import tempfile
 
 from tests.fixtures import set_username_dataset_config
-from tests.utils import unload_modules
 
 
 def test_folder_model(set_username_dataset_config):

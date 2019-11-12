@@ -49,7 +49,7 @@ def test_replica_exceptions(set_exp_dataset_config):
         "location": "local-storage",
         "resource_uri": "/api/v1/mydata_replica/12345/",
         "size": 1024,
-	"uri": "dataset1-123/test1.txt",
+        "uri": "dataset1-123/test1.txt",
         "verified": True
     })
     with requests_mock.Mocker() as mocker:

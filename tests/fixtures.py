@@ -1,7 +1,6 @@
 """
 tests/fixtures.py
 """
-import importlib
 import os
 import sys
 

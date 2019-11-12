@@ -60,7 +60,7 @@ class Dataset():
                 logger.testrun(message)
             return existing_dataset
         except DoesNotExist:
-            description = folder.folder_name
+            description = folder.name
             logger.debug("Creating dataset record for folder: " + description)
             if FLAGS.test_run_running:
                 message = "CREATING NEW DATASET FOR FOLDER: %s\n" \
@@ -102,7 +102,7 @@ class Dataset():
             # folder.experiment could be None in testRun
             message = "Dataset can't exist because experiment is None"
             raise DoesNotExist(message, model_class=Dataset)
-        description = urllib.parse.quote(folder.folder_name.encode('utf-8'))
+        description = urllib.parse.quote(folder.name.encode('utf-8'))
         url = ("%s/api/v1/dataset/?format=json&experiments__id=%s"
                "&description=%s" % (SETTINGS.general.mytardis_url,
                                     folder.experiment.exp_id,

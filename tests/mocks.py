@@ -7,33 +7,33 @@ import json
 
 MOCK_API_ENDPOINTS_RESPONSE = json.dumps({
     "dataset": {
-	"list_endpoint": "/api/v1/dataset/",
-	"schema": "/api/v1/dataset/schema/"
+        "list_endpoint": "/api/v1/dataset/",
+        "schema": "/api/v1/dataset/schema/"
     },
     "experiment": {
-	"list_endpoint": "/api/v1/experiment/",
-	"schema": "/api/v1/experiment/schema/"
+        "list_endpoint": "/api/v1/experiment/",
+        "schema": "/api/v1/experiment/schema/"
     }
 })
 
 MOCK_USER_RESPONSE = json.dumps({
     "meta": {
-	"limit": 20,
-	"next": None,
-	"offset": 0,
-	"previous": None,
-	"total_count": 1
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
     },
     "objects": [{
-	"id": 1,
-	"username": "testfacility",
-	"first_name": "TestFacility",
-	"last_name": "RoleAccount",
-	"email": "testfacility@example.com",
-	"groups": [{
-	    "id": 1,
-	    "name": "test-facility-managers"
-	}]
+        "id": 1,
+        "username": "testfacility",
+        "first_name": "TestFacility",
+        "last_name": "RoleAccount",
+        "email": "testfacility@example.com",
+        "groups": [{
+            "id": 1,
+            "name": "test-facility-managers"
+        }]
     }]
 })
 
@@ -71,23 +71,23 @@ MOCK_FACILITY_RESPONSE = json.dumps({
 
 MOCK_INSTRUMENT_RESPONSE = json.dumps({
     "meta": {
-	"limit": 20,
-	"next": None,
-	"offset": 0,
-	"previous": None,
-	"total_count": 1
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
     },
     "objects": [{
-	"id": 1,
-	"name": "Test Instrument",
-	"facility": {
-	    "id": 1,
-	    "name": "Test Facility",
-	    "manager_group": {
-		"id": 1,
-		"name": "test-facility-managers"
-	    }
-	}
+        "id": 1,
+        "name": "Test Instrument",
+        "facility": {
+            "id": 1,
+            "name": "Test Facility",
+            "manager_group": {
+                "id": 1,
+                "name": "test-facility-managers"
+            }
+        }
     }]
 })
 
@@ -126,14 +126,14 @@ EMPTY_EXP_RESPONSE = json.dumps({
 
 MOCK_EXISTING_DATASET_RESPONSE = json.dumps({
     "meta": {
-	"limit": 20,
-	"next": None,
-	"offset": 0,
-	"previous": None,
-	"total_count": 1
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
     },
     "objects": [{
-	"id": 1,
-	"description": "Existing Dataset"
+        "id": 1,
+        "description": "Existing Dataset"
     }]
 })

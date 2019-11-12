@@ -20,12 +20,12 @@ class Folder():
     have a corresponding dataset record in MyTardis.
     """
     # pylint: disable=too-many-public-methods
-    def __init__(self, folder_name, location, user_folder_name,
+    def __init__(self, name, location, user_folder_name,
                  group_folder_name, owner, group=None,
                  is_exp_files_folder=False):
 
         self.data_view_fields = dict(
-            folder_name=folder_name,
+            name=name,
             location=location,
             created="",
             experiment_title="",
@@ -57,7 +57,7 @@ class Folder():
         if self.is_exp_files_folder:
             absolute_folder_path = self.location
         else:
-            absolute_folder_path = os.path.join(self.location, self.folder_name)
+            absolute_folder_path = os.path.join(self.location, self.name)
 
         for dirname, _, files in os.walk(absolute_folder_path):
             for filename in sorted(files):
@@ -121,14 +121,14 @@ class Folder():
     def get_datafile_path(self, datafile_index):
         """
         Get the absolute path to a file within this folder's root directory
-        which is os.path.join(self.location, self.folder_name)
+        which is os.path.join(self.location, self.name)
         """
         return self.datafile_paths['files'][datafile_index]
 
     def get_datafile_rel_path(self, datafile_index):
         """
         Get the path to a file relative to the folder's root directory
-        which is os.path.join(self.location, self.folder_name)
+        which is os.path.join(self.location, self.name)
         """
         return os.path.relpath(self.get_datafile_path(datafile_index),
                                SETTINGS.general.data_directory)
@@ -137,7 +137,7 @@ class Folder():
         """
         Get the relative path to a file's subdirectory relative to the
         folder's root directory which is
-        os.path.join(self.location, self.folder_name)
+        os.path.join(self.location, self.name)
         """
         return self.datafile_paths['directories'][datafile_index]
 
@@ -190,7 +190,7 @@ class Folder():
         else:
             relpath = os.path.join(
                 os.path.relpath(self.location, SETTINGS.general.data_directory),
-                self.folder_name)
+                self.name)
         return relpath
 
     @property
@@ -219,7 +219,7 @@ class Folder():
         if self.is_exp_files_folder:
             absolute_folder_path = self.location
         else:
-            absolute_folder_path = os.path.join(self.location, self.folder_name)
+            absolute_folder_path = os.path.join(self.location, self.name)
         self.data_view_fields['created'] = datetime.fromtimestamp(
             os.stat(absolute_folder_path).st_ctime)\
             .strftime('%Y-%m-%d')
@@ -329,12 +329,12 @@ class Folder():
             self.datafile_paths['uploaded'].append(False)
 
     @property
-    def folder_name(self):
+    def name(self):
         """
         The folder name, displayed in the Folder (dataset)
         column of MyData's Folders view
         """
-        return self.data_view_fields['folder_name']
+        return self.data_view_fields['name']
 
     @property
     def location(self):
