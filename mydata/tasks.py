@@ -19,9 +19,20 @@ from .utils.exceptions import (
     InvalidFolderStructure)
 
 
-def scan_folders(found_user_callback, found_group_callback, found_dataset_callback):
+def scan_folders(found_user_cb, found_group_cb,
+                 found_exp_folder_cb, found_dataset_cb):
     """
     Scan dataset folders.
+
+    Accepts callback ("cb") functions so the caller can be updated
+    when a user, group, experiment or dataset folder is found.
+
+    For users, groups and datasets, the callback function should
+    accept an instance of the model object of class User, Group
+    or Dataset.
+
+    For the experiment folder callback, the callback function
+    should accept a string specifying the experiment folder name.
     """
     data_dir = SETTINGS.general.data_directory
     default_owner = SETTINGS.general.default_owner
@@ -29,18 +40,19 @@ def scan_folders(found_user_callback, found_group_callback, found_dataset_callba
     logger.debug("FoldersModel.scan_folders(): Scanning " + data_dir + "...")
     if folder_structure.startswith("Username") or \
             folder_structure.startswith("Email"):
-        scan_for_user_folders(found_user_callback, found_dataset_callback)
+        scan_for_user_folders(found_user_cb, found_exp_folder_cb, found_dataset_cb)
     elif folder_structure.startswith("User Group"):
-        scan_for_group_folders(found_group_callback, found_dataset_callback)
+        scan_for_group_folders(found_group_cb, found_exp_folder_cb, found_dataset_cb)
     elif folder_structure.startswith("Experiment"):
-        scan_for_experiment_folders(found_dataset_callback, data_dir, default_owner)
+        scan_for_experiment_folders(
+            found_exp_folder_cb, found_dataset_cb, data_dir, default_owner)
     elif folder_structure.startswith("Dataset"):
-        scan_for_dataset_folders(found_dataset_callback, data_dir, default_owner)
+        scan_for_dataset_folders(found_dataset_cb, data_dir, default_owner)
     else:
         raise InvalidFolderStructure("Unknown folder structure.")
 
 
-def scan_for_user_folders(found_user_callback, found_dataset_callback):
+def scan_for_user_folders(found_user_cb, found_exp_folder_cb, found_dataset_cb):
     """
     Scan for user folders.
     """
@@ -76,12 +88,13 @@ def scan_for_user_folders(found_user_callback, found_dataset_callback):
         logger.debug("Folder structure: " + folder_structure)
         if folder_structure in ('Username / Dataset', 'Email / Dataset'):
             scan_for_dataset_folders(
-                found_dataset_callback, user_folder_path, user, user_folder_name)
+                found_dataset_cb, user_folder_path, user, user_folder_name)
         elif folder_structure in (
                 'Username / Experiment / Dataset',
                 'Email / Experiment / Dataset'):
             scan_for_experiment_folders(
-                found_dataset_callback, user_folder_path, user, user_folder_name)
+                found_exp_folder_cb, found_dataset_cb, user_folder_path,
+                user, user_folder_name)
         elif folder_structure == \
                 'Username / "MyTardis" / Experiment / Dataset':
             user_folder_contents = os.listdir(user_folder_path)
@@ -97,13 +110,14 @@ def scan_for_user_folders(found_user_callback, found_dataset_callback):
             mytardis_folder_path = os.path.join(
                 user_folder_path, mytardis_folder_name)
             scan_for_experiment_folders(
-                found_dataset_callback, mytardis_folder_path, user, user_folder_name)
+                found_exp_folder_cb, found_dataset_cb, mytardis_folder_path,
+                user, user_folder_name)
         raise_exception_if_user_aborted()
 
-        found_user_callback(user)
+        found_user_cb(user)
 
 
-def scan_for_group_folders(found_group_callback, found_dataset_callback):
+def scan_for_group_folders(found_group_cb, found_exp_folder_cb, found_dataset_cb):
     """
     Scan for group folders.
     """
@@ -135,23 +149,24 @@ def scan_for_group_folders(found_group_callback, found_dataset_callback):
         default_owner = SETTINGS.general.default_owner
         if folder_structure == \
                 'User Group / Instrument / Full Name / Dataset':
-            import_group_folders(found_dataset_callback, group_folder_path, group)
+            import_group_folders(
+                found_dataset_cb, group_folder_path, group)
         elif folder_structure == 'User Group / Experiment / Dataset':
             scan_for_experiment_folders(
-                found_dataset_callback, group_folder_path, owner=default_owner, group=group,
-                group_folder_name=group_folder_name)
+                found_exp_folder_cb, found_dataset_cb, group_folder_path,
+                default_owner, group=group, group_folder_name=group_folder_name)
         elif folder_structure == 'User Group / Dataset':
             scan_for_dataset_folders(
-                found_dataset_callback, group_folder_path, owner=default_owner, group=group,
+                found_dataset_cb, group_folder_path, owner=default_owner, group=group,
                 group_folder_name=group_folder_name)
         else:
             raise InvalidFolderStructure("Unknown folder structure.")
         raise_exception_if_user_aborted()
-        found_group_callback(group)
+        found_group_cb(group)
 
 
 def scan_for_dataset_folders(
-        found_dataset_callback, path_to_scan, owner, user_folder_name=None,
+        found_dataset_cb, path_to_scan, owner, user_folder_name=None,
         group=None, group_folder_name=None):
     """
     Scan for dataset folders.
@@ -179,14 +194,14 @@ def scan_for_dataset_folders(
             raise_exception_if_user_aborted()
             folder.set_created_date()
             set_experiment_title(folder, owner, group_folder_name)
-            found_dataset_callback(folder)
+            found_dataset_cb(folder)
     except:
         logger.error(traceback.format_exc())
 
 
 def scan_for_experiment_folders(
-        found_dataset_callback, path_to_scan, owner, user_folder_name=None,
-        group=None, group_folder_name=None):
+        found_exp_folder_cb, found_dataset_cb, path_to_scan, owner,
+        user_folder_name=None, group=None, group_folder_name=None):
     """
     Scans for experiment folders.
 
@@ -231,7 +246,7 @@ def scan_for_experiment_folders(
             else:
                 raise InvalidFolderStructure("Unknown folder structure.")
             folder.set_created_date()
-            found_dataset_callback(folder)
+            found_dataset_cb(folder)
         files_depth1 = files_in_top_level(exp_folder_path)
         if files_depth1:
             logger.info("Found %s experiment file(s) in %s\n"
@@ -247,10 +262,11 @@ def scan_for_experiment_folders(
             raise_exception_if_user_aborted()
             folder.experiment_title = exp_folder_name
             folder.set_created_date()
-            found_dataset_callback(folder)
+            found_dataset_cb(folder)
+        found_exp_folder_cb(exp_folder_name)
 
 
-def import_group_folders(found_dataset_callback, group_folder_path, group):
+def import_group_folders(found_dataset_cb, group_folder_path, group):
     """
     Imports folders structured according to the
     "User Group / Instrument / Researcher's Name / Dataset"
@@ -312,7 +328,7 @@ def import_group_folders(found_dataset_callback, group_folder_path, group):
                 folder.experiment_title = \
                     "%s - %s" % (SETTINGS.general.instrument_name,
                                  user_folder_name)
-                found_dataset_callback(folder)
+                found_dataset_cb(folder)
     except InvalidFolderStructure:
         raise
     except:

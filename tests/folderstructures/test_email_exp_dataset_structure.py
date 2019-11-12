@@ -20,10 +20,14 @@ def test_scan_email_exp_dataset_folders(set_email_exp_dataset_config):
     from mydata.tasks import scan_folders
 
     users = []
+    exps = []
     folders = []
 
     def found_user(user):
         users.append(user)
+
+    def found_exp(exp_folder_name):
+        exps.append(exp_folder_name)
 
     found_group = None
 
@@ -44,8 +48,9 @@ def test_scan_email_exp_dataset_folders(set_email_exp_dataset_config):
         get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
 
-        scan_folders(found_user, found_group, found_dataset)
+        scan_folders(found_user, found_group, found_exp, found_dataset)
 
     assert sorted([user.username for user in users]) == ["testuser1", "testuser2"]
+    assert sorted(exps) == ["Exp1", "Exp2"]
     assert sorted([folder.name for folder in folders]) == ["Birds", "Flowers"]
     assert sum([folder.num_files for folder in folders]) == 5

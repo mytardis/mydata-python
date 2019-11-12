@@ -17,11 +17,15 @@ def test_scan_exp_dataset_folders(set_exp_dataset_config):
     from mydata.settings import SETTINGS
     from mydata.tasks import scan_folders
 
+    exps = []
     folders = []
 
     # We don't need callbacks for these in this case:
     found_user = None
     found_group = None
+
+    def found_exp(exp_folder_name):
+        exps.append(exp_folder_name)
 
     def found_dataset(folder):
         folders.append(folder)
@@ -34,7 +38,8 @@ def test_scan_exp_dataset_folders(set_exp_dataset_config):
         get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
 
-        scan_folders(found_user, found_group, found_dataset)
+        scan_folders(found_user, found_group, found_exp, found_dataset)
 
+    assert sorted(exps) == ["Exp1", "Exp2"]
     assert sorted([folder.name for folder in folders]) == ["Birds", "Flowers"]
     assert sum([folder.num_files for folder in folders]) == 5

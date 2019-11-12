@@ -1,9 +1,9 @@
 """
-Test ability to scan the Group / Instrument folder structure.
+Test ability to scan the Group / Experiment / Dataset folder structure.
 """
 import requests_mock
 
-from tests.fixtures import set_group_instrument_config
+from tests.fixtures import set_group_exp_dataset_config
 
 from tests.mocks import (
     MOCK_USER_RESPONSE,
@@ -13,21 +13,24 @@ from tests.mocks import (
     MOCK_INSTRUMENT_RESPONSE
 )
 
-def test_scan_group_instrument_folders(set_group_instrument_config):
-    """Test ability to scan the Group / Instrument folder structure.
+def test_scan_group_exp_dataset_folders(set_group_exp_dataset_config):
+    """Test ability to scan the Group / Experiment / Dataset folder structure.
     """
     from mydata.settings import SETTINGS
     from mydata.tasks import scan_folders
 
     groups = []
+    exps = []
     folders = []
 
-    # We don't need callback for these:
-    found_exp = None
+    # We don't need callback for finding users folders:
     found_user = None
 
     def found_group(group):
         groups.append(group)
+
+    def found_exp(exp_folder_name):
+        exps.append(exp_folder_name)
 
     def found_dataset(folder):
         folders.append(folder)
@@ -47,9 +50,6 @@ def test_scan_group_instrument_folders(set_group_instrument_config):
         scan_folders(found_user, found_group, found_exp, found_dataset)
 
     assert sorted([group.name for group in groups]) == ["TestFacility-Group1", "TestFacility-Group2"]
-    assert sorted([folder.name for folder in folders]) == [
-	"Dataset 001", "Dataset 002", "Dataset 003", "Dataset 004",
-	"Dataset 005", "Dataset 006", "Dataset 007", "Dataset 008"
-    ]
-
-    assert sum([folder.num_files for folder in folders]) == 8
+    assert sorted(exps) == ["Exp1", "Exp2"]
+    assert sorted([folder.name for folder in folders]) == ["Birds", "Flowers"]
+    assert sum([folder.num_files for folder in folders]) == 5
