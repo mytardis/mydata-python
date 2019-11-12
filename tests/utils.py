@@ -16,7 +16,8 @@ def unload_modules():
         'mydata.models.folder',
         'mydata.models.upload',
         'mydata.models.settings',
-        'mydata.settings'
+        'mydata.settings',
+        'mydata.tasks'
     ]
     for module in modules:
         if module in sys.modules:

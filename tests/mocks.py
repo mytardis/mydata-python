@@ -37,6 +37,26 @@ MOCK_USER_RESPONSE = json.dumps({
     }]
 })
 
+MOCK_TESTUSER1_RESPONSE = json.dumps({
+    "meta": {
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
+    },
+    "objects": [{
+        "id": 1,
+        "username": "testuser1",
+        "first_name": "Test",
+        "last_name": "User1",
+        "email": "testuser1@example.com",
+        "groups": []
+    }]
+})
+
+MOCK_TESTUSER2_RESPONSE = MOCK_TESTUSER1_RESPONSE.replace("ser1", "ser2")
+
 MOCK_GROUP_RESPONSE = json.dumps({
     "meta": {
         "limit": 20,
@@ -50,6 +70,8 @@ MOCK_GROUP_RESPONSE = json.dumps({
         "name": "TestFacility-Group1",
     }]
 })
+
+MOCK_GROUP2_RESPONSE = MOCK_GROUP_RESPONSE.replace("Group1", "Group2")
 
 MOCK_FACILITY_RESPONSE = json.dumps({
     "meta": {
