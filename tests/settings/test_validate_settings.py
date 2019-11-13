@@ -1,13 +1,8 @@
 """
 Test ability to validate settings.
 """
-import os
-import sys
-
 import pytest
 import requests_mock
-
-from mydata.threads.flags import FLAGS
 
 from tests.mocks import (
     MOCK_API_ENDPOINTS_RESPONSE,
@@ -76,6 +71,13 @@ def test_validate_settings(set_exp_dataset_config):
 
         old_value = SETTINGS.general.contact_email
         SETTINGS.general.contact_email = ""
+        with pytest.raises(InvalidSettings) as excinfo:
+            validate_settings()
+        assert "Please enter a valid contact email" in str(excinfo.value)
+        SETTINGS.general.contact_email = old_value
+
+        old_value = SETTINGS.general.contact_email
+        SETTINGS.general.contact_email = "invalid-email-address"
         with pytest.raises(InvalidSettings) as excinfo:
             validate_settings()
         assert "Please enter a valid contact email" in str(excinfo.value)
