@@ -87,7 +87,8 @@ MOCK_FACILITY_RESPONSE = json.dumps({
         "manager_group": {
             "id": 1,
             "name": "test-facility-managers"
-        }
+        },
+        "resource_uri": "/api/v1/facility/1/"
     }]
 })
 
@@ -172,4 +173,3 @@ CREATED_DATASET_RESPONSE = json.dumps({
     "description": "Created Dataset",
     "resource_uri": "/api/v1/dataset/1/"
 })
-
