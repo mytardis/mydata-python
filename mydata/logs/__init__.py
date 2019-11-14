@@ -5,7 +5,6 @@ via HTTP POST for analysis by developers / sys admins.
 """
 # We want logger singleton to be lowercase, and we want logger.info,
 # logger.warning etc. methods to be lowercase:
-# pylint: disable=invalid-name
 # pylint: disable=bare-except
 import threading
 import traceback
@@ -30,14 +29,12 @@ class MyDataFormatter(logging.Formatter):
         """
         Overridden from logging.Formatter class
         """
-        if not hasattr(record, 'moduleName'):
-            record.moduleName = ''
-        if not hasattr(record, 'functionName'):
-            record.functionName = ''
-        if not hasattr(record, 'currentThreadName'):
-            record.currentThreadName = ''
-        if not hasattr(record, 'lineNumber'):
-            record.lineNumber = 0
+        if not hasattr(record, 'module_name'):
+            record.module_name = ''
+        if not hasattr(record, 'function_name'):
+            record.function_name = ''
+        if not hasattr(record, 'line_number'):
+            record.line_number = 0
         return super(MyDataFormatter, self).format(record)
 
 
@@ -49,69 +46,48 @@ class Logger():
     # pylint: disable=too-many-instance-attributes
     def __init__(self, name):
         self.name = name
-        self.loggerObject = logging.getLogger(self.name)
-        self.formatString = ""
-        self.loggerOutput = None
-        self.streamHandler = None
-        self.fileHandler = None
+        self.logger_object = logging.getLogger(self.name)
+        self.format_string = ""
+        self.logger_output = None
+        self.stream_handler = None
+        self.file_handler = None
         self.level = logging.INFO
-        self.ConfigureLogger()
+        self.configure_logger()
         if not hasattr(sys, "frozen"):
-            self.appRootDir = os.path.realpath(
+            self.app_root_dir = os.path.realpath(
                 os.path.join(os.path.dirname(__file__), "..", ".."))
-        self.logTextCtrl = None
-        self.pleaseContactMe = False
-        self.contactName = ""
-        self.contactEmail = ""
-        self.comments = ""
 
-    def ConfigureLogger(self):
+    def configure_logger(self):
         """
         Configure logger object
         """
-        self.loggerObject = logging.getLogger(self.name)
-        self.loggerObject.setLevel(self.level)
+        self.logger_object = logging.getLogger(self.name)
+        self.logger_object.setLevel(self.level)
 
-        self.formatString = \
-            "%(asctime)s - %(moduleName)s - %(lineNumber)d - " \
-            "%(functionName)s - %(currentThreadName)s - %(levelname)s - " \
+        self.format_string = \
+            "%(asctime)s - %(module_name)s - %(line_number)d - " \
+            "%(function_name)s - %(levelname)s - " \
             "%(message)s"
 
         # Send all log messages to a string.
-        self.loggerOutput = StringIO()
-        self.streamHandler = logging.StreamHandler(stream=self.loggerOutput)
-        self.streamHandler.setLevel(self.level)
-        self.streamHandler.setFormatter(MyDataFormatter(self.formatString))
-        self.loggerObject.addHandler(self.streamHandler)
+        self.logger_output = StringIO()
+        self.stream_handler = logging.StreamHandler(stream=self.logger_output)
+        self.stream_handler.setLevel(self.level)
+        self.stream_handler.setFormatter(MyDataFormatter(self.format_string))
+        self.logger_object.addHandler(self.stream_handler)
 
         # Finally, send all log messages to a log file.
         if 'MYDATA_DEBUG_LOG_PATH' in os.environ:
-            logFilePath = os.path.abspath(os.environ['MYDATA_DEBUG_LOG_PATH'])
-            if os.path.isdir(logFilePath):
-                logFilePath = os.path.join(logFilePath,
-                                           ".MyData_debug_log.txt")
+            log_file_path = os.path.abspath(os.environ['MYDATA_DEBUG_LOG_PATH'])
+            if os.path.isdir(log_file_path):
+                log_file_path = os.path.join(log_file_path, ".MyData_debug_log.txt")
         else:
-            logFilePath = os.path.join(os.path.expanduser("~"),
-                                       ".MyData_debug_log.txt")
-        self.fileHandler = logging.FileHandler(logFilePath)
-        self.fileHandler.setLevel(self.level)
-        self.fileHandler.setFormatter(MyDataFormatter(self.formatString))
-        self.loggerObject.addHandler(self.fileHandler)
-
-    def GetLevel(self):
-        """
-        Returns the logging level, e.g. logging.DEBUG
-        """
-        return self.level
-
-    def SetLevel(self, level):
-        """
-        Sets the logging level, e.g. logging.DEBUG
-        """
-        self.level = level
-        self.loggerObject.setLevel(self.level)
-        for handler in self.loggerObject.handlers:
-            handler.setLevel(self.level)
+            log_file_path = os.path.join(
+                os.path.expanduser("~"), ".MyData_debug_log.txt")
+        self.file_handler = logging.FileHandler(log_file_path)
+        self.file_handler.setLevel(self.level)
+        self.file_handler.setFormatter(MyDataFormatter(self.format_string))
+        self.logger_object.addHandler(self.file_handler)
 
     def debug(self, message):
         """
@@ -120,38 +96,36 @@ class Logger():
         if self.level > logging.DEBUG:
             return
         frame = inspect.currentframe()
-        outerFrames = inspect.getouterframes(frame)[1]
+        outer_frames = inspect.getouterframes(frame)[1]
         if hasattr(sys, "frozen"):
             try:
-                moduleName = os.path.basename(outerFrames[1])
+                module_name = os.path.basename(outer_frames[1])
             except:
-                moduleName = outerFrames[1]
+                module_name = outer_frames[1]
         else:
-            moduleName = os.path.relpath(outerFrames[1], self.appRootDir)
-        extra = {'moduleName':  moduleName,
-                 'lineNumber': outerFrames[2],
-                 'functionName': outerFrames[3],
-                 'currentThreadName': threading.current_thread().name}
-        self.loggerObject.debug(message, extra=extra)
+            module_name = os.path.relpath(outer_frames[1], self.app_root_dir)
+        extra = {'module_name':  module_name,
+                 'line_number': outer_frames[2],
+                 'function_name': outer_frames[3]}
+        self.logger_object.debug(message, extra=extra)
 
     def error(self, message):
         """
         Log a message with level logging.ERROR
         """
         frame = inspect.currentframe()
-        outerFrames = inspect.getouterframes(frame)[1]
+        outer_frames = inspect.getouterframes(frame)[1]
         if hasattr(sys, "frozen"):
             try:
-                moduleName = os.path.basename(outerFrames[1])
+                module_name = os.path.basename(outer_frames[1])
             except:
-                moduleName = outerFrames[1]
+                module_name = outer_frames[1]
         else:
-            moduleName = os.path.relpath(outerFrames[1], self.appRootDir)
-        extra = {'moduleName':  moduleName,
-                 'lineNumber': outerFrames[2],
-                 'functionName': outerFrames[3],
-                 'currentThreadName': threading.current_thread().name}
-        self.loggerObject.error(message, extra=extra)
+            module_name = os.path.relpath(outer_frames[1], self.app_root_dir)
+        extra = {'module_name':  module_name,
+                 'line_number': outer_frames[2],
+                 'function_name': outer_frames[3]}
+        self.logger_object.error(message, extra=extra)
 
     def warning(self, message):
         """
@@ -160,19 +134,18 @@ class Logger():
         if self.level > logging.WARNING:
             return
         frame = inspect.currentframe()
-        outerFrames = inspect.getouterframes(frame)[1]
+        outer_frames = inspect.getouterframes(frame)[1]
         if hasattr(sys, "frozen"):
             try:
-                moduleName = os.path.basename(outerFrames[1])
+                module_name = os.path.basename(outer_frames[1])
             except:
-                moduleName = outerFrames[1]
+                module_name = outer_frames[1]
         else:
-            moduleName = os.path.relpath(outerFrames[1], self.appRootDir)
-        extra = {'moduleName':  moduleName,
-                 'lineNumber': outerFrames[2],
-                 'functionName': outerFrames[3],
-                 'currentThreadName': threading.current_thread().name}
-        self.loggerObject.warning(message, extra=extra)
+            module_name = os.path.relpath(outer_frames[1], self.app_root_dir)
+        extra = {'module_name':  module_name,
+                 'line_number': outer_frames[2],
+                 'function_name': outer_frames[3]}
+        self.logger_object.warning(message, extra=extra)
 
     def info(self, message):
         """
@@ -181,38 +154,36 @@ class Logger():
         if self.level > logging.INFO:
             return
         frame = inspect.currentframe()
-        outerFrames = inspect.getouterframes(frame)[1]
+        outer_frames = inspect.getouterframes(frame)[1]
         if hasattr(sys, "frozen"):
             try:
-                moduleName = os.path.basename(outerFrames[1])
+                module_name = os.path.basename(outer_frames[1])
             except:
-                moduleName = outerFrames[1]
+                module_name = outer_frames[1]
         else:
-            moduleName = os.path.relpath(outerFrames[1], self.appRootDir)
-        extra = {'moduleName':  moduleName,
-                 'lineNumber': outerFrames[2],
-                 'functionName': outerFrames[3],
-                 'currentThreadName': threading.current_thread().name}
-        self.loggerObject.info(message, extra=extra)
+            module_name = os.path.relpath(outer_frames[1], self.app_root_dir)
+        extra = {'module_name':  module_name,
+                 'line_number': outer_frames[2],
+                 'function_name': outer_frames[3]}
+        self.logger_object.info(message, extra=extra)
 
     def exception(self, message):
         """
         Log a message and traceback for an exception
         """
         frame = inspect.currentframe()
-        outerFrames = inspect.getouterframes(frame)[1]
+        outer_frames = inspect.getouterframes(frame)[1]
         if hasattr(sys, "frozen"):
             try:
-                moduleName = os.path.basename(outerFrames[1])
+                module_name = os.path.basename(outer_frames[1])
             except:
-                moduleName = outerFrames[1]
+                module_name = outer_frames[1]
         else:
-            moduleName = os.path.relpath(outerFrames[1], self.appRootDir)
-        extra = {'moduleName':  moduleName,
-                 'lineNumber': outerFrames[2],
-                 'functionName': outerFrames[3],
-                 'currentThreadName': threading.current_thread().name}
-        self.loggerObject.exception(message, extra=extra)
+            module_name = os.path.relpath(outer_frames[1], self.app_root_dir)
+        extra = {'module_name':  module_name,
+                 'line_number': outer_frames[2],
+                 'function_name': outer_frames[3]}
+        self.logger_object.exception(message, extra=extra)
 
     def testrun(self, message):
         # pylint: disable=no-self-use
@@ -221,11 +192,11 @@ class Logger():
         """
         sys.stderr.write("%s\n" % message)
 
-    def GetValue(self):
+    def get_value(self):
         """
         Return all logs sent to StringIO handler
         """
-        self.streamHandler.flush()
-        return self.loggerOutput.getvalue()
+        self.stream_handler.flush()
+        return self.logger_output.getvalue()
 
-logger = Logger("MyData")
+logger = Logger("MyData")  # pylint: disable=invalid-name

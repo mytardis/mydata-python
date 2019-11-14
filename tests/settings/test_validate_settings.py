@@ -12,7 +12,6 @@ from tests.mocks import (
 )
 
 from tests.fixtures import set_exp_dataset_config
-from tests.utils import unload_modules
 
 
 def test_validate_settings(set_exp_dataset_config):
@@ -48,6 +47,14 @@ def test_validate_settings(set_exp_dataset_config):
         assert "Please enter a valid data directory" in str(excinfo.value)
         SETTINGS.general.data_directory = old_value
 
+        old_value = SETTINGS.general.data_directory
+        SETTINGS.general.data_directory = "this/folder/does/not/exist"
+        with pytest.raises(InvalidSettings) as excinfo:
+            validate_settings()
+        assert "doesn't exist" in str(excinfo.value)
+        SETTINGS.general.data_directory = old_value
+
+        old_value = SETTINGS.general.instrument_name
         old_value = SETTINGS.general.instrument_name
         SETTINGS.general.instrument_name = ""
         with pytest.raises(InvalidSettings) as excinfo:

@@ -7,6 +7,7 @@ def unload_modules():
     """Unload modules - called at the end of a test
     """
     modules = [
+        'mydata.logs',
         'mydata.models.dataset',
         'mydata.models.experiment',
         'mydata.models.group',
@@ -24,3 +25,13 @@ def unload_modules():
     for module in modules:
         if module in sys.modules:
             del sys.modules[module]
+
+
+def subtract(str1, str2):
+    """
+    Subtract strings, e.g. "foobar" - "foo" = "bar"
+    to isolate recently added logs from total log history.
+    """
+    if not str2:
+        return str1
+    return "".join(str1.rsplit(str2))
