@@ -17,7 +17,7 @@ def test_scan_user_exp_dataset_folders(set_user_exp_dataset_config):
     """Test ability to scan the Username / Experiment / Dataset folder structure.
     """
     from mydata.settings import SETTINGS
-    from mydata.tasks import scan_folders
+    from mydata.tasks.folders import scan_folders
 
     users = []
     exps = []

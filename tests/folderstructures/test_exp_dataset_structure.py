@@ -15,7 +15,7 @@ def test_scan_exp_dataset_folders(set_exp_dataset_config):
     """Test ability to scan the Experiment / Dataset folder structure.
     """
     from mydata.settings import SETTINGS
-    from mydata.tasks import scan_folders
+    from mydata.tasks.folders import scan_folders
 
     exps = []
     folders = []

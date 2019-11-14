@@ -289,10 +289,13 @@ class Folder():
             too_new = False
         return too_new
 
-    def calculate_md5_sum(self, datafile_index, progress_callback=None,
-                          canceled_callback=None):
+    def calculate_md5_sum(self, datafile_index, progress_cb=None,
+                          canceled_cb=None):
         """
         Calculate MD5 checksum.
+
+        Callbacks can be used to update progress or to indicate
+        that the user canceled.
         """
         absolute_file_path = self.get_datafile_path(datafile_index)
         file_size = self.get_datafile_size(datafile_index)
@@ -309,15 +312,15 @@ class Folder():
             # for the returned iterator to halt at EOF, since read()
             # returns b'' (not just '').
             for chunk in iter(lambda: file_handle.read(chunk_size), b''):
-                if canceled_callback():
+                if canceled_cb and canceled_cb():
                     logger.debug("Aborting MD5 calculation for "
                                  "%s" % absolute_file_path)
                     return None
                 md5.update(chunk)
                 bytes_processed += len(chunk)
                 del chunk
-                if progress_callback:
-                    progress_callback(bytes_processed)
+                if progress_cb:
+                    progress_cb(bytes_processed)
         return md5.hexdigest()
 
     def reset_counts(self):

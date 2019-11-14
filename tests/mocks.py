@@ -109,7 +109,8 @@ MOCK_INSTRUMENT_RESPONSE = json.dumps({
                 "id": 1,
                 "name": "test-facility-managers"
             }
-        }
+        },
+        "resource_uri": "/api/v1/instrument/1/"
     }]
 })
 
@@ -128,6 +129,12 @@ EXISTING_EXP_RESPONSE = json.dumps({
     }]
 })
 
+CREATED_EXP_RESPONSE = json.dumps({
+    "id": 1,
+    "title": "Created Experiment",
+    "resource_uri": "/api/v1/experiment/1/"
+})
+
 EXP1_RESPONSE = json.dumps({
     "id": 1,
     "title": "Exp1",
@@ -135,7 +142,7 @@ EXP1_RESPONSE = json.dumps({
 })
 
 
-EMPTY_EXP_RESPONSE = json.dumps({
+EMPTY_LIST_RESPONSE = json.dumps({
     "meta": {
         "limit": 20,
         "next": None,
@@ -159,3 +166,10 @@ MOCK_EXISTING_DATASET_RESPONSE = json.dumps({
         "description": "Existing Dataset"
     }]
 })
+
+CREATED_DATASET_RESPONSE = json.dumps({
+    "id": 1,
+    "description": "Created Dataset",
+    "resource_uri": "/api/v1/dataset/1/"
+})
+

@@ -389,7 +389,7 @@ def upload_file(file_path, file_size, username, private_key_path,
                      file_size, monitoring_progress, progress_callback)
 
     remote_dir = os.path.dirname(remote_file_path)
-    with LOCKS.createRemoteDir:  # pylint: disable=no-member
+    with LOCKS.create_remote_dir:  # pylint: disable=no-member
         create_remote_dir(remote_dir, username, private_key_path, host, port)
 
     if should_cancel_upload(upload):

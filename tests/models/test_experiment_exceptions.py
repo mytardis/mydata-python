@@ -13,7 +13,7 @@ from tests.mocks import (
     MOCK_INSTRUMENT_RESPONSE,
     EXISTING_EXP_RESPONSE,
     EXP1_RESPONSE,
-    EMPTY_EXP_RESPONSE
+    EMPTY_LIST_RESPONSE
 )
 
 from tests.fixtures import set_exp_dataset_config
@@ -81,7 +81,7 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "&folder_structure=Experiment%%20/%%20Dataset"
             "&user_folder_name=testfacility"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
         with pytest.raises(DoesNotExist) as excinfo:
             _ = Experiment.get_exp_for_folder(folder)
         assert excinfo.value.model_class == Experiment
@@ -156,7 +156,7 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "&folder_structure=Experiment%%20/%%20Dataset"
             "&group_folder_name=Test%%20Group1"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
         with pytest.raises(DoesNotExist) as excinfo:
             _ = Experiment.get_exp_for_folder(folder)
         assert excinfo.value.model_class == Experiment
@@ -192,7 +192,7 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "&folder_structure=Experiment%%20/%%20Dataset"
             "&group_folder_name=Test%%20Group1"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
         with pytest.raises(DoesNotExist) as excinfo:
             _ = Experiment.get_exp_for_folder(folder)
         assert excinfo.value.model_class == Experiment
@@ -228,7 +228,7 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "%s/api/v1/mydata_experiment/?format=json&title=Exp1"
             "&folder_structure=Experiment%%20/%%20Dataset"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
         with pytest.raises(DoesNotExist) as excinfo:
             _ = Experiment.get_exp_for_folder(folder)
         assert excinfo.value.model_class == Experiment
@@ -318,7 +318,7 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "%s/api/v1/mydata_experiment/?format=json&title=Exp1"
             "&folder_structure=Experiment%%20/%%20Dataset"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_exp_url, text=EMPTY_EXP_RESPONSE)
+        mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
         experiment = Experiment.get_or_create_exp_for_folder(folder)
         assert experiment is None
         FLAGS.test_run_running = False

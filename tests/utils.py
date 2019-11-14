@@ -14,10 +14,12 @@ def unload_modules():
         'mydata.models.facility',
         'mydata.models.instrument',
         'mydata.models.folder',
+        'mydata.models.lookup',
         'mydata.models.upload',
         'mydata.models.settings',
         'mydata.settings',
-        'mydata.tasks'
+        'mydata.tasks.folders',
+        'mydata.tasks.uploads'
     ]
     for module in modules:
         if module in sys.modules:

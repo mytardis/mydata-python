@@ -17,7 +17,7 @@ def test_scan_user_mytardis_exp_dataset_folders(set_user_mytardis_exp_dataset_co
     """Test ability to scan the Username / "MyTardis" / Experiment / Dataset folder structure.
     """
     from mydata.settings import SETTINGS
-    from mydata.tasks import scan_folders
+    from mydata.tasks.folders import scan_folders
 
     users = []
     exps = []

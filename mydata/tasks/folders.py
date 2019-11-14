@@ -1,5 +1,5 @@
 """
-mydata/tasks.py
+mydata/tasks/folders.py
 """
 # pylint: disable=bare-except
 import datetime
@@ -8,13 +8,13 @@ import traceback
 from datetime import datetime
 from glob import glob
 
-from .events.stop import raise_exception_if_user_aborted
-from .logs import logger
-from .models.folder import Folder
-from .models.group import Group
-from .models.user import User
-from .settings import SETTINGS
-from .utils.exceptions import (
+from ..events.stop import raise_exception_if_user_aborted
+from ..logs import logger
+from ..models.folder import Folder
+from ..models.group import Group
+from ..models.user import User
+from ..settings import SETTINGS
+from ..utils.exceptions import (
     DoesNotExist,
     InvalidFolderStructure)
 

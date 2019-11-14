@@ -17,7 +17,7 @@ def test_scan_email_dataset_folders(set_email_dataset_config):
     """Test ability to scan the Email / Dataset folder structure.
     """
     from mydata.settings import SETTINGS
-    from mydata.tasks import scan_folders
+    from mydata.tasks.folders import scan_folders
 
     users = []
     folders = []

@@ -17,7 +17,7 @@ def test_scan_group_dataset_folders(set_group_dataset_config):
     """Test ability to scan the Group / Dataset folder structure.
     """
     from mydata.settings import SETTINGS
-    from mydata.tasks import scan_folders
+    from mydata.tasks.folders import scan_folders
 
     groups = []
     folders = []

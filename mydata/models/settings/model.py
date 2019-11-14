@@ -146,11 +146,11 @@ class SettingsModel():
         if self._uploader:
             return self._uploader
         try:
-            LOCKS.createUploader.acquire()  # pylint: disable=no-member
+            LOCKS.create_uploader.acquire()  # pylint: disable=no-member
             self._uploader = UploaderModel(self)
             return self._uploader
         finally:
-            LOCKS.createUploader.release()  # pylint: disable=no-member
+            LOCKS.create_uploader.release()  # pylint: disable=no-member
 
     @uploader.setter
     def uploader(self, uploader):
@@ -289,7 +289,7 @@ class SettingsModel():
         We use a serialized dictionary to cache DataFile lookup results.
         We'll use a separate cache file for each MyTardis server we connect to.
         """
-        with LOCKS.closeCache:  # pylint: disable=no-member
+        with LOCKS.close_cache:  # pylint: disable=no-member
             try:
                 with open(self._verified_datafiles_cache,
                           'wb') as cache_file:

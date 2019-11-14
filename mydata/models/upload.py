@@ -40,8 +40,8 @@ class Upload():
         self.datafile_index = datafile_index
         self.datafile_id = None
         self.folder_name = folder.name
-        self.subdirectory = folder.GetDataFileDirectory(datafile_index)
-        self.filename = folder.GetDataFileName(datafile_index)
+        self.subdirectory = folder.get_datafile_directory(datafile_index)
+        self.filename = folder.get_datafile_name(datafile_index)
         # Human-readable string displayed in data view:
         self.filesize_string = ""
 

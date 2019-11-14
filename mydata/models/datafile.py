@@ -47,7 +47,7 @@ class DataFile():
         """
         mytardis_url = SETTINGS.general.mytardis_url
         url = mytardis_url + "/api/v1/mydata_dataset_file/?format=json" + \
-            "&dataset__id=" + str(dataset.datasetId) + \
+            "&dataset__id=" + str(dataset.dataset_id) + \
             "&filename=" + urllib.parse.quote(filename.encode('utf-8')) + \
             "&directory=" + urllib.parse.quote(directory.encode('utf-8'))
         response = requests.get(url=url, headers=SETTINGS.default_headers)
