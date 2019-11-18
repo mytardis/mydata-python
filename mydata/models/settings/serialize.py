@@ -222,14 +222,13 @@ def load_miscellaneous_settings(settings, config_parser):
     config_file_section = "MyData"
     fields = ["locked", "uuid", "cipher",
               "max_verification_threads", "verification_delay",
-              "fake_md5_sum", "progress_poll_interval", "immutable_datasets",
+              "fake_md5_sum", "progress_poll_interval",
               "cache_datafile_lookups", "connection_timeout"]
     for field in fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.get(config_file_section, field)
     boolean_fields = [
-        "fake_md5_sum", "locked", "immutable_datasets",
-        "cache_datafile_lookups"]
+        "fake_md5_sum", "locked", "cache_datafile_lookups"]
     for field in boolean_fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.getboolean(config_file_section, field)
@@ -281,8 +280,7 @@ def check_for_updated_settings_on_server(settings):
                         "wednesday_checked", "thursday_checked",
                         "friday_checked", "saturday_checked",
                         "sunday_checked", "use_includes_file",
-                        "use_excludes_file", "immutable_datasets",
-                        "cache_datafile_lookups"):
+                        "use_excludes_file", "cache_datafile_lookups"):
                     settings[setting['key']] = (setting['value'] == "True")
                 if setting['key'] in (
                         "timer_minutes", "ignore_interval_number",
@@ -354,7 +352,7 @@ def save_settings_to_disk(config_path=None):
                   "validate_folder_structure", "fake_md5_sum",
                   "cipher", "locked", "uuid",
                   "progress_poll_interval", "verification_delay",
-                  "start_automatically_on_login", "immutable_datasets",
+                  "start_automatically_on_login",
                   "cache_datafile_lookups", "upload_invalid_user_folders",
                   "connection_timeout"]
         settings_list = []
