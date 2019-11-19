@@ -58,33 +58,34 @@ class Dataset():
                        experiment.view_uri if experiment else "experiment/?")
                 logger.testrun(message)
             return existing_dataset
-        else:
-            description = folder.name
-            logger.debug("Creating dataset record for folder: " + description)
-            if FLAGS.test_run_running:
-                message = "CREATING NEW DATASET FOR FOLDER: %s\n" \
-                    "    Description: %s" \
-                    % (folder.get_rel_path(), description)
-                if experiment:  # Could be None in test run.
-                    message += "\n    In Experiment: %s/%s" \
-                        % (SETTINGS.general.mytardis_url, experiment.view_uri)
-                logger.testrun(message)
-                return None
-            mytardis_url = SETTINGS.general.mytardis_url
-            exp_uri = experiment.resource_uri.replace(
-                'mydata_experiment', 'experiment') if experiment else None
-            dataset_dict = {
-                "instrument": SETTINGS.general.instrument.resource_uri,
-                "description": description,
-                "experiments": [exp_uri],
-                "immutable": False}
-            data = json.dumps(dataset_dict)
-            url = "%s/api/v1/dataset/" % mytardis_url
-            response = requests.post(headers=SETTINGS.default_headers,
-                                     url=url, data=data.encode())
-            response.raise_for_status()
-            new_dataset_dict = response.json()
-            return Dataset(new_dataset_dict)
+
+        # We need to create a new dataset:
+        description = folder.name
+        logger.debug("Creating dataset record for folder: " + description)
+        if FLAGS.test_run_running:
+            message = "CREATING NEW DATASET FOR FOLDER: %s\n" \
+                "    Description: %s" \
+                % (folder.get_rel_path(), description)
+            if experiment:  # Could be None in test run.
+                message += "\n    In Experiment: %s/%s" \
+                    % (SETTINGS.general.mytardis_url, experiment.view_uri)
+            logger.testrun(message)
+            return None
+        mytardis_url = SETTINGS.general.mytardis_url
+        exp_uri = experiment.resource_uri.replace(
+            'mydata_experiment', 'experiment') if experiment else None
+        dataset_dict = {
+            "instrument": SETTINGS.general.instrument.resource_uri,
+            "description": description,
+            "experiments": [exp_uri],
+            "immutable": False}
+        data = json.dumps(dataset_dict)
+        url = "%s/api/v1/dataset/" % mytardis_url
+        response = requests.post(headers=SETTINGS.default_headers,
+                                 url=url, data=data.encode())
+        response.raise_for_status()
+        new_dataset_dict = response.json()
+        return Dataset(new_dataset_dict)
 
     @staticmethod
     def get_dataset(folder):
@@ -96,10 +97,11 @@ class Dataset():
         exception, but generally it is better to ensure that the data is
         uploaded, rather than have MyData refuse to upload because a duplicate
         dataset has been created on the server.
+
+        If no matching dataset is found, we return None
         """
         if not folder.experiment:
             # folder.experiment could be None in testRun
-            message = "Dataset can't exist because experiment is None"
             return None
         description = urllib.parse.quote(folder.name.encode('utf-8'))
         url = ("%s/api/v1/dataset/?format=json&experiments__id=%s"
