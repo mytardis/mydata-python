@@ -86,7 +86,6 @@ class Upload():
 
         # Only used with UploadMethod.VIA_STAGING:
         self.scp_upload_process_pid = None
-        self._existing_unverified_datafile = None
         # The DataFileObject ID, also known as the replica ID:
         self.dfo_id = None
         # Number of bytes previously uploaded, or None if the file is not yet
@@ -203,23 +202,3 @@ class Upload():
         """
         self._file_size = file_size
         self.filesize_string = human_readable_size_string(self._file_size)
-
-    @property
-    def existing_unverified_datafile(self):
-        """
-        Return the existing unverified DataFile record (if any)
-        associated with this upload
-        """
-        return self._existing_unverified_datafile
-
-    @existing_unverified_datafile.setter
-    def existing_unverified_datafile(self, existing_unverified_datafile):
-        """
-        Record an existing unverified DataFile
-        """
-        self._existing_unverified_datafile = existing_unverified_datafile
-        if self._existing_unverified_datafile:
-            self.datafile_id = self._existing_unverified_datafile.id
-            replicas = self._existing_unverified_datafile.replicas
-            if len(replicas) == 1:
-                self.dfo_id = replicas[0].dfo_id

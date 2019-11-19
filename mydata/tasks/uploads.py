@@ -128,6 +128,7 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
         if lookup.existing_unverified_datafile:
             uri = lookup.existing_unverified_datafile.replicas[0].uri
             remote_file_path = "%s/%s" % (location.rstrip('/'), uri)
+            upload.datafile_id = lookup.existing_unverified_datafile.id
         else:
             # DataFile creation via the MyTardis API doesn't
             # return JSON, but if a DataFile record is created
