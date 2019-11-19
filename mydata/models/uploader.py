@@ -87,11 +87,12 @@ import netifaces
 from .. import __version__ as VERSION
 from ..logs import logger
 from ..utils.connectivity import get_default_interface_type
-from ..utils.exceptions import DoesNotExist
-from ..utils.exceptions import PrivateKeyDoesNotExist
-from ..utils.exceptions import MissingMyDataAppOnMyTardisServer
-from ..utils.exceptions import StorageBoxOptionNotFound
-from ..utils.exceptions import StorageBoxAttributeNotFound
+from ..utils.exceptions import (
+    PrivateKeyDoesNotExist,
+    MissingMyDataAppOnMyTardisServer,
+    NoApprovedStorageBox,
+    StorageBoxOptionNotFound,
+    StorageBoxAttributeNotFound)
 from ..utils import bytes_to_human
 from ..utils import mydata_install_location
 from ..threads.locks import LOCKS
@@ -295,7 +296,7 @@ class UploaderModel():
         message = "This uploader hasn't requested uploading " \
                   "via staging yet."
         logger.debug(message)
-        raise DoesNotExist(message)
+        return None
 
     def request_upload_to_staging_approval(self):
         """
@@ -315,7 +316,7 @@ class UploaderModel():
              "name": self.settings.general.instrument_name,
              "requester_name": self.settings.general.contact_name,
              "requester_email": self.settings.general.contact_email,
-             "requester_public_key": self.ssh_key_pair.publicKey,
+             "requester_public_key": self.ssh_key_pair.public_key,
              "requester_key_fingerprint": self.ssh_key_pair.fingerprint}
         data = json.dumps(urr_dict)
         response = requests.post(headers=self.settings.default_headers, url=url,
@@ -336,21 +337,21 @@ class UploaderModel():
                 except:
                     logger.error(traceback.format_exc())
                     raise
-                try:
-                    self.upload_to_staging_request = \
-                        self.existing_upload_to_staging_request()
-                except DoesNotExist:
-                    self.upload_to_staging_request = \
-                        self.request_upload_to_staging_approval()
-                    logger.debug("Uploader registration request created.")
-                except PrivateKeyDoesNotExist:
-                    logger.debug(
-                        "Generating new uploader registration request, "
-                        "because private key was moved or deleted.")
-                    self.upload_to_staging_request = \
-                        self.request_upload_to_staging_approval()
-                    logger.debug("Generated new uploader registration request,"
-                                 " because private key was moved or deleted.")
+                self.upload_to_staging_request = \
+                    self.existing_upload_to_staging_request()
+                if not self.upload_to_staging_request:
+                    try:
+                        self.upload_to_staging_request = \
+                            self.request_upload_to_staging_approval()
+                        logger.debug("Uploader registration request created.")
+                    except PrivateKeyDoesNotExist:
+                        logger.debug(
+                            "Generating new uploader registration request, "
+                            "because private key was moved or deleted.")
+                        self.upload_to_staging_request = \
+                            self.request_upload_to_staging_approval()
+                        logger.debug("Generated new uploader registration request,"
+                                     " because private key was moved or deleted.")
                 if self.upload_to_staging_request.approved:
                     logger.debug("Uploads to staging have been approved!")
                 else:
@@ -467,13 +468,17 @@ class UploaderRegistrationRequest():
         Return approved storage box
         """
         storagebox_dict = self.urr_dict['approved_storage_box']
-        return StorageBox(storagebox_dict=storagebox_dict)
+        if storagebox_dict:
+            return StorageBox(storagebox_dict=storagebox_dict)
+        return None
 
     @property
     def scp_username(self):
         """
         Return 'scp_username' storage box attribute
         """
+        if not self.approved_storage_box:
+            raise NoApprovedStorageBox()
         for attribute in self.approved_storage_box.attributes:
             if attribute.key == "scp_username":
                 return attribute.value
@@ -485,6 +490,8 @@ class UploaderRegistrationRequest():
         """
         Return 'scp_hostname' storage box attribute
         """
+        if not self.approved_storage_box:
+            raise NoApprovedStorageBox()
         for attribute in self.approved_storage_box.attributes:
             if attribute.key == "scp_hostname":
                 return attribute.value
@@ -496,6 +503,8 @@ class UploaderRegistrationRequest():
         """
         Return 'scp_port' storage box attribute
         """
+        if not self.approved_storage_box:
+            raise NoApprovedStorageBox()
         for attribute in self.approved_storage_box.attributes:
             if attribute.key == "scp_port":
                 return attribute.value
@@ -506,6 +515,8 @@ class UploaderRegistrationRequest():
         """
         Return 'location' storage box option
         """
+        if not self.approved_storage_box:
+            raise NoApprovedStorageBox()
         for option in self.approved_storage_box.options:
             if option.key == "location":
                 return option.value
