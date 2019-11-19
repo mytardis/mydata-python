@@ -170,7 +170,11 @@ def mock_key_pair():
     # key so it can authenticate the test client.
     # So we need to ensure that the MyData keypair
     # is generated before starting the fake SSH server.
-    yield find_or_create_key_pair("MyDataTest")
+    key_pair = find_or_create_key_pair("MyDataTest")
+
+    yield key_pair
+
+    key_pair.delete()
 
     unload_modules()
 
