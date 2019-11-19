@@ -194,14 +194,14 @@ MOCK_UPLOADER_WITH_SETTINGS = json.dumps({
         "resource_uri": "/api/v1/mydata_uploader/1/",
         "settings_updated": "$settings_updated",
         "settings": [
-            { "key": "instrument_name", "value": "Updated Instrument Name" },
-            { "key": "facility_name", "value": "Updated Facility Name" },
-            { "key": "contact_name", "value": "Updated Contact Name" },
-            { "key": "contact_email", "value": "Updated.Contact.Email@example.com" },
-            { "key": "ignore_new_files", "value": False },
-            { "key": "ignore_new_files_minutes", "value": 0 },
-            { "key": "progress_poll_interval", "value": 2.0 },
-            { "key": "connection_timeout", "value": "trigger ValueError" },
+            {"key": "instrument_name", "value": "Updated Instrument Name"},
+            {"key": "facility_name", "value": "Updated Facility Name"},
+            {"key": "contact_name", "value": "Updated Contact Name"},
+            {"key": "contact_email", "value": "Updated.Contact.Email@example.com"},
+            {"key": "ignore_new_files", "value": False},
+            {"key": "ignore_new_files_minutes", "value": 0},
+            {"key": "progress_poll_interval", "value": 2.0},
+            {"key": "connection_timeout", "value": "trigger ValueError"},
         ]
     }]
 })
@@ -254,6 +254,37 @@ MOCK_URR_RESPONSE = json.dumps({
                     "key": "location",
                     "value": "/path/to/upload/to/"
                 }
+            ],
+            "resource_uri": "/api/v1/storagebox/1/"
+        },
+        "resource_uri": "/api/v1/mydata_uploaderregistrationrequest/1/"
+    }]
+})
+
+CREATED_URR_RESPONSE = json.dumps({
+    "id": 1,
+    "approved": False,
+    "approved_storage_box": None,
+    "resource_uri": "/api/v1/mydata_uploaderregistrationrequest/1/"
+})
+
+MOCK_URR_MISSING_SBOX_ATTRS = json.dumps({
+    "meta": {
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
+    },
+    "objects": [{
+        "id": 1,
+        "approved": True,
+        "approved_storage_box": {
+            "id": 1,
+            "name": "staging-storage",
+            "attributes": [
+            ],
+            "options": [
             ],
             "resource_uri": "/api/v1/storagebox/1/"
         },
