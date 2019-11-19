@@ -200,18 +200,6 @@ class Folder():
         """
         return len(self.datafile_paths['files'])
 
-    def get_value_for_key(self, key):
-        """
-        Used in the data view model to look up a value from a column key
-        """
-        if key.startswith("owner."):
-            owner_key = key.split("owner.")[1]
-            return self.owner.get_value_for_key(owner_key) if self.owner else None
-        if key.startswith("group."):
-            group_key = key.split("group.")[1]
-            return self.group.get_value_for_key(group_key) if self.group else None
-        return getattr(self, key)
-
     def set_created_date(self):
         """
         Set created date
