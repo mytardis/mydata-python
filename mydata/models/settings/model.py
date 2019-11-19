@@ -31,15 +31,6 @@ class SettingsModel():
     def __init__(self, config_path, check_for_updates=True):
         super(SettingsModel, self).__init__()
 
-        # Previous settings, so we can roll back if validation fails:
-        self.previous = dict(
-            general=dict(mydata_config=dict()),
-            schedule=dict(mydata_config=dict()),
-            filters=dict(mydata_config=dict()),
-            advanced=dict(mydata_config=dict()),
-            miscellaneous=dict(mydata_config=dict()),
-            last_settings_update_trigger=None)
-
         # The location on disk of MyData.cfg
         # e.g. "C:\\ProgramData\\Monash University\\MyData\\MyData.cfg" or
         # "/Users/jsmith/Library/Application Support/MyData/MyData.cfg":
@@ -158,68 +149,6 @@ class SettingsModel():
         Set uploader model (representing this MyData instance)
         """
         self._uploader = uploader
-
-    def update(self, settings):
-        """
-        Update this instance from another
-        """
-        self.general.mydata_config.update(settings.general.mydata_config)
-        self.schedule.mydata_config.update(settings.schedule.mydata_config)
-        self.filters.mydata_config.update(settings.filters.mydata_config)
-        self.advanced.mydata_config.update(settings.advanced.mydata_config)
-        self.miscellaneous.mydata_config.update(
-            settings.miscellaneous.mydata_config)
-        self.last_settings_update_trigger = settings.last_settings_update_trigger
-
-    def save_previous(self):
-        """
-        Save current settings to self.previous so we can roll back if necessary
-        """
-        self.previous['general']['mydata_config'].update(
-            self.general.mydata_config)
-        self.previous['schedule']['mydata_config'].update(
-            self.schedule.mydata_config)
-        self.previous['filters']['mydata_config'].update(
-            self.filters.mydata_config)
-        self.previous['advanced']['mydata_config'].update(
-            self.advanced.mydata_config)
-        self.previous['miscellaneous']['mydata_config'].update(
-            self.miscellaneous.mydata_config)
-        self.previous['last_settings_update_trigger'] = \
-            self.last_settings_update_trigger
-
-    def roll_back(self):
-        """
-        If settings validation fails, call this method to roll back the
-        updates made to SETTINGS from save_fields_from_dialog.
-
-        If a user changes a valid field to an invalid field in the Settings
-        dialog and clicks OK, settings validation will fail, and the Settings
-        dialog will remain open after displaying an error message.  In order
-        for settings to be validated, they need to be saved from the Settings
-        dialog to the SETTINGS SettingsModel instance(*).  If the user chooses
-        not to correct the invalid field in the Settings dialog, they can
-        click "Cancel" to close the Settings dialog.  The next time they open
-        the Settings dialog, the last valid field value will be displayed,
-        because the failed settings validation triggers a roll back.
-
-        (*) In earlier code versions, fields from the Settings dialog were
-        initially saved to a temporary SettingsModel instance, but it was
-        decided that it was simpler to just have a single global SETTINGS
-        instance which can be rolled back if necessary.
-        """
-        self.general.mydata_config.update(
-            self.previous['general']['mydata_config'])
-        self.schedule.mydata_config.update(
-            self.previous['schedule']['mydata_config'])
-        self.filters.mydata_config.update(
-            self.previous['filters']['mydata_config'])
-        self.advanced.mydata_config.update(
-            self.previous['advanced']['mydata_config'])
-        self.miscellaneous.mydata_config.update(
-            self.previous['miscellaneous']['mydata_config'])
-        self.last_settings_update_trigger = \
-            self.previous['last_settings_update_trigger']
 
     def required_field_is_blank(self):
         """
