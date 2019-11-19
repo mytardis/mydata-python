@@ -6,12 +6,13 @@ circular dependencies.
 """
 # pylint: disable=import-outside-toplevel
 import os
+import re
+
 from glob import glob
 from datetime import datetime
 
 import requests
 from requests.exceptions import HTTPError
-from email_validator import validate_email, EmailNotValidError
 
 from ...events.stop import raise_exception_if_user_aborted
 from ...logs import logger
@@ -429,8 +430,8 @@ def check_contact_email_and_email_folders(set_status_message):
         set_status_message(message)
 
     try:
-        validate_email(SETTINGS.general.contact_email)
-    except EmailNotValidError:
+        assert re.match("[^@]+@[^@]+", SETTINGS.general.contact_email)
+    except AssertionError:
         message = "Please enter a valid contact email."
         raise InvalidSettings(message, "contact_email")
 
