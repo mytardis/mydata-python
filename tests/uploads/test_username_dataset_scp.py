@@ -245,9 +245,8 @@ def test_scan_username_dataset_folders(
         mocker.put(put_uploader_url, text=MOCK_UPLOADER_RESPONSE)
         get_urr_url = (
             "%s/api/v1/mydata_uploaderregistrationrequest/?format=json"
-            "&uploader__uuid=00000000001"
-            "&requester_key_fingerprint=SHA256%%3AvhFgL1z3z2KXeqWoaLAK74GJn5ntqF38fsnbkFW8o9I"
-        ) % SETTINGS.general.mytardis_url
+            "&uploader__uuid=00000000001&requester_key_fingerprint=%s"
+        ) % (SETTINGS.general.mytardis_url, SETTINGS.uploader.ssh_key_pair.fingerprint)
         _, scp_port = mock_scp_server.server_address
         mocker.get(get_urr_url, text=Template(MOCK_URR_RESPONSE).substitute(scp_port=scp_port))
 
