@@ -56,50 +56,22 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
     """
     Upload file
     """
+    # pylint: disable=too-many-locals
+
     upload = Upload(folder, lookup.datafile_index)
 
     datafile_path = folder.get_datafile_path(upload.datafile_index)
 
-    if not os.path.exists(datafile_path) or \
-            folder.file_is_too_new_to_upload(upload.datafile_index):
-        if not os.path.exists(datafile_path):
-            message = ("Not uploading file, because it has been "
-                       "moved, renamed or deleted.")
-        else:
-            message = ("Not uploading file, "
-                       "in case it is still being modified.")
-        upload.message = message
-        upload.status = UploadStatus.FAILED
+    if check_if_file_is_missing(upload, datafile_path):
         upload_callback(upload)
         return
 
-    upload.message = "Getting data file size..."
-    upload.file_size = folder.get_datafile_size(upload.datafile_index)
-
-    upload.message = "Calculating MD5 checksum..."
-
-    md5sum = folder.calculate_md5_sum(
-        upload.datafile_index, progress_cb=None, canceled_cb=None)
-
-    datafile_dict = None
-    upload.message = "Checking MIME type..."
-    mime_type = mimetypes.MimeTypes().guess_type(datafile_path)[0]
+    if check_if_file_is_too_new(folder, upload):
+        upload_callback(upload)
+        return
 
     upload.message = "Defining JSON data for POST..."
-    dataset_uri = folder.dataset.resource_uri
-    created_time = folder.get_datafile_created_time(upload.datafile_index)
-    modified_time = folder.get_datafile_modified_time(upload.datafile_index)
-    datafile_dict = {
-        "dataset": dataset_uri,
-        "filename": os.path.basename(datafile_path),
-        "directory": folder.get_datafile_directory(
-            upload.datafile_index),
-        "md5sum": md5sum,
-        "size": md5sum,
-        "mimetype": mime_type,
-        "created_time": created_time,
-        "modification_time": modified_time,
-    }
+    datafile_dict = construct_datafile_post_body(folder, upload)
 
     def progress_callback():
         pass
@@ -110,81 +82,30 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
             upload, progress_callback)
     elif upload_method == UploadMethod.SCP:
         datafile_dict = add_uploader_info(datafile_dict)
-        response = None
+        df_post_response = None
         if not lookup.existing_unverified_datafile:
-            response = DataFile.create_datafile_for_staging_upload(datafile_dict)
-            response.raise_for_status()
-        upload_to_staging_request = SETTINGS.uploader.upload_to_staging_request
-        assert upload_to_staging_request
+            df_post_response = DataFile.create_datafile_for_staging_upload(datafile_dict)
+            df_post_response.raise_for_status()
+        host, port, location, username = get_sbox_attrs(upload)
+        remote_file_path = get_remote_file_path(location, lookup, df_post_response)
+        upload.datafile_id = get_datafile_id(lookup, df_post_response)
+
         try:
-            host = upload_to_staging_request.scp_hostname
-            port = upload_to_staging_request.scp_port
-            location = upload_to_staging_request.location
-            username = upload_to_staging_request.scp_username
-        except StorageBoxAttributeNotFound as err:
-            upload.traceback = traceback.format_exc()
-            upload.message = str(err)
-            raise
-        if lookup.existing_unverified_datafile:
-            uri = lookup.existing_unverified_datafile.replicas[0].uri
-            remote_file_path = "%s/%s" % (location.rstrip('/'), uri)
-            upload.datafile_id = lookup.existing_unverified_datafile.id
-        else:
-            # DataFile creation via the MyTardis API doesn't
-            # return JSON, but if a DataFile record is created
-            # without specifying a storage location, then a
-            # temporary location is returned for the client
-            # to copy/upload the file to.
-            remote_file_path = response.text
-            datafile_id = response.headers['Location'].split('/')[-2]
-            upload.datafile_id = datafile_id
+            upload_via_scp_with_retries(
+                datafile_path, username, host, port, remote_file_path, upload,
+                upload_callback)
+        except SshException as err:
+            logger.error(traceback.format_exc())
+            finalize_upload(folder, upload, success=False, message=str(err),
+                            upload_callback=upload_callback)
+            return
 
-        while True:
-            # Upload retries loop:
-            try:
-                progress_cb = None
-                upload_with_scp(
-                    datafile_path, username,
-                    SETTINGS.uploader.ssh_key_pair.private_key_path,
-                    host, port, remote_file_path, progress_cb, upload)
-                # Break out of upload retries loop.
-                break
-            except SshException as err:
-                # includes the ScpException subclass
-                upload.traceback = traceback.format_exc()
-                if upload.retries < SETTINGS.advanced.max_upload_retries:
-                    logger.warning(str(err))
-                    upload.retries += 1
-                    logger.debug("Restarting upload for " + datafile_path)
-                    upload.set_progress(0)
-                    continue
-                logger.error(traceback.format_exc())
-                message = str(err)
-                finalize_upload(folder, upload, success=False, message=str(err),
-                                upload_callback=upload_callback)
-                return
-
-        # If an exception occurs (e.g. can't connect to SCP server)
-        # while uploading a zero-byte file, don't want to mark it
-        # as completed, just because zero bytes have been uploaded.
-        if upload.bytes_uploaded == upload.file_size and \
-                upload.status != UploadStatus.CANCELED and \
-                upload.status != UploadStatus.FAILED:
-            success = True
-            if lookup.existing_unverified_datafile:
-                datafile_id = lookup.existing_unverified_datafile.id
-            else:
-                location = response.headers['location']
-                datafile_id = location.split("/")[-2]
-
-            # Request verification via MyTardis API
-            # POST-uploaded files are verified automatically by MyTardis, but
-            # for staged files, we need to request verification after
-            # uploading to staging.
-            DataFile.verify(datafile_id)
+        success = check_if_all_bytes_uploaded(upload)
+        if success:
+            # Request verification via MyTardis API:
+            DataFile.verify(upload.datafile_id)
             finalize_upload(folder, upload, success, upload_callback=upload_callback)
         else:
-            success = False
             message = ("Marking upload as failed, because only %s of %s bytes were uploaded."
                        % (upload.bytes_uploaded, upload.file_size))
             finalize_upload(folder, upload, success, message=message,
@@ -221,3 +142,135 @@ def finalize_upload(folder, upload, success, message=None, upload_callback=None)
         upload.datafile_index, uploaded=success)
     if upload_callback:
         upload_callback(upload)
+
+
+def construct_datafile_post_body(folder, upload):
+    """Construct DataFile dictionary to be JSON-encoded for POSTing to the API
+    """
+    datafile_path = folder.get_datafile_path(upload.datafile_index)
+
+    upload.message = "Getting data file size..."
+    upload.file_size = folder.get_datafile_size(upload.datafile_index)
+
+    upload.message = "Calculating MD5 checksum..."
+    md5sum = folder.calculate_md5_sum(
+        upload.datafile_index, progress_cb=None, canceled_cb=None)
+
+    upload.message = "Checking MIME type..."
+    mime_type = mimetypes.MimeTypes().guess_type(datafile_path)[0]
+
+    dataset_uri = folder.dataset.resource_uri
+    created_time = folder.get_datafile_created_time(upload.datafile_index)
+    modified_time = folder.get_datafile_modified_time(upload.datafile_index)
+    return {
+        "dataset": dataset_uri,
+        "filename": os.path.basename(datafile_path),
+        "directory": folder.get_datafile_directory(
+            upload.datafile_index),
+        "md5sum": md5sum,
+        "size": upload.file_size,
+        "mimetype": mime_type,
+        "created_time": created_time,
+        "modification_time": modified_time,
+    }
+
+
+def get_sbox_attrs(upload):
+    """Get the relevant StorageBoxAttributes and StorageBoxOptions
+    for SCP uploads
+    """
+    upload_to_staging_request = SETTINGS.uploader.upload_to_staging_request
+    try:
+        host = upload_to_staging_request.scp_hostname
+        port = upload_to_staging_request.scp_port
+        location = upload_to_staging_request.location
+        username = upload_to_staging_request.scp_username
+        return host, port, location, username
+    except StorageBoxAttributeNotFound as err:
+        upload.traceback = traceback.format_exc()
+        upload.message = str(err)
+        raise
+
+
+def check_if_all_bytes_uploaded(upload):
+    """Check if all bytes have been uploaded.
+
+    If an exception occurs (e.g. can't connect to SCP server)
+    while uploading a zero-byte file, don't want to mark it
+    as completed, just because zero bytes have been uploaded.
+    """
+    return upload.bytes_uploaded == upload.file_size and \
+        upload.status != UploadStatus.CANCELED and \
+        upload.status != UploadStatus.FAILED
+
+
+def upload_via_scp_with_retries(
+        datafile_path, username, host, port, remote_file_path, upload,
+        upload_callback):
+    """Upload via SCP with retries
+    """
+    while True:
+        # Upload retries loop:
+        try:
+            progress_cb = None
+            upload_with_scp(
+                datafile_path, username,
+                SETTINGS.uploader.ssh_key_pair.private_key_path,
+                host, port, remote_file_path, progress_cb, upload)
+            # Break out of upload retries loop.
+            break
+        except SshException as err:
+            # includes the ScpException subclass
+            upload.traceback = traceback.format_exc()
+            if upload.retries < SETTINGS.advanced.max_upload_retries:
+                logger.warning(str(err))
+                upload.retries += 1
+                logger.debug("Restarting upload for " + datafile_path)
+                upload.set_progress(0)
+                continue
+            raise
+
+
+def check_if_file_is_missing(upload, datafile_path):
+    """Check if file (to be uploaded) exists on disk.
+
+    Returns True if the file is missing.
+    """
+    missing = False
+    if not os.path.exists(datafile_path):
+        missing = True
+        message = ("Not uploading file, because it has been "
+                   "moved, renamed or deleted.")
+        upload.message = message
+        upload.status = UploadStatus.FAILED
+    return missing
+
+
+def check_if_file_is_too_new(folder, upload):
+    """Check if file is too new to be uploaded
+    """
+    too_new = False
+    if folder.file_is_too_new_to_upload(upload.datafile_index):
+        too_new = True
+        message = ("Not uploading file, "
+                   "in case it is still being modified.")
+        upload.message = message
+        upload.status = UploadStatus.FAILED
+    return too_new
+
+
+def get_remote_file_path(location, lookup, df_post_response):
+    """Get remote path to upload to
+    """
+    if lookup.existing_unverified_datafile:
+        uri = lookup.existing_unverified_datafile.replicas[0].uri
+        return"%s/%s" % (location.rstrip('/'), uri)
+    return df_post_response.text
+
+
+def get_datafile_id(lookup, response):
+    """Get DataFile ID of upload
+    """
+    if lookup.existing_unverified_datafile:
+        return lookup.existing_unverified_datafile.id
+    return response.headers['Location'].split('/')[-2]
