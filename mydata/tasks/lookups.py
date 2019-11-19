@@ -1,8 +1,9 @@
 """
 mydata/tasks/lookups.py
 """
-# pylint: disable=broad-except
 import os
+
+import requests.exceptions
 
 from ..models.datafile import DataFile
 from ..models.lookup import Lookup, LookupStatus
@@ -37,7 +38,7 @@ class Lookups():
                     self.handle_existing_datafile(lookup, existing_datafile)
                 else:
                     self.handle_non_existent_datafile(lookup)
-            except Exception as err:
+            except requests.exceptions.RequestException as err:
                 lookup.message = str(err)
                 lookup.status = LookupStatus.FAILED
                 self.lookup_done_cb(lookup)
