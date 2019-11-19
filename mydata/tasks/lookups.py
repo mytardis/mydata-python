@@ -6,7 +6,6 @@ import os
 
 from ..models.datafile import DataFile
 from ..models.lookup import Lookup, LookupStatus
-from ..utils.exceptions import DoesNotExist
 from ..settings import SETTINGS
 from ..threads.locks import LOCKS
 
@@ -32,17 +31,16 @@ class Lookups():
                 lookup.message = "Looking for matching file on MyTardis server..."
                 lookup.status = LookupStatus.IN_PROGRESS
                 existing_datafile = DataFile.get_datafile(
-                    dataset=self.folder.dataset, filename=datafile_name, directory=datafile_dir)
-                lookup.message = "Found datafile on MyTardis server."
-                lookup.status = LookupStatus.FOUND_VERIFIED
-                self.handle_existing_datafile(lookup, existing_datafile)
-            except DoesNotExist:
-                self.handle_non_existent_datafile(lookup)
+                    dataset=self.folder.dataset, filename=datafile_name,
+                    directory=datafile_dir)
+                if existing_datafile:
+                    self.handle_existing_datafile(lookup, existing_datafile)
+                else:
+                    self.handle_non_existent_datafile(lookup)
             except Exception as err:
                 lookup.message = str(err)
                 lookup.status = LookupStatus.FAILED
                 self.lookup_done_cb(lookup)
-
 
     def handle_non_existent_datafile(self, lookup):
         """Handle lookup which found no matching file on MyTardis server
@@ -51,16 +49,16 @@ class Lookups():
         lookup.status = LookupStatus.NOT_FOUND
         self.lookup_done_cb(lookup)
 
-
     def handle_existing_datafile(self, lookup, existing_datafile):
         """Check if existing DataFile is verified
         """
+        lookup.message = "Found datafile on MyTardis server."
         if not existing_datafile.replicas or \
                 not existing_datafile.replicas[0].verified:
             self.handle_existing_unverified_datafile(lookup, existing_datafile)
         else:
+            lookup.status = LookupStatus.FOUND_VERIFIED
             self.handle_existing_verified_datafile(lookup)
-
 
     def handle_existing_verified_datafile(self, lookup):
         """Found existing verified file on server

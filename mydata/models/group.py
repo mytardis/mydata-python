@@ -7,7 +7,6 @@ import requests
 
 from ..settings import SETTINGS
 from ..logs import logger
-from ..utils.exceptions import DoesNotExist
 
 
 class Group():
@@ -51,8 +50,6 @@ class Group():
         num_groups_found = groups_dict['meta']['total_count']
 
         if num_groups_found == 0:
-            raise DoesNotExist(
-                message="Group \"%s\" was not found in MyTardis" % name,
-                response=response)
+            return None
         logger.debug("Found group record for name '" + name + "'.")
         return Group(name=name, group_dict=groups_dict['objects'][0])

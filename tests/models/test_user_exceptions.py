@@ -8,8 +8,6 @@ import requests_mock
 
 from requests.exceptions import HTTPError
 
-from mydata.utils.exceptions import DoesNotExist
-
 from tests.fixtures import set_exp_dataset_config
 
 
@@ -126,13 +124,13 @@ def test_user_exceptions(set_exp_dataset_config):
     with requests_mock.Mocker() as mocker:
         get_user_url = "%s/api/v1/user/?format=json&username=INVALID_USER" % SETTINGS.general.mytardis_url
         mocker.get(get_user_url, text=empty_user_response)
-        with pytest.raises(DoesNotExist):
-            _ = User.get_user_by_username("INVALID_USER")
+        user = User.get_user_by_username("INVALID_USER")
+        assert not user
 
     with requests_mock.Mocker() as mocker:
         get_user_url = (
             "%s/api/v1/user/?format=json&email__iexact=invalid%%40email.com"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_user_url, text=empty_user_response)
-        with pytest.raises(DoesNotExist):
-            _ = User.get_user_by_email("invalid@email.com")
+        user = User.get_user_by_email("invalid@email.com")
+        assert not user

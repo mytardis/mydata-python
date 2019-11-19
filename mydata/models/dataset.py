@@ -8,7 +8,6 @@ from six.moves import urllib
 from ..settings import SETTINGS
 from ..threads.flags import FLAGS
 from ..logs import logger
-from ..utils.exceptions import DoesNotExist
 
 
 class Dataset():
@@ -46,8 +45,8 @@ class Dataset():
         First we check if a suitable dataset already exists.
         """
         experiment = folder.experiment
-        try:
-            existing_dataset = Dataset.get_dataset(folder)
+        existing_dataset = Dataset.get_dataset(folder)
+        if existing_dataset:
             if FLAGS.test_run_running:
                 message = "ADDING TO EXISTING DATASET FOR FOLDER: %s\n" \
                     "    URL: %s/%s\n" \
@@ -59,7 +58,7 @@ class Dataset():
                        experiment.view_uri if experiment else "experiment/?")
                 logger.testrun(message)
             return existing_dataset
-        except DoesNotExist:
+        else:
             description = folder.name
             logger.debug("Creating dataset record for folder: " + description)
             if FLAGS.test_run_running:
@@ -101,7 +100,7 @@ class Dataset():
         if not folder.experiment:
             # folder.experiment could be None in testRun
             message = "Dataset can't exist because experiment is None"
-            raise DoesNotExist(message, model_class=Dataset)
+            return None
         description = urllib.parse.quote(folder.name.encode('utf-8'))
         url = ("%s/api/v1/dataset/?format=json&experiments__id=%s"
                "&description=%s" % (SETTINGS.general.mytardis_url,
@@ -119,8 +118,7 @@ class Dataset():
         datasets_dict = response.json()
         num_datasets = datasets_dict['meta']['total_count']
         if num_datasets == 0:
-            message = "Didn't find dataset for folder %s" % description
-            raise DoesNotExist(message, model_class=Dataset)
+            return None
         if num_datasets > 1:
             logger.warning(
                 "WARNING: Found multiple datasets for folder %s" % description)

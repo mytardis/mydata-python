@@ -6,7 +6,6 @@ import requests
 from six.moves import urllib
 
 from ..settings import SETTINGS
-from ..utils.exceptions import DoesNotExist
 from ..logs import logger
 from .group import Group
 
@@ -125,9 +124,7 @@ class User():
         num_user_records_found = user_dicts['meta']['total_count']
 
         if num_user_records_found == 0:
-            raise DoesNotExist(
-                message="User \"%s\" was not found in MyTardis" % username,
-                response=response)
+            return None
         logger.debug("Found user record for username '" + username + "'.")
         return User(username=username, user_dict=user_dicts['objects'][0])
 
@@ -147,10 +144,7 @@ class User():
         num_user_records_found = user_dicts['meta']['total_count']
 
         if num_user_records_found == 0:
-            raise DoesNotExist(
-                message="User with email \"%s\" was not found in MyTardis"
-                % email,
-                response=response)
+            return None
         logger.debug("Found user record for email '" + email + "'.")
         return User(user_dict=user_dicts['objects'][0])
 

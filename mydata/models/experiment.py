@@ -10,7 +10,6 @@ from six.moves import urllib
 from ..settings import SETTINGS
 from ..threads.flags import FLAGS
 from ..logs import logger
-from ..utils.exceptions import DoesNotExist
 from .objectacl import ObjectACL
 
 
@@ -29,25 +28,21 @@ class Experiment():
         """
         See also get_exp_for_folder, create_exp_for_folder
         """
-        try:
-            existing_exp = \
-                Experiment.get_exp_for_folder(folder)
-            if FLAGS.test_run_running:
-                message = "ADDING TO EXISTING EXPERIMENT FOR FOLDER: %s\n" \
-                    "    URL: %s/%s\n" \
-                    "    Title: %s\n" \
-                    "    Owner: %s" \
-                    % (folder.get_rel_path(),
-                       SETTINGS.general.mytardis_url,
-                       existing_exp.view_uri,
-                       existing_exp.title,
-                       folder.owner.username)
-                logger.testrun(message)
-            return existing_exp
-        except DoesNotExist as err:
-            if err.model_class == Experiment:
-                return Experiment.create_exp_for_folder(folder)
-            raise
+        existing_exp = Experiment.get_exp_for_folder(folder)
+        if not existing_exp:
+            return Experiment.create_exp_for_folder(folder)
+        if FLAGS.test_run_running:
+            message = "ADDING TO EXISTING EXPERIMENT FOR FOLDER: %s\n" \
+                "    URL: %s/%s\n" \
+                "    Title: %s\n" \
+                "    Owner: %s" \
+                % (folder.get_rel_path(),
+                   SETTINGS.general.mytardis_url,
+                   existing_exp.view_uri,
+                   existing_exp.title,
+                   folder.owner.username)
+            logger.testrun(message)
+        return existing_exp
 
     @staticmethod
     def get_exp_for_folder(folder):
@@ -75,8 +70,8 @@ class Experiment():
         experiments_dict = response.json()
         num_exps_found = experiments_dict['meta']['total_count']
         if num_exps_found == 0:
-            message = Experiment.log_exp_not_found(folder)
-            raise DoesNotExist(message, model_class=Experiment)
+            Experiment.log_exp_not_found(folder)
+            return None
         if num_exps_found >= 1:
             Experiment.log_exp_found(folder)
             return Experiment(experiments_dict['objects'][0])

@@ -8,7 +8,6 @@ import requests
 
 from ..settings import SETTINGS
 from ..logs import logger
-from ..utils.exceptions import DoesNotExist
 from ..utils.exceptions import DuplicateKey
 from .facility import Facility
 
@@ -66,7 +65,7 @@ class Instrument():
         if num_instruments_found == 0:
             message = "Instrument \"%s\" was not found in MyTardis" % name
             logger.warning(message)
-            raise DoesNotExist(message, response, model_class=Instrument)
+            return None
         logger.debug("Found instrument record for name \"%s\" "
                      "in facility \"%s\"" % (name, facility.name))
         instrument_dict = instruments_dict['objects'][0]
@@ -86,19 +85,17 @@ class Instrument():
         if facility is None:
             raise Exception("Facility is None in "
                             "SettingsModel's rename_instrument.")
-        try:
-            old_instrument = \
-                Instrument.get_instrument(facility, old_name)
-        except DoesNotExist:
+        old_instrument = \
+            Instrument.get_instrument(facility, old_name)
+        if not old_instrument:
             raise Exception("Instrument record for old instrument "
                             "name not found in SettingsModel's "
                             "rename_instrument.")
-        try:
-            _ = Instrument.get_instrument(facility, new_name)
+        duplicate = Instrument.get_instrument(facility, new_name)
+        if duplicate:
             raise DuplicateKey("Instrument with name \"%s\" "
                                "already exists" % new_name)
-        except DoesNotExist:
-            old_instrument.rename(new_name)
+        old_instrument.rename(new_name)
 
     def rename(self, name):
         """

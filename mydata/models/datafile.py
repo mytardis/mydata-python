@@ -11,7 +11,6 @@ from requests_toolbelt.multipart import encoder
 
 from ..settings import SETTINGS
 from ..logs import logger
-from ..utils.exceptions import DoesNotExist
 from ..utils.exceptions import MultipleObjectsReturned
 from .replica import Replica
 
@@ -43,6 +42,10 @@ class DataFile():
         """
         Lookup datafile by dataset, filename and directory.
 
+        Return DataFile instance if found.
+        Return None if not found.
+        Raise MultipleObjectsReturned if multiple matches found.
+
         :raises requests.exceptions.HTTPError:
         """
         mytardis_url = SETTINGS.general.mytardis_url
@@ -55,9 +58,7 @@ class DataFile():
         datafiles_dict = response.json()
         num_datafiles_found = datafiles_dict['meta']['total_count']
         if num_datafiles_found == 0:
-            raise DoesNotExist(
-                message="Datafile \"%s\" was not found in MyTardis" % filename,
-                response=response)
+            return None
         if num_datafiles_found > 1:
             raise MultipleObjectsReturned(
                 message="Multiple datafiles matching %s were found in MyTardis"

@@ -17,7 +17,6 @@ def test_group_exceptions(set_exp_dataset_config):
     """
     from mydata.settings import SETTINGS
     from mydata.models.group import Group
-    from mydata.utils.exceptions import DoesNotExist
 
     assert SETTINGS.general.mytardis_url == 'http://127.0.0.1:9000'
 
@@ -61,5 +60,5 @@ def test_group_exceptions(set_exp_dataset_config):
             "%s/api/v1/group/?format=json&name=INVALID_GROUP"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_group_url, text=empty_group_response)
-        with pytest.raises(DoesNotExist):
-            _ = Group.get_group_by_name("INVALID_GROUP")
+        group = Group.get_group_by_name("INVALID_GROUP")
+        assert not group

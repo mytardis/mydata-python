@@ -29,7 +29,6 @@ def test_experiment_exceptions(set_exp_dataset_config):
     from mydata.threads.flags import FLAGS
     from mydata.models.experiment import Experiment
     from mydata.models.folder import Folder
-    from mydata.utils.exceptions import DoesNotExist
 
     # MyData has the concept of a "default experiment",
     # which depends on the UUID of the MyData instance:
@@ -82,9 +81,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "&user_folder_name=testfacility"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
-        with pytest.raises(DoesNotExist) as excinfo:
-            _ = Experiment.get_exp_for_folder(folder)
-        assert excinfo.value.model_class == Experiment
+        existing_exp = Experiment.get_exp_for_folder(folder)
+        assert not existing_exp
 
     # Look up existing experiment record with
     # experiment title set manually, and with a user folder
@@ -157,9 +155,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "&group_folder_name=Test%%20Group1"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
-        with pytest.raises(DoesNotExist) as excinfo:
-            _ = Experiment.get_exp_for_folder(folder)
-        assert excinfo.value.model_class == Experiment
+        existing_exp = Experiment.get_exp_for_folder(folder)
+        assert not existing_exp
 
     # Look up existing experiment record with
     # experiment title set manually, and with a group folder
@@ -193,9 +190,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "&group_folder_name=Test%%20Group1"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
-        with pytest.raises(DoesNotExist) as excinfo:
-            _ = Experiment.get_exp_for_folder(folder)
-        assert excinfo.value.model_class == Experiment
+        existing_exp = Experiment.get_exp_for_folder(folder)
+        assert not existing_exp
 
     # Look up existing experiment record with
     # experiment title set manually, and with a group folder
@@ -229,9 +225,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "&folder_structure=Experiment%%20/%%20Dataset"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
-        with pytest.raises(DoesNotExist) as excinfo:
-            _ = Experiment.get_exp_for_folder(folder)
-        assert excinfo.value.model_class == Experiment
+        existing_exp = Experiment.get_exp_for_folder(folder)
+        assert not existing_exp
 
     # Look up existing experiment record with
     # experiment title set manually, and with neither a user folder
