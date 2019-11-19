@@ -5,7 +5,6 @@ of the settings dialog and saved to disk in MyData.cfg
 # pylint: disable=import-outside-toplevel
 from .base import BaseSettingsModel
 from ...logs import logger
-from ...utils.exceptions import DoesNotExist
 
 
 class GeneralSettingsModel(BaseSettingsModel):
@@ -68,10 +67,9 @@ class GeneralSettingsModel(BaseSettingsModel):
         from ..instrument import Instrument
         if self._instrument:
             return self._instrument
-        try:
-            self._instrument = Instrument.get_instrument(
-                self.facility, self.instrument_name)
-        except DoesNotExist:
+        self._instrument = Instrument.get_instrument(
+            self.facility, self.instrument_name)
+        if not self._instrument:
             logger.info("No instrument record with name \"%s\" was found "
                         "in facility \"%s\", so we will create one."
                         % (self.instrument_name, self.facility_name))
