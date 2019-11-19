@@ -2,7 +2,7 @@
 Methods for using OpenSSH functionality from MyData.
 On Windows, we bundle a Cygwin build of OpenSSH.
 """
-# pylint: disable=bare-except
+# pylint: disable=broad-except
 import sys
 from datetime import datetime
 import os
@@ -16,14 +16,12 @@ import struct
 import psutil
 import six
 
-from ..events.stop import should_cancel_upload
 from ..settings import SETTINGS
 from ..logs import logger
 from ..models.upload import UploadStatus
 from ..utils.exceptions import SshException
 from ..utils.exceptions import ScpException
 from ..utils.exceptions import PrivateKeyDoesNotExist
-from ..threads.locks import LOCKS
 
 from ..subprocesses import DEFAULT_STARTUP_INFO
 from ..subprocesses import DEFAULT_CREATION_FLAGS
@@ -200,7 +198,7 @@ class KeyPair():
                                 creationflags=DEFAULT_CREATION_FLAGS)
         stdout, _ = proc.communicate()
         if proc.returncode != 0:
-            raise SshException(stdout)
+            raise SshException(stdout.decode())
 
         fingerprint = None
         key_type = None
@@ -297,7 +295,7 @@ def new_key_pair(key_name=None, key_path=None, key_comment=None):
     if b"already exists" in stdout:
         raise SshException("Private key file \"%s\" already exists."
                            % private_key_path)
-    raise SshException(stdout)
+    raise SshException(stdout.decode())
 
 
 def get_key_pair_location():
@@ -367,9 +365,10 @@ def ssh_server_is_ready(username, private_key_path,
     return returncode == 0
 
 
-def upload_file(file_path, file_size, username, private_key_path,
-                host, port, remote_file_path, progress_callback,
-                upload):
+def upload_with_scp(
+        file_path, username, private_key_path,
+        host, port, remote_file_path, progress_callback,
+        upload):
     """
     Upload a file to staging using SCP.
 
@@ -381,20 +380,17 @@ def upload_file(file_path, file_size, username, private_key_path,
         file_path = get_cygwin_path(file_path)
         private_key_path = get_cygwin_path(private_key_path)
 
-    progress_callback(current=0, total=file_size, message="Uploading...")
+    upload.start_time = datetime.now()
+    if progress_callback:
+        progress_callback(current=0, total=upload.file_size, message="Uploading...")
 
     monitoring_progress = threading.Event()
     upload.startTime = datetime.now()
     monitor_progress(SETTINGS.miscellaneous.progress_poll_interval, upload,
-                     file_size, monitoring_progress, progress_callback)
+                     upload.file_size, monitoring_progress, progress_callback)
 
     remote_dir = os.path.dirname(remote_file_path)
-    with LOCKS.create_remote_dir:  # pylint: disable=no-member
-        create_remote_dir(remote_dir, username, private_key_path, host, port)
-
-    if should_cancel_upload(upload):
-        logger.debug("upload_file: Aborting upload for %s" % file_path)
-        return
+    create_remote_dir(remote_dir, username, private_key_path, host, port)
 
     scp_command_list = [
         OPENSSH.scp,
@@ -402,10 +398,10 @@ def upload_file(file_path, file_size, username, private_key_path,
         "-P", port,
         "-i", private_key_path,
         file_path,
-        "%s@%s:%s" % (username, host,
-                      remote_dir
-                      .replace('`', r'\\`')
-                      .replace('$', r'\\$'))]
+        "%s@%s:%s/" % (username, host,
+                       remote_dir
+                       .replace('`', r'\\`')
+                       .replace('$', r'\\$'))]
     scp_command_list[2:2] = SETTINGS.miscellaneous.cipher_options
     scp_command_list[2:2] = OpenSSH.default_ssh_options(
         SETTINGS.miscellaneous.connection_timeout)
@@ -418,8 +414,10 @@ def upload_file(file_path, file_size, username, private_key_path,
     set_remote_file_permissions(
         remote_file_path, username, private_key_path, host, port)
 
-    upload.SetLatestTime(datetime.now())
-    progress_callback(current=file_size, total=file_size)
+    upload.set_latest_time(datetime.now())
+    upload.bytes_uploaded = upload.file_size
+    if progress_callback:
+        progress_callback(current=upload.file_size, total=upload.file_size)
 
 
 def scp_upload(upload, scp_command_list):
@@ -441,7 +439,7 @@ def scp_upload(upload, scp_command_list):
         stdout, _ = scp_upload_process.communicate()
         if scp_upload_process.returncode != 0:
             raise ScpException(
-                stdout, scp_command_string, scp_upload_process.returncode)
+                stdout.decode(), scp_command_string, scp_upload_process.returncode)
     except (IOError, OSError) as err:
         raise ScpException(err, scp_command_string, returncode=255)
 
@@ -509,7 +507,7 @@ def set_remote_file_permissions(remote_file_path, username, private_key_path,
                              creationflags=DEFAULT_CREATION_FLAGS)
         stdout, _ = chmod_process.communicate()
         if chmod_process.returncode != 0:
-            raise SshException(stdout, chmod_process.returncode)
+            raise SshException(stdout.decode(), chmod_process.returncode)
     else:
         with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
             try:
@@ -521,9 +519,9 @@ def set_remote_file_permissions(remote_file_path, username, private_key_path,
                 if chmod_process.returncode != 0:
                     if stdout and not stderr:
                         stderr = stdout
-                    raise SshException(stderr, chmod_process.returncode)
+                    raise SshException(stderr.decode(), chmod_process.returncode)
             except (IOError, OSError) as err:
-                raise SshException(err, returncode=255)
+                raise SshException(str(err), returncode=255)
 
 
 def wait_for_process_to_complete(process):
@@ -556,6 +554,7 @@ def create_remote_dir(remote_dir, username, private_key_path, host, port):
         mkdir_cmd_and_args[1:1] = OpenSSH.default_ssh_options(
             SETTINGS.miscellaneous.connection_timeout)
         logger.debug(" ".join(mkdir_cmd_and_args))
+
         if not sys.platform.startswith("linux"):
             mkdir_process = \
                 subprocess.Popen(mkdir_cmd_and_args,
@@ -566,7 +565,7 @@ def create_remote_dir(remote_dir, username, private_key_path, host, port):
                                  creationflags=DEFAULT_CREATION_FLAGS)
             stdout, _ = mkdir_process.communicate()
             if mkdir_process.returncode != 0:
-                raise SshException(stdout, mkdir_process.returncode)
+                raise SshException(stdout.decode(), mkdir_process.returncode)
         else:
             with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
                 try:
@@ -578,9 +577,9 @@ def create_remote_dir(remote_dir, username, private_key_path, host, port):
                     if mkdir_process.returncode != 0:
                         if stdout and not stderr:
                             stderr = stdout
-                        raise SshException(stderr, mkdir_process.returncode)
+                        raise SshException(stderr.decode(), mkdir_process.returncode)
                 except (IOError, OSError) as err:
-                    raise SshException(err, returncode=255)
+                    raise SshException(str(err), returncode=255)
         REMOTE_DIRS_CREATED[remote_dir] = True
 
 def get_cygwin_path(path):
@@ -619,7 +618,7 @@ def clean_up_scp_and_ssh_processes():
                     if private_key_path in proc.cmdline() or \
                             sys.platform.startswith("win"):
                         proc.kill()
-                except:
+                except Exception:
                     pass
         except psutil.NoSuchProcess:
             pass

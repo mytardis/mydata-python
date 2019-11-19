@@ -1,6 +1,7 @@
 """
 tests/utils.py
 """
+import socket
 import sys
 
 def unload_modules():
@@ -35,3 +36,14 @@ def subtract(str1, str2):
     if not str2:
         return str1
     return "".join(str1.rsplit(str2))
+
+
+def get_ephemeral_port():
+    """
+    Return an unused ephemeral port.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return port

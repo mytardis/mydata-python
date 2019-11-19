@@ -154,7 +154,7 @@ EMPTY_LIST_RESPONSE = json.dumps({
     "objects": []
 })
 
-MOCK_EXISTING_DATASET_RESPONSE = json.dumps({
+EXISTING_DATASET_RESPONSE = json.dumps({
     "meta": {
         "limit": 20,
         "next": None,
@@ -172,4 +172,65 @@ CREATED_DATASET_RESPONSE = json.dumps({
     "id": 1,
     "description": "Created Dataset",
     "resource_uri": "/api/v1/dataset/1/"
+})
+
+MOCK_UPLOADER_RESPONSE = json.dumps({
+    "id": 1,
+    "name": "Test Instrument",
+    "resource_uri": "/api/v1/mydata_uploader/1/"
+})
+
+MOCK_EXISTING_UPLOADER_RESPONSE = json.dumps({
+    "meta": {
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
+    },
+    "objects": [{
+        "id": 1,
+        "name": "Test Instrument",
+        "resource_uri": "/api/v1/mydata_uploader/1/"
+    }]
+})
+
+MOCK_URR_RESPONSE = json.dumps({
+    "meta": {
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
+    },
+    "objects": [{
+        "id": 1,
+        "approved": True,
+        "approved_storage_box": {
+            "id": 1,
+            "name": "staging-storage",
+            "attributes": [
+                {
+                    "key": "scp_hostname",
+                    "value": "localhost",
+                },
+                {
+                    "key": "scp_username",
+                    "value": "mydata",
+                },
+                {
+                    "key": "scp_port",
+                    "value": "$scp_port"
+                }
+            ],
+            "options": [
+                {
+                    "key": "location",
+                    "value": "/path/to/upload/to/"
+                }
+            ],
+            "resource_uri": "/api/v1/storagebox/1/"
+        },
+        "resource_uri": "/api/v1/mydata_uploaderregistrationrequest/1/"
+    }]
 })

@@ -30,7 +30,7 @@ def test_post_uploads(set_username_dataset_config):
     from mydata.tasks.folders import scan_folders
     from mydata.tasks.uploads import upload_folder
     from mydata.models.lookup import LookupStatus
-    from mydata.models.upload import UploadStatus
+    from mydata.models.upload import UploadStatus, UploadMethod
 
     users = []
     folders = []
@@ -97,7 +97,6 @@ def test_post_uploads(set_username_dataset_config):
 
             for dfi in range(0, folder.num_files):
                 datafile_path = folder.get_datafile_path(dfi)
-                datafile_dir = folder.get_datafile_directory(dfi)
                 datafile_name = os.path.basename(datafile_path)
                 get_datafile_url = get_df_url_template.substitute(filename=quote(datafile_name))
                 mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
@@ -124,7 +123,7 @@ def test_post_uploads(set_username_dataset_config):
             mock_dataset_response = CREATED_DATASET_RESPONSE.replace(
                 "Created Dataset", folder.name)
             mocker.post(post_dataset_url, text=mock_dataset_response)
-            upload_folder(folder, lookup_callback, upload_callback)
+            upload_folder(folder, lookup_callback, upload_callback, UploadMethod.MULTIPART_POST)
 
         # Ensure that all 12 files were looked up:
         assert len(lookups) == 12
