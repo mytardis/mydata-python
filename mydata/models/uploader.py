@@ -219,7 +219,7 @@ class UploaderModel():
             "cpus": self.sys_info['cpus'],
 
             "disk_usage": "",
-            "data_path": self.settings.general.dataDirectory,
+            "data_path": self.settings.general.data_directory,
             "default_user": self.settings.general.username,
 
             "interface": self.ifconfig['interface'],

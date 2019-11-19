@@ -35,7 +35,7 @@ class LookupStatus():
     # can't be found on the staging server:
     NOT_FOUND_ON_STAGING = 8
 
-    # Verification failed, should upload file, unless the failure
+    # Lookup failed - should upload file, unless the failure
     # was so serious (e.g. no network) that we need to abort everything.
     FAILED = 9
 

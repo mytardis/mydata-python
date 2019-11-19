@@ -4,14 +4,13 @@ Test ability to handle dataset-related exceptions.
 import json
 import os
 
-import pytest
 import requests_mock
 
 from tests.mocks import (
     MOCK_USER_RESPONSE,
     MOCK_FACILITY_RESPONSE,
     MOCK_INSTRUMENT_RESPONSE,
-    MOCK_EXISTING_DATASET_RESPONSE
+    EXISTING_DATASET_RESPONSE
 )
 
 from tests.fixtures import set_exp_dataset_config
@@ -125,7 +124,7 @@ def test_dataset_exceptions(set_exp_dataset_config):
             "%s/api/v1/dataset/?format=json&experiments__id=1"
             "&description=Existing%%20Dataset&instrument__id=1"
         ) % SETTINGS.general.mytardis_url
-        mocker.get(get_dataset_url, text=MOCK_EXISTING_DATASET_RESPONSE)
+        mocker.get(get_dataset_url, text=EXISTING_DATASET_RESPONSE)
         get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
         FLAGS.test_run_running = True

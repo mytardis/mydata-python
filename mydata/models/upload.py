@@ -2,7 +2,7 @@
 Model class for a datafile upload, which appears as one row in
 the Uploads view of MyData's main window.
 """
-# pylint: disable=bare-except
+# pylint: disable=broad-except
 import os
 import sys
 import signal
@@ -27,6 +27,31 @@ class UploadStatus():
     FAILED = 3
     PAUSED = 4
     CANCELED = 5
+
+
+class UploadMethod():
+    """
+    Enumerated data type for upload methods
+    """
+    # pylint: disable=invalid-name
+    MULTIPART_POST = 0
+    SCP = 1
+    SFTP = 2
+    LOCAL_COPY = 3  # includes copying to mounted file share
+
+
+def add_uploader_info(datafile_dict):
+    """
+    To identify the approved storage box for the upload, the
+    mytardis-app-mydata app needs to be able to identify the
+    uploader registration request, which can be done with the
+    Uploader UUID and the ~/.ssh/MyData.pub key's fingerprint.
+    """
+    from mydata.settings import SETTINGS
+    datafile_dict['uploader_uuid'] = SETTINGS.miscellaneous.uuid
+    datafile_dict['requester_key_fingerprint'] = \
+        SETTINGS.uploader.ssh_key_pair.fingerprint
+    return datafile_dict
 
 
 class Upload():
@@ -148,7 +173,7 @@ class Upload():
             if self.verification_timer:
                 try:
                     self.verification_timer.cancel()
-                except:
+                except Exception:
                     logger.error(traceback.format_exc())
             if self.buffered_reader is not None:
                 self.buffered_reader.close()
@@ -160,7 +185,7 @@ class Upload():
                     os.kill(self.scp_upload_process_pid, signal.SIGABRT)
                 else:
                     os.kill(self.scp_upload_process_pid, signal.SIGKILL)
-        except:
+        except Exception:
             logger.warning(traceback.format_exc())
 
     @property

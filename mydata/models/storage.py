@@ -17,8 +17,6 @@ class StorageBox():
         self.attributes = []
         if storagebox_dict is not None:
             for attr in storagebox_dict:
-                if attr == "id":
-                    attr = "storage_box_id"
                 if hasattr(self, attr):
                     self.__dict__[attr] = storagebox_dict[attr]
             self.options = []
@@ -39,8 +37,6 @@ class StorageBoxOption():
         self.value = None
         if option_dict is not None:
             for attr in option_dict:
-                if attr == "id":
-                    attr = "storageboxoption_id"
                 if hasattr(self, attr):
                     self.__dict__[attr] = option_dict[attr]
 
@@ -55,7 +51,5 @@ class StorageBoxAttribute():
         self.value = None
         if attr_dict is not None:
             for attr in attr_dict:
-                if attr == "id":
-                    attr = "storageboxattribute_id"
                 if hasattr(self, attr):
                     self.__dict__[attr] = attr_dict[attr]
