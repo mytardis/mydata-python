@@ -364,6 +364,6 @@ def save_settings_to_disk(config_path=None):
     logger.info("Saved settings to " + config_path)
     if SETTINGS.uploader:
         try:
-            SETTINGS.uploader.UpdateSettings(settings_list)
+            SETTINGS.uploader.update_settings(settings_list)
         except requests.exceptions.RequestException as err:
             logger.error(err)
