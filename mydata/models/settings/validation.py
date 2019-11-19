@@ -440,7 +440,7 @@ def check_contact_email_and_email_folders(set_status_message):
         data_dir = SETTINGS.general.data_directory
         folder_names = next(os.walk(data_dir))[1]
         for folder_name in folder_names:
-            if not validate_email(folder_name):
+            if not re.match("[^@]+@[^@]+", folder_name):
                 message = "Folder name \"%s\" in \"%s\" is not a " \
                     "valid email address." % (folder_name, data_dir)
                 raise InvalidSettings(message, "data_directory")
