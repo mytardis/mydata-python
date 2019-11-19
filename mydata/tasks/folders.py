@@ -14,9 +14,7 @@ from ..models.folder import Folder
 from ..models.group import Group
 from ..models.user import User
 from ..settings import SETTINGS
-from ..utils.exceptions import (
-    DoesNotExist,
-    InvalidFolderStructure)
+from ..utils.exceptions import InvalidFolderStructure
 
 
 def scan_folders(found_user_cb, found_group_cb,
@@ -65,10 +63,7 @@ def scan_for_user_folders(found_user_cb, found_exp_folder_cb, found_dataset_cb):
         logger.debug(
             "Found folder assumed to be %s: %s" % (user_folder_type(),
                                                    user_folder_name))
-        try:
-            user = User.get_user_for_folder(user_folder_name.strip())
-        except DoesNotExist:
-            user = None
+        user = User.get_user_for_folder(user_folder_name.strip())
         raise_exception_if_user_aborted()
         if not user:
             message = "Didn't find a MyTardis user record for folder " \
@@ -129,11 +124,9 @@ def scan_for_group_folders(found_group_cb, found_exp_folder_cb, found_dataset_cb
         raise_exception_if_user_aborted()
         logger.debug("Found folder assumed to be user group name: " +
                      group_folder_name)
-        try:
-            group_name = SETTINGS.advanced.group_prefix + group_folder_name
-            group = Group.get_group_by_name(group_name)
-        except DoesNotExist:
-            group = None
+        group_name = SETTINGS.advanced.group_prefix + group_folder_name
+        group = Group.get_group_by_name(group_name)
+        if not group:
             message = "Didn't find a MyTardis user group record for " \
                 "folder \"%s\" in %s" % (group_folder_name,
                                          SETTINGS.general.data_directory)
