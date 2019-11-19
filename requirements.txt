@@ -5,7 +5,7 @@ netifaces==0.10.9
 paramiko==2.6.0 # Unit tests only
 psutil==5.6.5
 python-dateutil==2.8.1
-pytz==2019.1
+pytz==2019.3
 requests==2.22.0
 requests-toolbelt==0.9.1
 validate_email==1.3
