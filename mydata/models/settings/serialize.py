@@ -251,11 +251,8 @@ def check_for_updated_settings_on_server(settings):
     """
     Check for updated settings on server.
     """
-    try:
-        local_mod_time = \
-            datetime.fromtimestamp(os.stat(settings.config_path).st_mtime)
-    except OSError:
-        local_mod_time = datetime.fromtimestamp(0)
+    local_mod_time = \
+        datetime.fromtimestamp(os.stat(settings.config_path).st_mtime)
     try:
         settings_from_server = settings.uploader.get_settings()
         settings_updated = settings.uploader.settings_updated

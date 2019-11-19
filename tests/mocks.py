@@ -180,6 +180,34 @@ MOCK_UPLOADER_RESPONSE = json.dumps({
     "resource_uri": "/api/v1/mydata_uploader/1/"
 })
 
+MOCK_UPLOADER_WITH_SETTINGS = json.dumps({
+    "meta": {
+        "limit": 20,
+        "next": None,
+        "offset": 0,
+        "previous": None,
+        "total_count": 1
+    },
+    "objects": [{
+        "id": 1,
+        "name": "Test Instrument",
+        "resource_uri": "/api/v1/mydata_uploader/1/",
+        "settings_updated": "$settings_updated",
+        "settings": [
+            { "key": "instrument_name", "value": "Updated Instrument Name" },
+            { "key": "facility_name", "value": "Updated Facility Name" },
+            { "key": "contact_name", "value": "Updated Contact Name" },
+            { "key": "contact_email", "value": "Updated.Contact.Email@example.com" },
+            { "key": "ignore_new_files", "value": False },
+            { "key": "ignore_new_files_minutes", "value": 0 },
+            { "key": "progress_poll_interval", "value": 2.0 },
+            { "key": "connection_timeout", "value": "trigger ValueError" },
+            { "key": "scheduled_date", "value": "2020-01-01" },
+            { "key": "scheduled_time", "value": "09:45:00" },
+        ]
+    }]
+})
+
 MOCK_EXISTING_UPLOADER_RESPONSE = json.dumps({
     "meta": {
         "limit": 20,

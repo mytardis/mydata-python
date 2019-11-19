@@ -6,25 +6,14 @@ import sys
 
 def unload_modules():
     """Unload modules - called at the end of a test
+
+    Required because MyData makes use of singletons,
+    in particular SETTINGS which makes sense in a normal
+    MyData run but not in a series of unit tests.
     """
-    modules = [
-        'mydata.logs',
-        'mydata.models.dataset',
-        'mydata.models.experiment',
-        'mydata.models.group',
-        'mydata.models.user',
-        'mydata.models.facility',
-        'mydata.models.instrument',
-        'mydata.models.folder',
-        'mydata.models.lookup',
-        'mydata.models.upload',
-        'mydata.models.settings',
-        'mydata.settings',
-        'mydata.tasks.folders',
-        'mydata.tasks.uploads'
-    ]
-    for module in modules:
-        if module in sys.modules:
+    sys_modules = list(sys.modules.keys())
+    for module in sys_modules:
+        if 'mydata' in module:
             del sys.modules[module]
 
 

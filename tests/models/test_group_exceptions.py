@@ -18,8 +18,6 @@ def test_group_exceptions(set_exp_dataset_config):
     from mydata.settings import SETTINGS
     from mydata.models.group import Group
 
-    assert SETTINGS.general.mytardis_url == 'http://127.0.0.1:9000'
-
     # Test retrieving a valid group record (using the Group model's
     # get_group_by_name method) and ensure that no exception is raised:
     with requests_mock.Mocker() as mocker:
