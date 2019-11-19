@@ -297,6 +297,7 @@ def get_key_pair_location():
             os.path.dirname(SETTINGS.config_path), ".ssh")
     return os.path.join(os.path.expanduser('~'), ".ssh")
 
+
 def find_or_create_key_pair(key_name="MyData"):
     r"""
     Find the MyData SSH key-pair, creating it if necessary
@@ -313,39 +314,6 @@ def find_or_create_key_pair(key_name="MyData"):
             key_comment="%s@%s"
             % (getpass.getuser(), SETTINGS.general.instrument_name))
     return key_pair
-
-
-def ssh_server_is_ready(username, private_key_path,
-                        host, port):
-    """
-    Check if SSH server is ready
-    """
-    if sys.platform.startswith("win"):
-        private_key_path = get_cygwin_path(private_key_path)
-
-    cmd_and_args = [
-        OPENSSH.ssh,
-        "-p", str(port),
-        "-i", private_key_path,
-        "-l", username,
-        host,
-        "echo Ready"
-    ]
-    cmd_and_args[1:1] = OpenSSH.default_ssh_options(
-        SETTINGS.miscellaneous.connection_timeout)
-    logger.debug(" ".join(cmd_and_args))
-    proc = subprocess.Popen(cmd_and_args,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            startupinfo=DEFAULT_STARTUP_INFO,
-                            creationflags=DEFAULT_CREATION_FLAGS)
-    stdout, _ = proc.communicate()
-    returncode = proc.returncode
-    if returncode != 0:
-        logger.error(stdout)
-
-    return returncode == 0
 
 
 def upload_with_scp(
@@ -502,6 +470,7 @@ def create_remote_dir(remote_dir, username, private_key_path, host, port):
         if mkdir_process.returncode != 0:
             raise SshException(stdout.decode(), mkdir_process.returncode)
         REMOTE_DIRS_CREATED[remote_dir] = True
+
 
 def get_cygwin_path(path):
     """
