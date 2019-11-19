@@ -1,4 +1,7 @@
 # mydata-python
+
+[![Travis CI](https://travis-ci.org/jameswettenhall/mydata-python.svg?branch=master)](https://travis-ci.org/jameswettenhall/mydata-python)
+
 A Python library for managing data uploads to MyTardis
 
 mydata-python is MyData without wxPython.
