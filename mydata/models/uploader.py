@@ -70,7 +70,6 @@ directory), instead of having a default group of "mydata".
 # pylint: disable=import-outside-toplevel
 # pylint: disable=bare-except
 import json
-import os
 import sys
 import platform
 import getpass
@@ -256,19 +255,6 @@ class UploaderModel():
         instruments using the same MyData instance.
         """
         return self.settings.general.instrument_name
-
-    @property
-    def user_agent_install_location(self):
-        """
-        Return MyData install location
-        """
-        if hasattr(sys, 'frozen'):
-            return os.path.dirname(sys.executable)
-        try:
-            return os.path.realpath(
-                os.path.join(os.path.dirname(__file__), "..", ".."))
-        except:
-            return os.getcwd()
 
     @property
     def hostname(self):
