@@ -106,10 +106,4 @@ def test_check_for_updated_settings_on_server():
         assert SETTINGS.miscellaneous.connection_timeout == \
             SETTINGS.miscellaneous.default['connection_timeout']
 
-        # Test updating a date setting value from the server:
-        assert SETTINGS.schedule.scheduled_date == datetime.date(2020, 1, 1)
-
-        # Test updating a time setting value from the server:
-        assert SETTINGS.schedule.scheduled_time == datetime.time(9, 45, 0)
-
     unload_modules()

@@ -58,7 +58,6 @@ def validate_settings(set_status_message=None):
         raise_exception_if_user_aborted(set_status_message)
         check_contact_email_and_email_folders(set_status_message)
         raise_exception_if_user_aborted(set_status_message)
-        check_scheduled_time()
         message = "Settings validation - succeeded!"
         logger.debug(message)
         log_if_test_run(message)
@@ -444,19 +443,6 @@ def check_contact_email_and_email_folders(set_status_message):
                 message = "Folder name \"%s\" in \"%s\" is not a " \
                     "valid email address." % (folder_name, data_dir)
                 raise InvalidSettings(message, "data_directory")
-
-
-def check_scheduled_time():
-    """
-    Check scheduled time
-    """
-    from ...settings import SETTINGS
-    if SETTINGS.schedule.schedule_type == "Once":
-        date_time = datetime.combine(SETTINGS.schedule.scheduled_date,
-                                     SETTINGS.schedule.scheduled_time)
-        if date_time < datetime.now():
-            message = "Scheduled time is in the past."
-            raise InvalidSettings(message, "scheduled_time")
 
 
 def perform_globs_file_validation(file_path, upper, lower, field):

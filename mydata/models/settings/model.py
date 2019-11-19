@@ -15,7 +15,6 @@ from ...logs import logger
 from ...threads.locks import LOCKS
 from ...utils import create_config_path_if_necessary
 from .general import GeneralSettingsModel
-from .schedule import ScheduleSettingsModel
 from .filters import FiltersSettingsModel
 from .advanced import AdvancedSettingsModel
 from .miscellaneous import MiscellaneousSettingsModel
@@ -45,7 +44,6 @@ class SettingsModel():
 
         self.models = dict(
             general=GeneralSettingsModel(),
-            schedule=ScheduleSettingsModel(),
             filters=FiltersSettingsModel(),
             advanced=AdvancedSettingsModel(),
             miscellaneous=MiscellaneousSettingsModel())
@@ -63,13 +61,6 @@ class SettingsModel():
         Settings in the Settings Dialog's General tab
         """
         return self.models['general']
-
-    @property
-    def schedule(self):
-        """
-        Settings in the Settings Dialog's Schedule tab
-        """
-        return self.models['schedule']
 
     @property
     def filters(self):
@@ -98,8 +89,6 @@ class SettingsModel():
         """
         if key in self.general.fields:
             self.general.mydata_config[key] = item
-        elif key in self.schedule.fields:
-            self.schedule.mydata_config[key] = item
         elif key in self.filters.fields:
             self.filters.mydata_config[key] = item
         elif key in self.advanced.fields:
@@ -115,8 +104,6 @@ class SettingsModel():
         """
         if key in self.general.fields:
             return self.general.mydata_config[key]
-        if key in self.schedule.fields:
-            return self.schedule.mydata_config[key]
         if key in self.filters.fields:
             return self.filters.mydata_config[key]
         if key in self.advanced.fields:
@@ -169,7 +156,6 @@ class SettingsModel():
         that will appear in MyData.cfg
         """
         self.general.set_defaults()
-        self.schedule.set_defaults()
         self.filters.set_defaults()
         self.advanced.set_defaults()
         self.miscellaneous.set_defaults()

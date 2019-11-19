@@ -61,7 +61,6 @@ def load_settings(settings, config_path=None, check_for_updates=True):
             config_parser = ConfigParser()
             config_parser.read(config_path)
             load_general_settings(settings, config_parser)
-            load_schedule_settings(settings, config_parser)
             load_filter_settings(settings, config_parser)
             load_advanced_settings(settings, config_parser)
             load_miscellaneous_settings(settings, config_parser)
@@ -95,52 +94,6 @@ def load_general_settings(settings, config_parser):
     for field in fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.get(config_file_section, field)
-
-
-def load_schedule_settings(settings, config_parser):
-    """
-    :param settings: Object of class SettingsModel to load the settings into.
-    :param config_parser: The ConfigParser object which stores data read from
-                         MyData.cfg
-
-    Loads Schedule settings from a ConfigParser object
-
-    These settings appear in the Schedule tab of the settings dialog.
-    """
-    config_file_section = "MyData"
-    fields = ["schedule_type", "monday_checked", "tuesday_checked",
-              "wednesday_checked", "thursday_checked",
-              "friday_checked", "saturday_checked", "sunday_checked",
-              "scheduled_date", "scheduled_time",
-              "timer_minutes", "timer_from_time", "timer_to_time"]
-    for field in fields:
-        if config_parser.has_option(config_file_section, field):
-            settings[field] = config_parser.get(config_file_section, field)
-    if config_parser.has_option(config_file_section, "scheduled_date"):
-        datestring = config_parser.get(config_file_section, "scheduled_date")
-        settings['scheduled_date'] = \
-            datetime.date(datetime.strptime(datestring, "%Y-%m-%d"))
-    if config_parser.has_option(config_file_section, "scheduled_time"):
-        timestring = config_parser.get(config_file_section, "scheduled_time")
-        settings['scheduled_time'] = datetime.strptime(timestring, "%H:%M:%S")
-        settings['scheduled_time'] = datetime.time(settings['scheduled_time'])
-    if config_parser.has_option(config_file_section, "timer_minutes"):
-        settings['timer_minutes'] = \
-            config_parser.getint(config_file_section, "timer_minutes")
-    if config_parser.has_option(config_file_section, "timer_from_time"):
-        timestring = config_parser.get(config_file_section, "timer_from_time")
-        settings['timer_from_time'] = datetime.strptime(timestring, "%H:%M:%S")
-        settings['timer_from_time'] = \
-            datetime.time(settings['timer_from_time'])
-    if config_parser.has_option(config_file_section, "timer_to_time"):
-        timestring = config_parser.get(config_file_section, "timer_to_time")
-        settings['timer_to_time'] = datetime.strptime(timestring, "%H:%M:%S")
-        settings['timer_to_time'] = datetime.time(settings['timer_to_time'])
-    for day in ["monday_checked", "tuesday_checked", "wednesday_checked",
-                "thursday_checked", "friday_checked", "saturday_checked",
-                "sunday_checked"]:
-        if config_parser.has_option(config_file_section, day):
-            settings[day] = config_parser.getboolean(config_file_section, day)
 
 
 def load_filter_settings(settings, config_parser):
@@ -295,17 +248,6 @@ def check_for_updated_settings_on_server(settings):
                         field = setting['key']
                         logger.warning("Couldn't read value for %s, using default instead." % field)
                         settings[field] = settings.miscellaneous.default[field]
-                if setting['key'] in (
-                        "scheduled_date"):
-                    settings[setting['key']] = \
-                        datetime.date(datetime.strptime(setting['value'],
-                                                        "%Y-%m-%d"))
-                if setting['key'] in (
-                        "scheduled_time", "timer_from_time",
-                        "timer_to_time"):
-                    settings[setting['key']] = \
-                        datetime.time(datetime.strptime(setting['value'],
-                                                        "%H:%M:%S"))
             except KeyError as err:
                 logger.warning(
                     "Settings field '%s' found on server is not understood "
@@ -330,11 +272,6 @@ def save_settings_to_disk(config_path=None):
         fields = ["instrument_name", "facility_name", "data_directory",
                   "contact_name", "contact_email", "mytardis_url",
                   "username", "api_key",
-                  "schedule_type", "monday_checked", "tuesday_checked",
-                  "wednesday_checked", "thursday_checked",
-                  "friday_checked", "saturday_checked",
-                  "sunday_checked", "scheduled_date", "scheduled_time",
-                  "timer_minutes", "timer_from_time", "timer_to_time",
                   "user_filter", "dataset_filter", "experiment_filter",
                   "includes_file", "excludes_file",
                   "folder_structure",

@@ -202,8 +202,6 @@ MOCK_UPLOADER_WITH_SETTINGS = json.dumps({
             { "key": "ignore_new_files_minutes", "value": 0 },
             { "key": "progress_poll_interval", "value": 2.0 },
             { "key": "connection_timeout", "value": "trigger ValueError" },
-            { "key": "scheduled_date", "value": "2020-01-01" },
-            { "key": "scheduled_time", "value": "09:45:00" },
         ]
     }]
 })
