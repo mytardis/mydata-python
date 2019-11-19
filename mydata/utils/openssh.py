@@ -18,7 +18,6 @@ import six
 
 from ..settings import SETTINGS
 from ..logs import logger
-from ..models.upload import UploadStatus
 from ..utils.exceptions import SshException
 from ..utils.exceptions import ScpException
 from ..utils.exceptions import PrivateKeyDoesNotExist
@@ -30,9 +29,6 @@ from .progress import monitor_progress
 
 if sys.platform.startswith("win"):
     import win32process  # pylint: disable=import-error
-
-if sys.platform.startswith("linux"):
-    import mydata.linuxsubprocesses as linuxsubprocesses
 
 # Running subprocess's communicate from multiple threads can cause high CPU
 # usage, so we poll each subprocess before running communicate, using a sleep
@@ -164,16 +160,6 @@ class KeyPair():
         and key type.  This only works if the public key file exists.
         If the public key file doesn't exist, we will generate it from
         the private key file using "ssh-keygen -y -f privateKeyFile".
-
-        On Windows, we're using OpenSSH 7.1p1, and since OpenSSH
-        version 6.8, ssh-keygen requires -E md5 to get the fingerprint
-        in the old MD5 Hexadecimal format.
-        http://www.openssh.com/txt/release-6.8
-        Eventually we could switch to the new format, but then MyTardis
-        administrators would need to re-approve Uploader Registration
-        Requests because of the fingerprint mismatches.
-        See the UploaderModel class's ExistingUploadToStagingRequest
-        method in mydata.models.uploader
         """
         if not os.path.exists(self.private_key_path):
             raise PrivateKeyDoesNotExist("Couldn't find valid private key in "
@@ -184,11 +170,8 @@ class KeyPair():
             with open(self.public_key_path, "w") as pubkeyfile:
                 pubkeyfile.write(self.public_key)
 
-        if sys.platform.startswith('win'):
-            cmd_list = [OPENSSH.ssh_keygen, "-E", "md5",
-                        "-yl", "-f", self.private_key_path]
-        else:
-            cmd_list = [OPENSSH.ssh_keygen, "-yl", "-f", self.private_key_path]
+        cmd_list = [
+            OPENSSH.ssh_keygen, "-E", "md5", "-yl", "-f", self.private_key_path]
         logger.debug(" ".join(cmd_list))
         proc = subprocess.Popen(cmd_list,
                                 stdin=subprocess.PIPE,
@@ -406,10 +389,7 @@ def upload_with_scp(
     scp_command_list[2:2] = OpenSSH.default_ssh_options(
         SETTINGS.miscellaneous.connection_timeout)
 
-    if not sys.platform.startswith("linux"):
-        scp_upload(upload, scp_command_list)
-    else:
-        scp_upload_with_errand_boy(upload, scp_command_list)
+    scp_upload(upload, scp_command_list)
 
     set_remote_file_permissions(
         remote_file_path, username, private_key_path, host, port)
@@ -444,35 +424,6 @@ def scp_upload(upload, scp_command_list):
         raise ScpException(err, scp_command_string, returncode=255)
 
 
-def scp_upload_with_errand_boy(upload, scp_command_list):
-    """
-    Perfom an SCP upload using Errand Boy (Linux only), which triggers
-    a subprocess in a separate Python process via a Unix domain socket.
-
-    https://github.com/greyside/errand-boy
-    """
-    scp_command_string = " ".join(scp_command_list)
-    logger.debug(scp_command_string)
-    with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
-        try:
-            scp_upload_process = session.subprocess.Popen(
-                scp_command_list, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, close_fds=True,
-                preexec_fn=os.setpgrp)
-            upload.status = UploadStatus.IN_PROGRESS
-            upload.scp_upload_process_pid = scp_upload_process.pid
-
-            wait_for_process_to_complete(scp_upload_process)
-            stdout, stderr = scp_upload_process.communicate()
-            if scp_upload_process.returncode != 0:
-                if stdout and not stderr:
-                    stderr = stdout
-                raise ScpException(
-                    stderr, scp_command_string, scp_upload_process.returncode)
-        except (IOError, OSError) as err:
-            raise ScpException(err, scp_command_string, returncode=255)
-
-
 def set_remote_file_permissions(remote_file_path, username, private_key_path,
                                 host, port):
     """
@@ -497,31 +448,16 @@ def set_remote_file_permissions(remote_file_path, username, private_key_path,
     chmod_cmd_and_args[1:1] = OpenSSH.default_ssh_options(
         SETTINGS.miscellaneous.connection_timeout)
     logger.debug(" ".join(chmod_cmd_and_args))
-    if not sys.platform.startswith("linux"):
-        chmod_process = \
-            subprocess.Popen(chmod_cmd_and_args,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             startupinfo=DEFAULT_STARTUP_INFO,
-                             creationflags=DEFAULT_CREATION_FLAGS)
-        stdout, _ = chmod_process.communicate()
-        if chmod_process.returncode != 0:
-            raise SshException(stdout.decode(), chmod_process.returncode)
-    else:
-        with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
-            try:
-                chmod_process = session.subprocess.Popen(
-                    chmod_cmd_and_args, stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE, close_fds=True,
-                    preexec_fn=os.setpgrp)
-                stdout, stderr = chmod_process.communicate()
-                if chmod_process.returncode != 0:
-                    if stdout and not stderr:
-                        stderr = stdout
-                    raise SshException(stderr.decode(), chmod_process.returncode)
-            except (IOError, OSError) as err:
-                raise SshException(str(err), returncode=255)
+    chmod_process = \
+        subprocess.Popen(chmod_cmd_and_args,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,
+                         startupinfo=DEFAULT_STARTUP_INFO,
+                         creationflags=DEFAULT_CREATION_FLAGS)
+    stdout, _ = chmod_process.communicate()
+    if chmod_process.returncode != 0:
+        raise SshException(stdout.decode(), chmod_process.returncode)
 
 
 def wait_for_process_to_complete(process):
@@ -555,31 +491,16 @@ def create_remote_dir(remote_dir, username, private_key_path, host, port):
             SETTINGS.miscellaneous.connection_timeout)
         logger.debug(" ".join(mkdir_cmd_and_args))
 
-        if not sys.platform.startswith("linux"):
-            mkdir_process = \
-                subprocess.Popen(mkdir_cmd_and_args,
-                                 stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT,
-                                 startupinfo=DEFAULT_STARTUP_INFO,
-                                 creationflags=DEFAULT_CREATION_FLAGS)
-            stdout, _ = mkdir_process.communicate()
-            if mkdir_process.returncode != 0:
-                raise SshException(stdout.decode(), mkdir_process.returncode)
-        else:
-            with linuxsubprocesses.ERRAND_BOY_TRANSPORT.get_session() as session:
-                try:
-                    mkdir_process = session.subprocess.Popen(
-                        mkdir_cmd_and_args, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE, close_fds=True,
-                        preexec_fn=os.setpgrp)
-                    stdout, stderr = mkdir_process.communicate()
-                    if mkdir_process.returncode != 0:
-                        if stdout and not stderr:
-                            stderr = stdout
-                        raise SshException(stderr.decode(), mkdir_process.returncode)
-                except (IOError, OSError) as err:
-                    raise SshException(str(err), returncode=255)
+        mkdir_process = \
+            subprocess.Popen(mkdir_cmd_and_args,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             startupinfo=DEFAULT_STARTUP_INFO,
+                             creationflags=DEFAULT_CREATION_FLAGS)
+        stdout, _ = mkdir_process.communicate()
+        if mkdir_process.returncode != 0:
+            raise SshException(stdout.decode(), mkdir_process.returncode)
         REMOTE_DIRS_CREATED[remote_dir] = True
 
 def get_cygwin_path(path):
