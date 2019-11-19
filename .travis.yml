@@ -13,6 +13,7 @@ install:
 
 script:
   - pytest --cov=mydata
+  - pylint mydata
 
 after_success:
   - codecov
