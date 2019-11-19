@@ -11,7 +11,7 @@ from datetime import datetime
 
 import requests
 from requests.exceptions import HTTPError
-from validate_email import validate_email
+from email_validator import validate_email, EmailNotValidError
 
 from ...events.stop import raise_exception_if_user_aborted
 from ...logs import logger
@@ -428,9 +428,12 @@ def check_contact_email_and_email_folders(set_status_message):
     if set_status_message:
         set_status_message(message)
 
-    if not validate_email(SETTINGS.general.contact_email):
+    try:
+        validate_email(SETTINGS.general.contact_email)
+    except EmailNotValidError:
         message = "Please enter a valid contact email."
         raise InvalidSettings(message, "contact_email")
+
     if SETTINGS.advanced.folder_structure.startswith('Email') and \
             SETTINGS.advanced.validate_folder_structure:
         data_dir = SETTINGS.general.data_directory
