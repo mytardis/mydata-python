@@ -5,6 +5,7 @@ If the MYDATA_CONFIG_PATH environment variable is not set,
 MyData will determine an appropriate location for settings
 using the Python appdirs library.
 """
+# pylint: disable=invalid-name
 import os
 
 from mydata.models.settings import SettingsModel
