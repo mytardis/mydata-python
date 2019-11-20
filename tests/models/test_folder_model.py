@@ -12,7 +12,7 @@ def test_folder_model(set_username_dataset_config):
     """
     Test folder model
     """
-    from mydata.settings import SETTINGS
+    from mydata.conf import settings
     from mydata.models.folder import Folder
     from mydata.models.user import User
 
@@ -23,7 +23,7 @@ def test_folder_model(set_username_dataset_config):
 
     testuser1 = User(username="testuser1")
     name = "Flowers"
-    location = os.path.join(SETTINGS.general.data_directory, "testuser1")
+    location = os.path.join(settings.general.data_directory, "testuser1")
     user_folder_name = "testuser1"
     group_folder_name = None
 
@@ -59,19 +59,19 @@ def test_folder_model(set_username_dataset_config):
         excludes_file.write("*.txt\n")
         excludes_file.write("*.JPG\n")
 
-    SETTINGS.filters.includes_file = includes_file_path
-    SETTINGS.filters.excludes_file = excludes_file_path
+    settings.filters.includes_file = includes_file_path
+    settings.filters.excludes_file = excludes_file_path
     assert Folder.matches_includes("image.jpg")
     assert Folder.matches_excludes("filename.bak")
 
-    SETTINGS.filters.use_includes_file = False
-    SETTINGS.filters.use_excludes_file = False
+    settings.filters.use_includes_file = False
+    settings.filters.use_excludes_file = False
     folder = Folder(name, location, user_folder_name,
                     group_folder_name, testuser1)
     assert folder.num_files == 8
 
-    SETTINGS.filters.use_includes_file = True
-    SETTINGS.filters.use_excludes_file = True
+    settings.filters.use_includes_file = True
+    settings.filters.use_excludes_file = True
     expected_files = [
         ('Flowers_growing_on_the_campus_of_Cebu_City_'
          'National_Science_High_School.jpg'),
@@ -85,16 +85,16 @@ def test_folder_model(set_username_dataset_config):
         [os.path.basename(f) for f in folder.datafile_paths['files']])
     assert actual_files == expected_files
 
-    SETTINGS.filters.use_includes_file = True
-    SETTINGS.filters.use_excludes_file = False
+    settings.filters.use_includes_file = True
+    settings.filters.use_excludes_file = False
     folder = Folder(name, location, user_folder_name,
                     group_folder_name, testuser1)
     actual_files = sorted(
         [os.path.basename(f) for f in folder.datafile_paths['files']])
     assert actual_files == expected_files
 
-    SETTINGS.filters.use_includes_file = False
-    SETTINGS.filters.use_excludes_file = True
+    settings.filters.use_includes_file = False
+    settings.filters.use_excludes_file = True
     if sys.platform.startswith("win"):
         expected_files = []
     else:

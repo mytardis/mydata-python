@@ -4,7 +4,7 @@ Model class for MyTardis API v1's FacilityResource.
 
 import requests
 
-from ..settings import SETTINGS
+from ..conf import settings
 from .group import Group
 
 
@@ -41,8 +41,8 @@ class Facility():
         :raises requests.exceptions.HTTPError:
         """
         facilities = []
-        url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
-        response = requests.get(url=url, headers=SETTINGS.default_headers)
+        url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         facilities_dict = response.json()
         for facility_dict in facilities_dict['objects']:

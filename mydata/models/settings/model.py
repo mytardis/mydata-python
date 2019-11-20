@@ -19,7 +19,6 @@ from .filters import FiltersSettingsModel
 from .advanced import AdvancedSettingsModel
 from .miscellaneous import MiscellaneousSettingsModel
 from .miscellaneous import LastSettingsUpdateTrigger
-from .serialize import load_settings
 
 
 class SettingsModel():
@@ -27,7 +26,7 @@ class SettingsModel():
     Model class for the settings displayed in the settings dialog
     and saved to disk in MyData.cfg
     """
-    def __init__(self, config_path, check_for_updates=True):
+    def __init__(self, config_path):
         super(SettingsModel, self).__init__()
 
         # The location on disk of MyData.cfg
@@ -49,11 +48,6 @@ class SettingsModel():
             miscellaneous=MiscellaneousSettingsModel())
 
         self.set_default_config()
-
-        try:
-            load_settings(self, check_for_updates=check_for_updates)
-        except:
-            logger.error(traceback.format_exc())
 
     @property
     def general(self):
@@ -120,12 +114,12 @@ class SettingsModel():
         This could be called from multiple threads
         simultaneously, so it requires locking.
         """
-        from ..uploader import UploaderModel
+        from ..uploader import Uploader
         if self._uploader:
             return self._uploader
         try:
             LOCKS.create_uploader.acquire()  # pylint: disable=no-member
-            self._uploader = UploaderModel(self)
+            self._uploader = Uploader()
             return self._uploader
         finally:
             LOCKS.create_uploader.release()  # pylint: disable=no-member

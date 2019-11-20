@@ -26,7 +26,7 @@ def test_post_uploads(set_username_dataset_config):
     """
     Test POST uploads
     """
-    from mydata.settings import SETTINGS
+    from mydata.conf import settings
     from mydata.tasks.folders import scan_folders
     from mydata.tasks.uploads import upload_folder
     from mydata.models.lookup import LookupStatus
@@ -45,17 +45,17 @@ def test_post_uploads(set_username_dataset_config):
         folders.append(folder)
 
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % SETTINGS.general.mytardis_url
+        get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % settings.general.mytardis_url
         mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
-        get_testuser1_url = "%s/api/v1/user/?format=json&username=testuser1" % SETTINGS.general.mytardis_url
+        get_testuser1_url = "%s/api/v1/user/?format=json&username=testuser1" % settings.general.mytardis_url
         mocker.get(get_testuser1_url, text=MOCK_TESTUSER1_RESPONSE)
         get_testuser2_url = get_testuser1_url.replace("testuser1", "testuser2")
         mocker.get(get_testuser2_url, text=MOCK_TESTUSER2_RESPONSE)
-        get_invalid_user_url = "%s/api/v1/user/?format=json&username=INVALID_USER" % SETTINGS.general.mytardis_url
+        get_invalid_user_url = "%s/api/v1/user/?format=json&username=INVALID_USER" % settings.general.mytardis_url
         mocker.get(get_invalid_user_url, text=EMPTY_LIST_RESPONSE)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
+        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
+        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % settings.general.mytardis_url
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
 
         scan_folders(found_user, found_group, found_exp, found_dataset)
@@ -65,14 +65,14 @@ def test_post_uploads(set_username_dataset_config):
     assert sum([folder.num_files for folder in folders]) == 12
 
     with requests_mock.Mocker() as mocker:
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % SETTINGS.general.mytardis_url
+        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % SETTINGS.general.mytardis_url
+        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % settings.general.mytardis_url
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         get_exp_url_template = Template((
             "%s/api/v1/mydata_experiment/?format=json&title=Test%%20Instrument%%20-%%20$name"
             "&folder_structure=Username%%20/%%20Dataset&user_folder_name=$username"
-        ) % SETTINGS.general.mytardis_url)
+        ) % settings.general.mytardis_url)
         for username, name in [
                 ("testuser1", quote("Test User1")),
                 ("testuser2", quote("Test User2")),
@@ -80,20 +80,20 @@ def test_post_uploads(set_username_dataset_config):
             mocker.get(
                 get_exp_url_template.substitute(username=username, name=name),
                 text=EMPTY_LIST_RESPONSE)
-        post_experiment_url = "%s/api/v1/mydata_experiment/" % SETTINGS.general.mytardis_url
+        post_experiment_url = "%s/api/v1/mydata_experiment/" % settings.general.mytardis_url
         mocker.post(post_experiment_url, text=CREATED_EXP_RESPONSE)
-        post_objectacl_url = "%s/api/v1/objectacl/" % SETTINGS.general.mytardis_url
+        post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
         mocker.post(post_objectacl_url, status_code=201)
         for folder in folders:
             get_dataset_url = (
                 "%s/api/v1/dataset/?format=json&experiments__id=1"
                 "&description=%s&instrument__id=1"
-            ) % (SETTINGS.general.mytardis_url, quote(folder.name))
+            ) % (settings.general.mytardis_url, quote(folder.name))
             mocker.get(get_dataset_url, text=EMPTY_LIST_RESPONSE)
 
             get_df_url_template = Template((
                 "%s/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=$filename&directory="
-            ) % SETTINGS.general.mytardis_url)
+            ) % settings.general.mytardis_url)
 
             for dfi in range(0, folder.num_files):
                 datafile_path = folder.get_datafile_path(dfi)
@@ -101,9 +101,9 @@ def test_post_uploads(set_username_dataset_config):
                 get_datafile_url = get_df_url_template.substitute(filename=quote(datafile_name))
                 mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
 
-        post_dataset_url = "%s/api/v1/dataset/" % SETTINGS.general.mytardis_url
+        post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
 
-        post_datafile_url = "%s/api/v1/mydata_dataset_file/" % SETTINGS.general.mytardis_url
+        post_datafile_url = "%s/api/v1/mydata_dataset_file/" % settings.general.mytardis_url
         mocker.post(post_datafile_url, status_code=201)
 
         lookups = []

@@ -8,7 +8,7 @@ def unload_modules():
     """Unload modules - called at the end of a test
 
     Required because MyData makes use of singletons,
-    in particular SETTINGS which makes sense in a normal
+    in particular settings which makes sense in a normal
     MyData run but not in a series of unit tests.
     """
     sys_modules = list(sys.modules.keys())

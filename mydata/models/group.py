@@ -5,7 +5,7 @@ import urllib.parse
 
 import requests
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..logs import logger
 
 
@@ -24,7 +24,7 @@ class Group():
                 self.name = group_dict['name']
 
         self.short_name = name
-        length = len(SETTINGS.advanced.group_prefix)
+        length = len(settings.advanced.group_prefix)
         self.short_name = self.name[length:]
 
     def get_value_for_key(self, key):
@@ -42,9 +42,9 @@ class Group():
         :raises requests.exceptions.HTTPError:
         """
         url = "%s/api/v1/group/?format=json&name=%s" \
-            % (SETTINGS.general.mytardis_url,
+            % (settings.general.mytardis_url,
                urllib.parse.quote(name.encode('utf-8')))
-        response = requests.get(url=url, headers=SETTINGS.default_headers)
+        response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         groups_dict = response.json()
         num_groups_found = groups_dict['meta']['total_count']

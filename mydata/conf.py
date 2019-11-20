@@ -8,5 +8,7 @@ using the Python appdirs library.
 import os
 
 from mydata.models.settings import SettingsModel
+from mydata.models.settings.serialize import load_settings
 
-SETTINGS = SettingsModel(config_path=os.environ.get('MYDATA_CONFIG_PATH'))
+settings = SettingsModel(config_path=os.environ.get('MYDATA_CONFIG_PATH'))
+load_settings()

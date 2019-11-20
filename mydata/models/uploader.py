@@ -99,13 +99,14 @@ from ..threads.locks import LOCKS
 from .storage import StorageBox
 
 
-class UploaderModel():
+class Uploader():
     """
     Model class for MyTardis API v1's UploaderAppResource.
     """
-    def __init__(self, settings):
+    def __init__(self):
+        from mydata.conf import settings
+
         # pylint: disable=too-many-branches
-        self.settings = settings
         self.uploader_id = None
         self.resource_uri = None
         self.uploader_settings = None
@@ -129,8 +130,8 @@ class UploaderModel():
         self.ifconfig = dict(interface=None, macAddress='', ipv4_addrs='',
                              ipv6_addrs='', subnetMask='')
 
-        if self.settings.miscellaneous.uuid is None:
-            self.settings.miscellaneous.uuid = str(uuid.uuid1())
+        if settings.miscellaneous.uuid is None:
+            settings.miscellaneous.uuid = str(uuid.uuid1())
 
         default_interface_type = get_default_interface_type()
         if default_interface_type:
@@ -166,13 +167,15 @@ class UploaderModel():
         :raises requests.exceptions.HTTPError:
         """
         # pylint: disable=too-many-branches
-        mytardis_url = self.settings.general.mytardis_url
+        from mydata.conf import settings
+
+        mytardis_url = settings.general.mytardis_url
         url = mytardis_url + "/api/v1/mydata_uploader/?format=json" + \
-            "&uuid=" + urllib.parse.quote(self.settings.miscellaneous.uuid)
-        headers = self.settings.default_headers
+            "&uuid=" + urllib.parse.quote(settings.miscellaneous.uuid)
+        headers = settings.default_headers
         response = requests.get(
             headers=headers, url=url,
-            timeout=self.settings.miscellaneous.connection_timeout)
+            timeout=settings.miscellaneous.connection_timeout)
         response.raise_for_status()
         uploaders_dict = response.json()
         num_existing_uploader_records = \
@@ -197,10 +200,10 @@ class UploaderModel():
             url = mytardis_url + "/api/v1/mydata_uploader/"
 
         uploader_dict = {
-            "uuid": self.settings.miscellaneous.uuid,
-            "name": self.settings.general.instrument_name,
-            "contact_name": self.settings.general.contact_name,
-            "contact_email": self.settings.general.contact_email,
+            "uuid": settings.miscellaneous.uuid,
+            "name": settings.general.instrument_name,
+            "contact_name": settings.general.contact_name,
+            "contact_email": settings.general.contact_email,
 
             "user_agent_name": "MyData",
             "user_agent_version": VERSION,
@@ -219,8 +222,8 @@ class UploaderModel():
             "cpus": self.sys_info['cpus'],
 
             "disk_usage": "",
-            "data_path": self.settings.general.data_directory,
-            "default_user": self.settings.general.username,
+            "data_path": settings.general.data_directory,
+            "default_user": settings.general.username,
 
             "interface": self.ifconfig['interface'],
             "mac_address": self.ifconfig['macAddress'],
@@ -230,20 +233,20 @@ class UploaderModel():
 
             "hostname": self.sys_info['hostname'],
 
-            "instruments": [self.settings.general.instrument.resource_uri]
+            "instruments": [settings.general.instrument.resource_uri]
         }
 
         data = json.dumps(uploader_dict, indent=4)
         logger.debug(data)
-        headers = self.settings.default_headers
+        headers = settings.default_headers
         if num_existing_uploader_records > 0:
             response = requests.put(
                 headers=headers, url=url, data=data.encode(),
-                timeout=self.settings.miscellaneous.connection_timeout)
+                timeout=settings.miscellaneous.connection_timeout)
         else:
             response = requests.post(
                 headers=headers, url=url, data=data.encode(),
-                timeout=self.settings.miscellaneous.connection_timeout)
+                timeout=settings.miscellaneous.connection_timeout)
         response.raise_for_status()
         logger.debug("Upload succeeded for uploader info.")
         self.resource_uri = response.json()['resource_uri']
@@ -255,7 +258,9 @@ class UploaderModel():
         that could change if we ever support uploading data from multiple
         instruments using the same MyData instance.
         """
-        return self.settings.general.instrument_name
+        from mydata.conf import settings
+
+        return settings.general.instrument_name
 
     @property
     def hostname(self):
@@ -272,18 +277,19 @@ class UploaderModel():
 
         :raises requests.exceptions.HTTPError:
         """
+        from mydata.conf import settings
         from mydata.utils.openssh import find_or_create_key_pair
 
         if not self.ssh_key_pair:
             self.ssh_key_pair = find_or_create_key_pair()
-        mytardis_url = self.settings.general.mytardis_url
+        mytardis_url = settings.general.mytardis_url
         url = mytardis_url + \
             "/api/v1/mydata_uploaderregistrationrequest/?format=json" + \
-            "&uploader__uuid=" + self.settings.miscellaneous.uuid + \
+            "&uploader__uuid=" + settings.miscellaneous.uuid + \
             "&requester_key_fingerprint=" + urllib.parse.quote(
                 self.ssh_key_pair.fingerprint)
         logger.debug(url)
-        headers = self.settings.default_headers
+        headers = settings.default_headers
         response = requests.get(headers=headers, url=url)
         response.raise_for_status()
         logger.debug(response.text)
@@ -305,21 +311,22 @@ class UploaderModel():
 
         :raises requests.exceptions.HTTPError:
         """
+        from mydata.conf import settings
         from mydata.utils.openssh import find_or_create_key_pair
 
         if not self.ssh_key_pair:
             self.ssh_key_pair = find_or_create_key_pair()
-        mytardis_url = self.settings.general.mytardis_url
+        mytardis_url = settings.general.mytardis_url
         url = mytardis_url + "/api/v1/mydata_uploaderregistrationrequest/"
         urr_dict = \
             {"uploader": self.resource_uri,
-             "name": self.settings.general.instrument_name,
-             "requester_name": self.settings.general.contact_name,
-             "requester_email": self.settings.general.contact_email,
+             "name": settings.general.instrument_name,
+             "requester_name": settings.general.contact_name,
+             "requester_email": settings.general.contact_email,
              "requester_public_key": self.ssh_key_pair.public_key,
              "requester_key_fingerprint": self.ssh_key_pair.fingerprint}
         data = json.dumps(urr_dict)
-        response = requests.post(headers=self.settings.default_headers, url=url,
+        response = requests.post(headers=settings.default_headers, url=url,
                                  data=data.encode())
         response.raise_for_status()
         return UploaderRegistrationRequest(
@@ -368,13 +375,15 @@ class UploaderModel():
 
         :raises requests.exceptions.HTTPError:
         """
-        mytardis_url = self.settings.general.mytardis_url
-        headers = self.settings.default_headers
+        from mydata.conf import settings
+
+        mytardis_url = settings.general.mytardis_url
+        headers = settings.default_headers
 
         if not self.uploader_id:
             url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" \
                 % (mytardis_url,
-                   urllib.parse.quote(self.settings.miscellaneous.uuid))
+                   urllib.parse.quote(settings.miscellaneous.uuid))
             response = requests.get(headers=headers, url=url)
             response.raise_for_status()
             uploaders_dict = response.json()
@@ -391,7 +400,7 @@ class UploaderModel():
 
         patch_data = {
             'settings': settings_list,
-            'uuid': self.settings.miscellaneous.uuid
+            'uuid': settings.miscellaneous.uuid
         }
         response = requests.patch(headers=headers, url=url,
                                   data=json.dumps(patch_data).encode())
@@ -404,14 +413,16 @@ class UploaderModel():
 
         :raises requests.exceptions.HTTPError:
         """
-        mytardis_url = self.settings.general.mytardis_url
-        headers = self.settings.default_headers
+        from mydata.conf import settings
+
+        mytardis_url = settings.general.mytardis_url
+        headers = settings.default_headers
         url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" \
-            % (mytardis_url, urllib.parse.quote(self.settings.miscellaneous.uuid))
+            % (mytardis_url, urllib.parse.quote(settings.miscellaneous.uuid))
         try:
             response = requests.get(
                 headers=headers, url=url,
-                timeout=self.settings.miscellaneous.connection_timeout)
+                timeout=settings.miscellaneous.connection_timeout)
         except Exception as err:
             logger.error(str(err))
             raise

@@ -180,7 +180,7 @@ MOCK_UPLOADER_RESPONSE = json.dumps({
     "resource_uri": "/api/v1/mydata_uploader/1/"
 })
 
-MOCK_UPLOADER_WITH_SETTINGS = json.dumps({
+MOCK_UPLOADER_WITH_settings = json.dumps({
     "meta": {
         "limit": 20,
         "next": None,

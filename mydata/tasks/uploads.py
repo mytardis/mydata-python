@@ -14,7 +14,7 @@ from .lookups import Lookups
 from ..models.datafile import DataFile
 from ..models.upload import Upload, UploadStatus, UploadMethod
 from ..models.upload import add_uploader_info
-from ..settings import SETTINGS
+from ..conf import settings
 from ..utils.exceptions import StorageBoxAttributeNotFound, SshException
 from ..utils.openssh import upload_with_scp
 from ..logs import logger
@@ -42,7 +42,7 @@ def upload_folder(
     folder.dataset = Dataset.create_dataset_if_necessary(folder)
 
     if upload_method in (UploadMethod.SCP, UploadMethod.SFTP):
-        SETTINGS.uploader.request_staging_access()
+        settings.uploader.request_staging_access()
 
     def lookup_cb(lookup):
         lookup_callback(lookup)
@@ -179,7 +179,7 @@ def get_sbox_attrs(upload):
     """Get the relevant StorageBoxAttributes and StorageBoxOptions
     for SCP uploads
     """
-    upload_to_staging_request = SETTINGS.uploader.upload_to_staging_request
+    upload_to_staging_request = settings.uploader.upload_to_staging_request
     try:
         host = upload_to_staging_request.scp_hostname
         port = upload_to_staging_request.scp_port
@@ -215,14 +215,14 @@ def upload_via_scp_with_retries(
             progress_cb = None
             upload_with_scp(
                 datafile_path, username,
-                SETTINGS.uploader.ssh_key_pair.private_key_path,
+                settings.uploader.ssh_key_pair.private_key_path,
                 host, port, remote_file_path, progress_cb, upload)
             # Break out of upload retries loop.
             break
         except SshException as err:
             # includes the ScpException subclass
             upload.traceback = traceback.format_exc()
-            if upload.retries < SETTINGS.advanced.max_upload_retries:
+            if upload.retries < settings.advanced.max_upload_retries:
                 logger.warning(str(err))
                 upload.retries += 1
                 logger.debug("Restarting upload for " + datafile_path)

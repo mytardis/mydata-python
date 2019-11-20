@@ -19,8 +19,8 @@ Find the appropriate location for the `MyData.cfg` settings file, and read its s
 the SETTINGS singleton object:
 
 ```
->>> from mydata.settings import SETTINGS
->>> SETTINGS.general.instrument_name
+>>> from mydata.conf import settings
+>>> settings.general.instrument_name
 'Test Instrument1'
 ```
 

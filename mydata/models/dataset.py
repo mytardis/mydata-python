@@ -5,7 +5,7 @@ import json
 import requests
 from six.moves import urllib
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..threads.flags import FLAGS
 from ..logs import logger
 
@@ -52,9 +52,9 @@ class Dataset():
                     "    URL: %s/%s\n" \
                     "    Description: %s\n" \
                     "    In Experiment: %s/%s" \
-                    % (folder.get_rel_path(), SETTINGS.general.mytardis_url,
+                    % (folder.get_rel_path(), settings.general.mytardis_url,
                        existing_dataset.view_uri, existing_dataset.description,
-                       SETTINGS.general.mytardis_url,
+                       settings.general.mytardis_url,
                        experiment.view_uri if experiment else "experiment/?")
                 logger.testrun(message)
             return existing_dataset
@@ -68,20 +68,20 @@ class Dataset():
                 % (folder.get_rel_path(), description)
             if experiment:  # Could be None in test run.
                 message += "\n    In Experiment: %s/%s" \
-                    % (SETTINGS.general.mytardis_url, experiment.view_uri)
+                    % (settings.general.mytardis_url, experiment.view_uri)
             logger.testrun(message)
             return None
-        mytardis_url = SETTINGS.general.mytardis_url
+        mytardis_url = settings.general.mytardis_url
         exp_uri = experiment.resource_uri.replace(
             'mydata_experiment', 'experiment') if experiment else None
         dataset_dict = {
-            "instrument": SETTINGS.general.instrument.resource_uri,
+            "instrument": settings.general.instrument.resource_uri,
             "description": description,
             "experiments": [exp_uri],
             "immutable": False}
         data = json.dumps(dataset_dict)
         url = "%s/api/v1/dataset/" % mytardis_url
-        response = requests.post(headers=SETTINGS.default_headers,
+        response = requests.post(headers=settings.default_headers,
                                  url=url, data=data.encode())
         response.raise_for_status()
         new_dataset_dict = response.json()
@@ -105,17 +105,17 @@ class Dataset():
             return None
         description = urllib.parse.quote(folder.name.encode('utf-8'))
         url = ("%s/api/v1/dataset/?format=json&experiments__id=%s"
-               "&description=%s" % (SETTINGS.general.mytardis_url,
+               "&description=%s" % (settings.general.mytardis_url,
                                     folder.experiment.exp_id,
                                     description))
         url_with_instrument = "%s&instrument__id=%s"\
-            % (url, SETTINGS.general.instrument.instrument_id)
+            % (url, settings.general.instrument.instrument_id)
         response = requests.get(
-            headers=SETTINGS.default_headers, url=url_with_instrument)
+            headers=settings.default_headers, url=url_with_instrument)
         if response.status_code == 400:
             logger.debug(
                 "MyTardis doesn't support filtering datasets by instrument")
-            response = requests.get(headers=SETTINGS.default_headers, url=url)
+            response = requests.get(headers=settings.default_headers, url=url)
         response.raise_for_status()
         datasets_dict = response.json()
         num_datasets = datasets_dict['meta']['total_count']

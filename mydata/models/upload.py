@@ -47,10 +47,10 @@ def add_uploader_info(datafile_dict):
     uploader registration request, which can be done with the
     Uploader UUID and the ~/.ssh/MyData.pub key's fingerprint.
     """
-    from mydata.settings import SETTINGS
-    datafile_dict['uploader_uuid'] = SETTINGS.miscellaneous.uuid
+    from mydata.conf import settings
+    datafile_dict['uploader_uuid'] = settings.miscellaneous.uuid
     datafile_dict['requester_key_fingerprint'] = \
-        SETTINGS.uploader.ssh_key_pair.fingerprint
+        settings.uploader.ssh_key_pair.fingerprint
     return datafile_dict
 
 

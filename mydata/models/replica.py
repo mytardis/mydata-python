@@ -4,7 +4,7 @@ Model class for MyTardis API v1's ReplicaResource.
 
 import requests
 
-from ..settings import SETTINGS
+from ..conf import settings
 
 
 class Replica():
@@ -34,8 +34,8 @@ class Replica():
         :raises requests.exceptions.HTTPError:
         """
         url = "%s/api/v1/mydata_replica/%s/?format=json" \
-            % (SETTINGS.general.mytardis_url, dfo_id)
-        response = requests.get(url=url, headers=SETTINGS.default_headers)
+            % (settings.general.mytardis_url, dfo_id)
+        response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         dfo_dict = response.json()
         return dfo_dict['size']

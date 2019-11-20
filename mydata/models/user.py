@@ -5,7 +5,7 @@ import requests
 
 from six.moves import urllib
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..logs import logger
 from .group import Group
 
@@ -117,8 +117,8 @@ class User():
         :raises requests.exceptions.HTTPError:
         """
         url = "%s/api/v1/user/?format=json&username=%s" \
-            % (SETTINGS.general.mytardis_url, username)
-        response = requests.get(url=url, headers=SETTINGS.default_headers)
+            % (settings.general.mytardis_url, username)
+        response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         user_dicts = response.json()
         num_user_records_found = user_dicts['meta']['total_count']
@@ -136,9 +136,9 @@ class User():
         :raises requests.exceptions.HTTPError:
         """
         url = "%s/api/v1/user/?format=json&email__iexact=%s" \
-            % (SETTINGS.general.mytardis_url,
+            % (settings.general.mytardis_url,
                urllib.parse.quote(email.encode('utf-8')))
-        response = requests.get(url=url, headers=SETTINGS.default_headers)
+        response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         user_dicts = response.json()
         num_user_records_found = user_dicts['meta']['total_count']
@@ -157,7 +157,7 @@ class User():
         no corresponding user record in MyTardis, but you want to create
         a "USER NOT FOUND" dummy record to render in MyData's users table.
         """
-        folder_structure = SETTINGS.advanced.folder_structure
+        folder_structure = settings.advanced.folder_structure
         if folder_structure.startswith("Username"):
             if user_not_found_in_mytardis:
                 return User(

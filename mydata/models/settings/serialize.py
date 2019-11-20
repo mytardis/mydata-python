@@ -1,12 +1,12 @@
 """
 Methods for saving / loading / retrieving settings between the
-global SETTINGS singleton, the settings dialog, and the MyData.cfg file.
+global settings singleton, the settings dialog, and the MyData.cfg file.
 
-The global SETTINGS singleton is imported inline when needed to avoid
+The global settings singleton is imported inline when needed to avoid
 circular dependencies.
 
 The methods for loading settings from disk and checking for updates
-on the MyTardis server can't use the global SETTINGS singleton, because
+on the MyTardis server can't use the global settings singleton, because
 they are called from SettingsModel's constructor which would cause a
 circular dependency, so we pass the settings as an argument instead.
 """
@@ -33,9 +33,8 @@ else:
     NEW_DEFAULT_CONFIG_PATH = OLD_DEFAULT_CONFIG_PATH
 
 
-def load_settings(settings, config_path=None, check_for_updates=True):
+def load_settings(config_path=None, check_for_updates=True):
     """
-    :param settings: Object of class SettingsModel to load the settings into.
     :param config_path: Path to MyData.cfg
     :param check_for_updates: Whether to look for updated settings in the
                               UploaderSettings model on the MyTardis server.
@@ -44,6 +43,8 @@ def load_settings(settings, config_path=None, check_for_updates=True):
     e.g. C:\\ProgramData\\Monash University\\MyData\\MyData.cfg
     or /Users/jsmith/Library/Application Support/MyData/MyData.cfg
     """
+    from ...conf import settings
+
     settings.set_default_config()
 
     if config_path is None:
@@ -60,15 +61,15 @@ def load_settings(settings, config_path=None, check_for_updates=True):
         try:
             config_parser = ConfigParser()
             config_parser.read(config_path)
-            load_general_settings(settings, config_parser)
-            load_filter_settings(settings, config_parser)
-            load_advanced_settings(settings, config_parser)
-            load_miscellaneous_settings(settings, config_parser)
+            load_general_settings(config_parser)
+            load_filter_settings(config_parser)
+            load_advanced_settings(config_parser)
+            load_miscellaneous_settings(config_parser)
         except:
             logger.error(traceback.format_exc())
 
     if settings.miscellaneous.uuid and check_for_updates:
-        if check_for_updated_settings_on_server(settings):
+        if check_for_updated_settings_on_server():
             logger.debug("Updated local settings from server.")
         else:
             logger.debug("Settings were not updated from the server.")
@@ -77,9 +78,8 @@ def load_settings(settings, config_path=None, check_for_updates=True):
         LastSettingsUpdateTrigger.READ_FROM_DISK
 
 
-def load_general_settings(settings, config_parser):
+def load_general_settings(config_parser):
     """
-    :param settings: Object of class SettingsModel to load the settings into.
     :param config_parser: The ConfigParser object which stores data read from
                          MyData.cfg
 
@@ -87,6 +87,8 @@ def load_general_settings(settings, config_parser):
 
     These settings appear in the General tab of the settings dialog.
     """
+    from ...conf import settings
+
     config_file_section = "MyData"
     fields = ["instrument_name", "facility_name", "data_directory",
               "contact_name", "contact_email", "mytardis_url",
@@ -96,7 +98,7 @@ def load_general_settings(settings, config_parser):
             settings[field] = config_parser.get(config_file_section, field)
 
 
-def load_filter_settings(settings, config_parser):
+def load_filter_settings(config_parser):
     """
     :param settings: Object of class SettingsModel to load the settings into.
     :param config_parser: The ConfigParser object which stores data read from
@@ -106,6 +108,8 @@ def load_filter_settings(settings, config_parser):
 
     These settings appear in the Filter tab of the settings dialog.
     """
+    from ...conf import settings
+
     config_file_section = "MyData"
     fields = [
         "user_filter", "dataset_filter", "experiment_filter",
@@ -131,9 +135,8 @@ def load_filter_settings(settings, config_parser):
             settings[field] = config_parser.getint(config_file_section, field)
 
 
-def load_advanced_settings(settings, config_parser):
+def load_advanced_settings(config_parser):
     """
-    :param settings: Object of class SettingsModel to load the settings into.
     :param config_parser: The ConfigParser object which stores data read from
                          MyData.cfg
 
@@ -141,6 +144,8 @@ def load_advanced_settings(settings, config_parser):
 
     These settings appear in the Advanced tab of the settings dialog.
     """
+    from ...conf import settings
+
     config_file_section = "MyData"
     fields = ["folder_structure", "dataset_grouping", "group_prefix",
               "max_upload_threads", "max_upload_retries",
@@ -161,17 +166,19 @@ def load_advanced_settings(settings, config_parser):
             settings[field] = config_parser.getint(config_file_section, field)
 
 
-def load_miscellaneous_settings(settings, config_parser):
+def load_miscellaneous_settings(config_parser):
     """
     :param settings: Object of class SettingsModel to load the settings into.
     :param config_parser: The ConfigParser object which stores data read from
-                         MyData.cfg
+                          MyData.cfg
 
     Loads Miscellaneous settings from a ConfigParser object
 
     These settings don't appear in the settings dialog, except for "locked",
     which is visible in the settings dialog, but not within any one tab view.
     """
+    from ...conf import settings
+
     config_file_section = "MyData"
     fields = ["locked", "uuid", "cipher",
               "max_verification_threads", "verification_delay",
@@ -200,10 +207,12 @@ def load_miscellaneous_settings(settings, config_parser):
                 settings[field] = settings.miscellaneous.default[field]
 
 
-def check_for_updated_settings_on_server(settings):
+def check_for_updated_settings_on_server():
     """
     Check for updated settings on server.
     """
+    from ...conf import settings
+
     local_mod_time = \
         datetime.fromtimestamp(os.stat(settings.config_path).st_mtime)
     try:
@@ -260,9 +269,9 @@ def save_settings_to_disk(config_path=None):
     """
     Save configuration to disk.
     """
-    from ...settings import SETTINGS
+    from ...conf import settings
     if config_path is None:
-        config_path = SETTINGS.config_path
+        config_path = settings.config_path
     if config_path is None:
         raise Exception("save_settings_to_disk called "
                         "with config_path == None.")
@@ -291,13 +300,13 @@ def save_settings_to_disk(config_path=None):
                   "connection_timeout"]
         settings_list = []
         for field in fields:
-            value = SETTINGS[field]
+            value = settings[field]
             config_parser.set("MyData", field, str(value))
             settings_list.append(dict(key=field, value=str(value)))
         config_parser.write(config_file)
     logger.info("Saved settings to " + config_path)
-    if SETTINGS.uploader:
+    if settings.uploader:
         try:
-            SETTINGS.uploader.update_settings(settings_list)
+            settings.uploader.update_settings(settings_list)
         except requests.exceptions.RequestException as err:
             logger.error(err)

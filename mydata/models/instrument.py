@@ -6,7 +6,7 @@ import urllib.parse
 
 import requests
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..logs import logger
 from ..utils.exceptions import DuplicateKey
 from .facility import Facility
@@ -36,12 +36,12 @@ class Instrument():
 
         :raises requests.exceptions.HTTPError:
         """
-        url = "%s/api/v1/instrument/" % SETTINGS.general.mytardis_url
+        url = "%s/api/v1/instrument/" % settings.general.mytardis_url
         instrument_dict = {
             "facility": facility.resource_uri,
             "name": name}
         data = json.dumps(instrument_dict)
-        headers = SETTINGS.default_headers
+        headers = settings.default_headers
         response = requests.post(headers=headers, url=url, data=data.encode())
         response.raise_for_status()
         instrument_dict = response.json()
@@ -55,9 +55,9 @@ class Instrument():
         :raises requests.exceptions.HTTPError:
         """
         url = "%s/api/v1/instrument/?format=json&facility__id=%s&name=%s" \
-            % (SETTINGS.general.mytardis_url, facility.facility_id,
+            % (settings.general.mytardis_url, facility.facility_id,
                urllib.parse.quote(name.encode('utf-8')))
-        response = requests.get(url=url, headers=SETTINGS.default_headers)
+        response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         instruments_dict = response.json()
         num_instruments_found = \
@@ -106,10 +106,10 @@ class Instrument():
         logger.info("Renaming instrument \"%s\" to \"%s\"."
                     % (str(self), name))
         url = "%s/api/v1/instrument/%d/" \
-            % (SETTINGS.general.mytardis_url, self.instrument_id)
+            % (settings.general.mytardis_url, self.instrument_id)
         uploader_dict = {"name": name}
         data = json.dumps(uploader_dict)
-        headers = SETTINGS.default_headers
+        headers = settings.default_headers
         response = requests.put(headers=headers, url=url, data=data.encode())
         response.raise_for_status()
         logger.info("Renaming instrument succeeded.")

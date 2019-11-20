@@ -16,7 +16,7 @@ import struct
 import psutil
 import six
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..logs import logger
 from ..utils.exceptions import SshException
 from ..utils.exceptions import ScpException
@@ -294,7 +294,7 @@ def get_key_pair_location():
     """
     if sys.platform.startswith("win"):
         return os.path.join(
-            os.path.dirname(SETTINGS.config_path), ".ssh")
+            os.path.dirname(settings.config_path), ".ssh")
     return os.path.join(os.path.expanduser('~'), ".ssh")
 
 
@@ -312,7 +312,7 @@ def find_or_create_key_pair(key_name="MyData"):
         key_pair = new_key_pair(
             key_name=key_name, key_path=key_path,
             key_comment="%s@%s"
-            % (getpass.getuser(), SETTINGS.general.instrument_name))
+            % (getpass.getuser(), settings.general.instrument_name))
     return key_pair
 
 
@@ -337,7 +337,7 @@ def upload_with_scp(
 
     monitoring_progress = threading.Event()
     upload.startTime = datetime.now()
-    monitor_progress(SETTINGS.miscellaneous.progress_poll_interval, upload,
+    monitor_progress(settings.miscellaneous.progress_poll_interval, upload,
                      upload.file_size, monitoring_progress, progress_callback)
 
     remote_dir = os.path.dirname(remote_file_path)
@@ -353,9 +353,9 @@ def upload_with_scp(
                        remote_dir
                        .replace('`', r'\\`')
                        .replace('$', r'\\$'))]
-    scp_command_list[2:2] = SETTINGS.miscellaneous.cipher_options
+    scp_command_list[2:2] = settings.miscellaneous.cipher_options
     scp_command_list[2:2] = OpenSSH.default_ssh_options(
-        SETTINGS.miscellaneous.connection_timeout)
+        settings.miscellaneous.connection_timeout)
 
     scp_upload(upload, scp_command_list)
 
@@ -408,13 +408,13 @@ def set_remote_file_permissions(remote_file_path, username, private_key_path,
         [OPENSSH.ssh,
          "-p", port,
          "-n",
-         "-c", SETTINGS.miscellaneous.cipher,
+         "-c", settings.miscellaneous.cipher,
          "-i", private_key_path,
          "-l", username,
          host,
          "chmod 660 %s" % OpenSSH.double_quote_remote_path(remote_file_path)]
     chmod_cmd_and_args[1:1] = OpenSSH.default_ssh_options(
-        SETTINGS.miscellaneous.connection_timeout)
+        settings.miscellaneous.connection_timeout)
     logger.debug(" ".join(chmod_cmd_and_args))
     chmod_process = \
         subprocess.Popen(chmod_cmd_and_args,
@@ -438,7 +438,7 @@ def wait_for_process_to_complete(process):
         poll = process.poll()
         if poll is not None:
             break
-        time.sleep(SLEEP_FACTOR * SETTINGS.advanced.max_upload_threads)
+        time.sleep(SLEEP_FACTOR * settings.advanced.max_upload_threads)
 
 
 def create_remote_dir(remote_dir, username, private_key_path, host, port):
@@ -450,13 +450,13 @@ def create_remote_dir(remote_dir, username, private_key_path, host, port):
             [OPENSSH.ssh,
              "-p", port,
              "-n",
-             "-c", SETTINGS.miscellaneous.cipher,
+             "-c", settings.miscellaneous.cipher,
              "-i", private_key_path,
              "-l", username,
              host,
              "mkdir -m 2770 -p %s" % remote_dir]
         mkdir_cmd_and_args[1:1] = OpenSSH.default_ssh_options(
-            SETTINGS.miscellaneous.connection_timeout)
+            settings.miscellaneous.connection_timeout)
         logger.debug(" ".join(mkdir_cmd_and_args))
 
         mkdir_process = \
@@ -493,10 +493,10 @@ def clean_up_scp_and_ssh_processes():
     matches MyData's SSH path.  On other platforms, we can use proc.cmdline()
     to ensure that the SSH process we're killing uses MyData's private key.
     """
-    if not SETTINGS.uploader:
+    if not settings.uploader:
         return
     try:
-        private_key_path = SETTINGS.uploader.sshKeyPair.private_key_path
+        private_key_path = settings.uploader.sshKeyPair.private_key_path
     except AttributeError:
         # If sshKeyPair or private_key_path hasn't been defined yet,
         # then there won't be any SCP or SSH processes to kill.

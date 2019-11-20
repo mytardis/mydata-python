@@ -7,7 +7,7 @@ import requests.exceptions
 
 from ..models.datafile import DataFile
 from ..models.lookup import Lookup, LookupStatus
-from ..settings import SETTINGS
+from ..conf import settings
 from ..threads.locks import LOCKS
 
 
@@ -66,9 +66,9 @@ class Lookups():
         """
         datafile_path = os.path.join(lookup.subdirectory, lookup.filename)
         cache_key = "%s,%s" % (self.folder.dataset.dataset_id, datafile_path)
-        if SETTINGS.miscellaneous.cache_datafile_lookups:
+        if settings.miscellaneous.cache_datafile_lookups:
             with LOCKS.update_cache:  # pylint: disable=no-member
-                SETTINGS.verified_datafiles_cache[cache_key] = True
+                settings.verified_datafiles_cache[cache_key] = True
         self.folder.set_datafile_uploaded(lookup.datafile_index, True)
         self.lookup_done_cb(lookup)
 

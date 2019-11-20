@@ -5,7 +5,7 @@ Model class for MyTardis API v1's ObjectACLResource.
 import json
 import requests
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..logs import logger
 
 
@@ -21,7 +21,7 @@ class ObjectACL():
         logger.debug("\nSharing via ObjectACL with username \"" +
                      user.username + "\"...\n")
 
-        mytardis_url = SETTINGS.general.mytardis_url
+        mytardis_url = settings.general.mytardis_url
 
         object_acl_dict = {
             "pluginId": "django_user",
@@ -38,7 +38,7 @@ class ObjectACL():
             "expiryDate": None}
 
         url = mytardis_url + "/api/v1/objectacl/"
-        response = requests.post(headers=SETTINGS.default_headers, url=url,
+        response = requests.post(headers=settings.default_headers, url=url,
                                  data=json.dumps(object_acl_dict).encode())
         response.raise_for_status()
         logger.debug("Shared experiment with user " + user.username + ".")
@@ -51,7 +51,7 @@ class ObjectACL():
         logger.debug("\nSharing via ObjectACL with group \"" +
                      group.name + "\"...\n")
 
-        mytardis_url = SETTINGS.general.mytardis_url
+        mytardis_url = settings.general.mytardis_url
 
         object_acl_dict = {
             "pluginId": "django_group",
@@ -68,7 +68,7 @@ class ObjectACL():
             "expiryDate": None}
 
         url = mytardis_url + "/api/v1/objectacl/"
-        response = requests.post(headers=SETTINGS.default_headers, url=url,
+        response = requests.post(headers=settings.default_headers, url=url,
                                  data=json.dumps(object_acl_dict).encode())
         response.raise_for_status()
         logger.debug("Shared experiment with group " + group.name + ".")

@@ -27,9 +27,9 @@ class LastSettingsUpdateTrigger():
     then the user clicks the "Upload" button without opening the settings
     dialog first, then we do need to validate settings.
     """
-    # The last update to SETTINGS came from reading MyData.cfg from disk:
+    # The last update to settings came from reading MyData.cfg from disk:
     READ_FROM_DISK = 0
-    # The last update to SETTINGS came from the settings dialog:
+    # The last update to settings came from the settings dialog:
     UI_RESPONSE = 1
 
 

@@ -7,7 +7,7 @@ import requests
 
 from six.moves import urllib
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..threads.flags import FLAGS
 from ..logs import logger
 from .objectacl import ObjectACL
@@ -37,7 +37,7 @@ class Experiment():
                 "    Title: %s\n" \
                 "    Owner: %s" \
                 % (folder.get_rel_path(),
-                   SETTINGS.general.mytardis_url,
+                   settings.general.mytardis_url,
                    existing_exp.view_uri,
                    existing_exp.title,
                    folder.owner.username)
@@ -52,10 +52,10 @@ class Experiment():
         exp_title_encoded = urllib.parse.quote(
             folder.experiment_title.encode('utf-8'))
         folder_structure_encoded = \
-            urllib.parse.quote(SETTINGS.advanced.folder_structure)
+            urllib.parse.quote(settings.advanced.folder_structure)
         url = "%s/api/v1/mydata_experiment/?format=json" \
             "&title=%s&folder_structure=%s" \
-            % (SETTINGS.general.mytardis_url, exp_title_encoded,
+            % (settings.general.mytardis_url, exp_title_encoded,
                folder_structure_encoded)
         if folder.user_folder_name:
             url += "&user_folder_name=%s" \
@@ -65,7 +65,7 @@ class Experiment():
                 % urllib.parse.quote(folder.group_folder_name.encode('utf-8'))
 
         logger.debug(url)
-        response = requests.get(url=url, headers=SETTINGS.default_headers)
+        response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         experiments_dict = response.json()
         num_exps_found = experiments_dict['meta']['total_count']
@@ -91,7 +91,7 @@ class Experiment():
         except:
             owner_user_id = None
 
-        instrument_name = SETTINGS.general.instrument.name
+        instrument_name = settings.general.instrument.name
         exp_title = folder.experiment_title
 
         Experiment.log_exp_creation(folder)
@@ -100,7 +100,7 @@ class Experiment():
                            "User folder name: %s\n"
                            "Uploaded from: %s:%s"
                            % (instrument_name, user_folder_name,
-                              SETTINGS.uploader.hostname,
+                              settings.uploader.hostname,
                               folder.location))
             if group_folder_name:
                 description += "\nGroup folder name: %s" % group_folder_name
@@ -109,7 +109,7 @@ class Experiment():
                            "Group folder name: %s\n"
                            "Uploaded from: %s:%s"
                            % (instrument_name, group_folder_name,
-                              SETTINGS.uploader.hostname,
+                              settings.uploader.hostname,
                               folder.location))
 
         if FLAGS.test_run_running:
@@ -133,15 +133,15 @@ class Experiment():
                 "schema": "http://mytardis.org/schemas"
                           "/mydata/defaultexperiment",
                 "parameters": [{"name": "uploader",
-                                "value": SETTINGS.miscellaneous.uuid},
+                                "value": settings.miscellaneous.uuid},
                                {"name": "user_folder_name",
                                 "value": user_folder_name}]}]}
         if group_folder_name:
             exp_dict["parameter_sets"][0]["parameters"].append(
                 {"name": "group_folder_name", "value": group_folder_name})
-        url = "%s/api/v1/mydata_experiment/" % SETTINGS.general.mytardis_url
+        url = "%s/api/v1/mydata_experiment/" % settings.general.mytardis_url
         logger.debug(url)
-        response = requests.post(headers=SETTINGS.default_headers,
+        response = requests.post(headers=settings.default_headers,
                                  url=url,
                                  data=json.dumps(exp_dict).encode())
         response.raise_for_status()
@@ -154,14 +154,14 @@ class Experiment():
             message += " and group folder \"%s\"" % group_folder_name
         logger.debug(message)
 
-        facility_managers_group = SETTINGS.general.facility.manager_group
+        facility_managers_group = settings.general.facility.manager_group
         ObjectACL.share_exp_with_group(
             created_exp, facility_managers_group, is_owner=True)
         # Avoid creating a duplicate ObjectACL if the user folder's
         # username matches the facility manager's username.
         # Don't attempt to create an ObjectACL record for an
         # invalid user (without a MyTardis user ID).
-        if SETTINGS.general.username != folder.owner.username and \
+        if settings.general.username != folder.owner.username and \
                 owner_user_id is not None:
             ObjectACL.share_exp_with_user(created_exp, folder.owner)
         if folder.group is not None and \
@@ -190,7 +190,7 @@ class Experiment():
         """
         Log a message about the experiment's creation
         """
-        instrument_name = SETTINGS.general.instrument.name
+        instrument_name = settings.general.instrument.name
 
         if folder.user_folder_name:
             message = "Creating experiment for instrument '%s', " \

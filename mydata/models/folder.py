@@ -10,7 +10,7 @@ import hashlib
 import traceback
 from fnmatch import fnmatch
 
-from ..settings import SETTINGS
+from ..conf import settings
 from ..logs import logger
 
 
@@ -61,20 +61,20 @@ class Folder():
 
         for dirname, _, files in os.walk(absolute_folder_path):
             for filename in sorted(files):
-                if SETTINGS.filters.use_includes_file and \
-                        not SETTINGS.filters.use_excludes_file:
+                if settings.filters.use_includes_file and \
+                        not settings.filters.use_excludes_file:
                     if not Folder.matches_includes(filename):
                         logger.debug("Ignoring %s, not matching includes."
                                      % filename)
                         continue
-                elif not SETTINGS.filters.use_includes_file and \
-                        SETTINGS.filters.use_excludes_file:
+                elif not settings.filters.use_includes_file and \
+                        settings.filters.use_excludes_file:
                     if Folder.matches_excludes(filename):
                         logger.debug("Ignoring %s, matching excludes."
                                      % filename)
                         continue
-                elif SETTINGS.filters.use_includes_file and \
-                        SETTINGS.filters.use_excludes_file:
+                elif settings.filters.use_includes_file and \
+                        settings.filters.use_excludes_file:
                     if Folder.matches_excludes(filename) and \
                             not Folder.matches_includes(filename):
                         logger.debug("Ignoring %s, matching excludes "
@@ -131,7 +131,7 @@ class Folder():
         which is os.path.join(self.location, self.name)
         """
         return os.path.relpath(self.get_datafile_path(datafile_index),
-                               SETTINGS.general.data_directory)
+                               settings.general.data_directory)
 
     def get_datafile_directory(self, datafile_index):
         """
@@ -186,10 +186,10 @@ class Folder():
         """
         if self.is_exp_files_folder:
             relpath = os.path.relpath(
-                self.location, SETTINGS.general.data_directory)
+                self.location, settings.general.data_directory)
         else:
             relpath = os.path.join(
-                os.path.relpath(self.location, SETTINGS.general.data_directory),
+                os.path.relpath(self.location, settings.general.data_directory),
                 self.name)
         return relpath
 
@@ -252,7 +252,7 @@ class Folder():
         file.
         """
         return Folder.matches_patterns(
-            filename, SETTINGS.filters.includes_file)
+            filename, settings.filters.includes_file)
 
     @staticmethod
     def matches_excludes(filename):
@@ -261,7 +261,7 @@ class Folder():
         file.
         """
         return Folder.matches_patterns(
-            filename, SETTINGS.filters.excludes_file)
+            filename, settings.filters.excludes_file)
 
     def file_is_too_new_to_upload(self, datafile_index):
         """
@@ -269,10 +269,10 @@ class Folder():
         modified too recently and might require further local modifications
         before its upload.
         """
-        if SETTINGS.filters.ignore_new_files:
+        if settings.filters.ignore_new_files:
             absolute_file_path = self.get_datafile_path(datafile_index)
             too_new = (time.time() - os.path.getmtime(absolute_file_path)) <= \
-                (SETTINGS.filters.ignore_new_files_minutes * 60)
+                (settings.filters.ignore_new_files_minutes * 60)
         else:
             too_new = False
         return too_new

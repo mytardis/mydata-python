@@ -14,7 +14,7 @@ import pytest
 import requests_mock
 
 from tests.mocks import (
-    MOCK_UPLOADER_WITH_SETTINGS
+    MOCK_UPLOADER_WITH_settings
 )
 
 from tests.fixtures import set_exp_dataset_config
@@ -27,13 +27,13 @@ def test_read_settings(set_exp_dataset_config):
     Check some settings which are known to exist in
     tests/testdata/testdata-exp-dataset.cfg
     """
-    from mydata.settings import SETTINGS
+    from mydata.conf import settings
     from mydata.models.settings.validation import validate_settings
     from mydata.utils.exceptions import InvalidSettings
 
-    assert SETTINGS.config_path == os.environ['MYDATA_CONFIG_PATH']
-    assert SETTINGS.general.instrument_name == 'Test Instrument'
-    assert SETTINGS.general.mytardis_url == 'https://mytardis.example.com'
+    assert settings.config_path == os.environ['MYDATA_CONFIG_PATH']
+    assert settings.general.instrument_name == 'Test Instrument'
+    assert settings.general.mytardis_url == 'https://mytardis.example.com'
 
     # Validate settings, and expect MyTardis URL to raise InvalidSettings:
     with pytest.raises(InvalidSettings) as excinfo:
@@ -46,25 +46,25 @@ def test_write_settings(set_exp_dataset_config):
     """
     from mydata.models.settings.serialize import (
         save_settings_to_disk, load_settings)
-    from mydata.settings import SETTINGS
+    from mydata.conf import settings
 
-    SETTINGS.general.contact_name = "Joe Bloggs"
-    SETTINGS.general.contact_email = "Joe.Bloggs@example.com"
+    settings.general.contact_name = "Joe Bloggs"
+    settings.general.contact_email = "Joe.Bloggs@example.com"
 
     with tempfile.NamedTemporaryFile() as temp_file:
         temp_config_path = temp_file.name
 
     save_settings_to_disk(temp_config_path)
 
-    SETTINGS.general.contact_name = "Modified Name"
-    SETTINGS.general.contact_email = "Modified.Name@example.com"
+    settings.general.contact_name = "Modified Name"
+    settings.general.contact_email = "Modified.Name@example.com"
 
-    SETTINGS.uploader = None
+    settings.uploader = None
 
-    load_settings(SETTINGS, temp_config_path)
+    load_settings(temp_config_path)
 
-    assert SETTINGS.general.contact_name == "Joe Bloggs"
-    assert SETTINGS.general.contact_email == "Joe.Bloggs@example.com"
+    assert settings.general.contact_name == "Joe Bloggs"
+    assert settings.general.contact_email == "Joe.Bloggs@example.com"
 
 
 def test_check_for_updated_settings_on_server():
@@ -84,26 +84,26 @@ def test_check_for_updated_settings_on_server():
             "&uuid=1234567890"
         )
         uploader_response = Template(
-            MOCK_UPLOADER_WITH_SETTINGS).substitute(
+            MOCK_UPLOADER_WITH_settings).substitute(
                 settings_updated=str(datetime.datetime.now()))
         mocker.get(get_uploader_url, text=uploader_response)
-        from mydata.settings import SETTINGS
+        from mydata.conf import settings
 
         # Test updating some string setting values from the server:
-        assert SETTINGS.general.instrument_name == "Updated Instrument Name"
-        assert SETTINGS.general.facility_name == "Updated Facility Name"
-        assert SETTINGS.general.contact_name == "Updated Contact Name"
-        assert SETTINGS.general.contact_email == "Updated.Contact.Email@example.com"
+        assert settings.general.instrument_name == "Updated Instrument Name"
+        assert settings.general.facility_name == "Updated Facility Name"
+        assert settings.general.contact_name == "Updated Contact Name"
+        assert settings.general.contact_email == "Updated.Contact.Email@example.com"
 
         # Test updating a boolean setting value from the server:
-        assert not SETTINGS.filters.ignore_new_files
+        assert not settings.filters.ignore_new_files
 
         # Test updating a floating-point setting value from the server:
-        assert SETTINGS.miscellaneous.progress_poll_interval == 2.0
+        assert settings.miscellaneous.progress_poll_interval == 2.0
 
         # An invalid setting value (not a floating point number) is specified
-        # for connection_timeout in MOCK_UPLOADER_WITH_SETTINGS:
-        assert SETTINGS.miscellaneous.connection_timeout == \
-            SETTINGS.miscellaneous.default['connection_timeout']
+        # for connection_timeout in MOCK_UPLOADER_WITH_settings:
+        assert settings.miscellaneous.connection_timeout == \
+            settings.miscellaneous.default['connection_timeout']
 
     unload_modules()
