@@ -20,8 +20,10 @@ the SETTINGS singleton object:
 
 ```
 >>> from mydata.conf import settings
->>> settings.general.instrument_name
+>>> settings.instrument_name
 'Test Instrument1'
+>>> settings.folder_structure
+'Experiment / Dataset'
 ```
 
 ## Stability

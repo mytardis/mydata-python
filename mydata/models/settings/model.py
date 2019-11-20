@@ -106,6 +106,32 @@ class SettingsModel():
             return self.miscellaneous.mydata_config[key]
         raise KeyError(key)
 
+    def __getattr__(self, name):
+        """
+        Get a config item by field name as an instance attribute
+
+        A shortcut, allowing you to access settings as:
+
+          settings.instrument_name
+          settings.folder_structure
+
+        instead of:
+
+          settings.general.instrument_name
+          settings.advanced.folder_structure
+        """
+        if name in ('models', 'general', 'filters', 'advanced', 'miscellaneous'):
+            return self.__getattribute__(name)
+        if name in self.general.fields:
+            return self.general.mydata_config[name]
+        if name in self.filters.fields:
+            return self.filters.mydata_config[name]
+        if name in self.advanced.fields:
+            return self.advanced.mydata_config[name]
+        if name in self.miscellaneous.fields:
+            return self.miscellaneous.mydata_config[name]
+        return self.__getattribute__(name)
+
     @property
     def uploader(self):
         """
