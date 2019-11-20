@@ -15,15 +15,47 @@ It can be used as a Python library for:
 
 ## Example usage:
 
-Find the appropriate location for the `MyData.cfg` settings file, and read its settings into
-the SETTINGS singleton object:
+Find the appropriate location for the `MyData.cfg` settings file, and read some of its
+settings:
 
 ```
 >>> from mydata.conf import settings
+
+>>> settings.config_path
+'/Users/james/Library/Application Support/MyData/MyData.cfg'
+
 >>> settings.instrument_name
 'Test Instrument1'
+
 >>> settings.folder_structure
 'Experiment / Dataset'
+
+>>> settings.data_directory
+'tests/testdata/testdata-exp-dataset'
+```
+
+Scan folders:
+
+```
+from mydata.tasks.folders import scan_folders
+from mydata.conf import settings
+
+assert settings.folder_structure == 'Experiment / Dataset'
+
+exps = []
+folders = []
+
+# We don't need callbacks for these in this case:
+found_user = None
+found_group = None
+
+def found_exp(exp_folder_name):
+    exps.append(exp_folder_name)
+
+def found_dataset(folder):
+    folders.append(folder)
+
+scan_folders(found_user, found_group, found_exp, found_dataset)
 ```
 
 ## Stability
