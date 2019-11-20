@@ -4,7 +4,7 @@ displayed in each tab of the settings dialog
 """
 
 
-class BaseSettingsModel():
+class BaseSettings():
     """
     Base class for deriving a model class for the settings
     displayed in each tab of the settings dialog

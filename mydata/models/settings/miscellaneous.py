@@ -8,7 +8,7 @@ the main settings model module (model.py) to prevent cyclic imports.
 """
 import sys
 
-from .base import BaseSettingsModel
+from .base import BaseSettings
 
 
 class LastSettingsUpdateTrigger():
@@ -33,14 +33,14 @@ class LastSettingsUpdateTrigger():
     UI_RESPONSE = 1
 
 
-class MiscellaneousSettingsModel(BaseSettingsModel):
+class MiscellaneousSettings(BaseSettings):
     """
     Model class for the settings not displayed in the settings dialog,
     but accessible in MyData.cfg, or in the case of "locked", visible in the
     settings dialog, but not specific to any one tab view.
     """
     def __init__(self):
-        super(MiscellaneousSettingsModel, self).__init__()
+        super(MiscellaneousSettings, self).__init__()
 
         # Saved in MyData.cfg:
         self.mydata_config = dict()

@@ -14,20 +14,20 @@ from ...constants import APPNAME
 from ...logs import logger
 from ...threads.locks import LOCKS
 from ...utils import create_config_path_if_necessary
-from .general import GeneralSettingsModel
-from .filters import FiltersSettingsModel
-from .advanced import AdvancedSettingsModel
-from .miscellaneous import MiscellaneousSettingsModel
+from .general import GeneralSettings
+from .filters import FiltersSettings
+from .advanced import AdvancedSettings
+from .miscellaneous import MiscellaneousSettings
 from .miscellaneous import LastSettingsUpdateTrigger
 
 
-class SettingsModel():
+class Settings():
     """
     Model class for the settings displayed in the settings dialog
     and saved to disk in MyData.cfg
     """
     def __init__(self, config_path):
-        super(SettingsModel, self).__init__()
+        super(Settings, self).__init__()
 
         # The location on disk of MyData.cfg
         # e.g. "C:\\ProgramData\\Monash University\\MyData\\MyData.cfg" or
@@ -42,10 +42,10 @@ class SettingsModel():
             LastSettingsUpdateTrigger.READ_FROM_DISK
 
         self.models = dict(
-            general=GeneralSettingsModel(),
-            filters=FiltersSettingsModel(),
-            advanced=AdvancedSettingsModel(),
-            miscellaneous=MiscellaneousSettingsModel())
+            general=GeneralSettings(),
+            filters=FiltersSettings(),
+            advanced=AdvancedSettings(),
+            miscellaneous=MiscellaneousSettings())
 
         self.set_default_config()
 

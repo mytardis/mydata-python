@@ -2,7 +2,7 @@
 Model class for the settings displayed in the Filters tab
 of the settings dialog and saved to disk in MyData.cfg
 """
-from .base import BaseSettingsModel
+from .base import BaseSettings
 
 # Used to convert ignore intervals (e.g. 3 months) into seconds:
 SECONDS = dict(day=24 * 60 * 60)
@@ -11,14 +11,14 @@ SECONDS['month'] = SECONDS['year'] / 12
 SECONDS['week'] = 7 * SECONDS['day']
 
 
-class FiltersSettingsModel(BaseSettingsModel):
+class FiltersSettings(BaseSettings):
     """
     Model class for the settings displayed in the Filters tab
     of the settings dialog and saved to disk in MyData.cfg
     """
     # pylint: disable=too-many-instance-attributes
     def __init__(self):
-        super(FiltersSettingsModel, self).__init__()
+        super(FiltersSettings, self).__init__()
 
         # Saved in MyData.cfg:
         self.mydata_config = dict()

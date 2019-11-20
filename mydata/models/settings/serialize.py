@@ -7,7 +7,7 @@ circular dependencies.
 
 The methods for loading settings from disk and checking for updates
 on the MyTardis server can't use the global settings singleton, because
-they are called from SettingsModel's constructor which would cause a
+they are called from Settings's constructor which would cause a
 circular dependency, so we pass the settings as an argument instead.
 """
 # pylint: disable=import-outside-toplevel
@@ -100,7 +100,7 @@ def load_general_settings(config_parser):
 
 def load_filter_settings(config_parser):
     """
-    :param settings: Object of class SettingsModel to load the settings into.
+    :param settings: Object of class Settings to load the settings into.
     :param config_parser: The ConfigParser object which stores data read from
                          MyData.cfg
 
@@ -168,7 +168,7 @@ def load_advanced_settings(config_parser):
 
 def load_miscellaneous_settings(config_parser):
     """
-    :param settings: Object of class SettingsModel to load the settings into.
+    :param settings: Object of class Settings to load the settings into.
     :param config_parser: The ConfigParser object which stores data read from
                           MyData.cfg
 

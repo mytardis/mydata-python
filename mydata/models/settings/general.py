@@ -3,18 +3,18 @@ Model class for the settings displayed in the General tab
 of the settings dialog and saved to disk in MyData.cfg
 """
 # pylint: disable=import-outside-toplevel
-from .base import BaseSettingsModel
+from .base import BaseSettings
 from ...logs import logger
 
 
-class GeneralSettingsModel(BaseSettingsModel):
+class GeneralSettings(BaseSettings):
     """
     Model class for the settings displayed in the General tab
     of the settings dialog and saved to disk in MyData.cfg
     """
     # pylint: disable=too-many-instance-attributes
     def __init__(self):
-        super(GeneralSettingsModel, self).__init__()
+        super(GeneralSettings, self).__init__()
 
         # Saved in MyData.cfg:
         self.mydata_config = dict()

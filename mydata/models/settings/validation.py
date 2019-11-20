@@ -24,7 +24,7 @@ from ..facility import Facility
 
 def validate_settings(set_status_message=None):
     """
-    Validate settings (an instance of SettingsModel)
+    Validate settings (an instance of Settings)
     """
     from ...conf import settings
 

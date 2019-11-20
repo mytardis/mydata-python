@@ -83,14 +83,12 @@ class Instrument():
                 facility = facil
                 break
         if facility is None:
-            raise Exception("Facility is None in "
-                            "SettingsModel's rename_instrument.")
+            raise Exception("Facility is None in rename_instrument.")
         old_instrument = \
             Instrument.get_instrument(facility, old_name)
         if not old_instrument:
             raise Exception("Instrument record for old instrument "
-                            "name not found in SettingsModel's "
-                            "rename_instrument.")
+                            "name not found in rename_instrument.")
         duplicate = Instrument.get_instrument(facility, new_name)
         if duplicate:
             raise DuplicateKey("Instrument with name \"%s\" "
