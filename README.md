@@ -20,7 +20,7 @@ the SETTINGS singleton object:
 
 ```
 >>> from mydata.settings import SETTINGS
->>> SETTINGS.general.instrumentName
+>>> SETTINGS.general.instrument_name
 'Test Instrument1'
 ```
 
