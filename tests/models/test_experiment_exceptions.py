@@ -76,11 +76,12 @@ def test_experiment_exceptions(set_exp_dataset_config):
 
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
-            "%s/api/v1/mydata_experiment/?format=json&title="
+            "%s/api/v1/mydata_experiment/?format=json&title=Exp1"
             "&folder_structure=Experiment%%20/%%20Dataset"
             "&user_folder_name=testfacility"
         ) % SETTINGS.general.mytardis_url
         mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
+
         existing_exp = Experiment.get_exp_for_folder(folder)
         assert not existing_exp
 
@@ -89,7 +90,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     # name, but no group folder name:
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
-            "%s/api/v1/mydata_experiment/?format=json&title="
+            "%s/api/v1/mydata_experiment/?format=json"
+            "&title=Existing%%20Experiment"
             "&folder_structure=Experiment%%20/%%20Dataset"
             "&user_folder_name=testfacility"
         ) % SETTINGS.general.mytardis_url
@@ -127,7 +129,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     mock_exp_response = json.dumps(mock_exp_dict)
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
-            "%s/api/v1/mydata_experiment/?format=json&title="
+            "%s/api/v1/mydata_experiment/?format=json"
+            "&title=Multiple%%20Existing%%20Experiments"
             "&folder_structure=Experiment%%20/%%20Dataset"
             "&user_folder_name=testfacility"
         ) % SETTINGS.general.mytardis_url
