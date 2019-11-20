@@ -1,4 +1,4 @@
-# mydata-python
+"""mydata/__version__.py"""
 
 __title__ = 'mydata-python'
 __description__ = 'A Python library for managing uploads to MyTardis.'
