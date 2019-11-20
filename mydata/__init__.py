@@ -1,5 +1,5 @@
 """
 mydata/__init__.py
 """
-# MyData API version:
-__version__ = "0.0.1"
+from .__version__ import __title__, __description__, __url__, __version__
+from .__version__ import __author__, __author_email__, __license__
