@@ -11,10 +11,11 @@ from ..conf import settings
 from ..threads.locks import LOCKS
 
 
-class Lookups():
+class Lookups:
     """
     Methods for looking up files on a MyTardis server
     """
+
     def __init__(self, folder, lookup_done_cb):
         self.folder = folder
         self.lookup_done_cb = lookup_done_cb
@@ -32,8 +33,10 @@ class Lookups():
                 lookup.message = "Looking for matching file on MyTardis server..."
                 lookup.status = LookupStatus.IN_PROGRESS
                 existing_datafile = DataFile.get_datafile(
-                    dataset=self.folder.dataset, filename=datafile_name,
-                    directory=datafile_dir)
+                    dataset=self.folder.dataset,
+                    filename=datafile_name,
+                    directory=datafile_dir,
+                )
                 if existing_datafile:
                     self.handle_existing_datafile(lookup, existing_datafile)
                 else:
@@ -54,8 +57,7 @@ class Lookups():
         """Check if existing DataFile is verified
         """
         lookup.message = "Found datafile on MyTardis server."
-        if not existing_datafile.replicas or \
-                not existing_datafile.replicas[0].verified:
+        if not existing_datafile.replicas or not existing_datafile.replicas[0].verified:
             self.handle_existing_unverified_datafile(lookup, existing_datafile)
         else:
             lookup.status = LookupStatus.FOUND_VERIFIED

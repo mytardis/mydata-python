@@ -21,7 +21,8 @@ from ..logs import logger
 
 
 def upload_folder(
-        folder, lookup_callback, upload_callback, upload_method=UploadMethod.SCP):
+    folder, lookup_callback, upload_callback, upload_method=UploadMethod.SCP
+):
     """
     Create required MyTardis records and upload
     any files not already uploaded.
@@ -78,13 +79,15 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
 
     if upload_method == UploadMethod.MULTIPART_POST:
         DataFile.upload_datafile_with_post(
-            datafile_path, datafile_dict,
-            upload, progress_callback)
+            datafile_path, datafile_dict, upload, progress_callback
+        )
     elif upload_method == UploadMethod.SCP:
         datafile_dict = add_uploader_info(datafile_dict)
         df_post_response = None
         if not lookup.existing_unverified_datafile:
-            df_post_response = DataFile.create_datafile_for_staging_upload(datafile_dict)
+            df_post_response = DataFile.create_datafile_for_staging_upload(
+                datafile_dict
+            )
             df_post_response.raise_for_status()
         host, port, location, username = get_sbox_attrs(upload)
         remote_file_path = get_remote_file_path(location, lookup, df_post_response)
@@ -92,12 +95,23 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
 
         try:
             upload_via_scp_with_retries(
-                datafile_path, username, host, port, remote_file_path, upload,
-                upload_callback)
+                datafile_path,
+                username,
+                host,
+                port,
+                remote_file_path,
+                upload,
+                upload_callback,
+            )
         except SshException as err:
             logger.error(traceback.format_exc())
-            finalize_upload(folder, upload, success=False, message=str(err),
-                            upload_callback=upload_callback)
+            finalize_upload(
+                folder,
+                upload,
+                success=False,
+                message=str(err),
+                upload_callback=upload_callback,
+            )
             return
 
         success = check_if_all_bytes_uploaded(upload)
@@ -106,14 +120,20 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
             DataFile.verify(upload.datafile_id)
             finalize_upload(folder, upload, success, upload_callback=upload_callback)
         else:
-            message = ("Marking upload as failed, because only %s of %s bytes were uploaded."
-                       % (upload.bytes_uploaded, upload.file_size))
-            finalize_upload(folder, upload, success, message=message,
-                            upload_callback=upload_callback)
+            message = (
+                "Marking upload as failed, because only %s of %s bytes were uploaded."
+                % (upload.bytes_uploaded, upload.file_size)
+            )
+            finalize_upload(
+                folder,
+                upload,
+                success,
+                message=message,
+                upload_callback=upload_callback,
+            )
         return
     else:
-        raise NotImplementedError(
-            "upload_file received unimplemented upload method")
+        raise NotImplementedError("upload_file received unimplemented upload method")
 
     success = True
     finalize_upload(folder, upload, success, upload_callback=upload_callback)
@@ -138,8 +158,7 @@ def finalize_upload(folder, upload, success, message=None, upload_callback=None)
             message = "Upload failed for %s" % datafile_name
         upload.message = message
         upload.set_progress(0)
-    folder.set_datafile_uploaded(
-        upload.datafile_index, uploaded=success)
+    folder.set_datafile_uploaded(upload.datafile_index, uploaded=success)
     if upload_callback:
         upload_callback(upload)
 
@@ -154,7 +173,8 @@ def construct_datafile_post_body(folder, upload):
 
     upload.message = "Calculating MD5 checksum..."
     md5sum = folder.calculate_md5_sum(
-        upload.datafile_index, progress_cb=None, canceled_cb=None)
+        upload.datafile_index, progress_cb=None, canceled_cb=None
+    )
 
     upload.message = "Checking MIME type..."
     mime_type = mimetypes.MimeTypes().guess_type(datafile_path)[0]
@@ -165,8 +185,7 @@ def construct_datafile_post_body(folder, upload):
     return {
         "dataset": dataset_uri,
         "filename": os.path.basename(datafile_path),
-        "directory": folder.get_datafile_directory(
-            upload.datafile_index),
+        "directory": folder.get_datafile_directory(upload.datafile_index),
         "md5sum": md5sum,
         "size": upload.file_size,
         "mimetype": mime_type,
@@ -199,14 +218,16 @@ def check_if_all_bytes_uploaded(upload):
     while uploading a zero-byte file, don't want to mark it
     as completed, just because zero bytes have been uploaded.
     """
-    return upload.bytes_uploaded == upload.file_size and \
-        upload.status != UploadStatus.CANCELED and \
-        upload.status != UploadStatus.FAILED
+    return (
+        upload.bytes_uploaded == upload.file_size
+        and upload.status != UploadStatus.CANCELED
+        and upload.status != UploadStatus.FAILED
+    )
 
 
 def upload_via_scp_with_retries(
-        datafile_path, username, host, port, remote_file_path, upload,
-        upload_callback):
+    datafile_path, username, host, port, remote_file_path, upload, upload_callback
+):
     """Upload via SCP with retries
     """
     while True:
@@ -214,9 +235,15 @@ def upload_via_scp_with_retries(
         try:
             progress_cb = None
             upload_with_scp(
-                datafile_path, username,
+                datafile_path,
+                username,
                 settings.uploader.ssh_key_pair.private_key_path,
-                host, port, remote_file_path, progress_cb, upload)
+                host,
+                port,
+                remote_file_path,
+                progress_cb,
+                upload,
+            )
             # Break out of upload retries loop.
             break
         except SshException as err:
@@ -239,8 +266,9 @@ def check_if_file_is_missing(upload, datafile_path):
     missing = False
     if not os.path.exists(datafile_path):
         missing = True
-        message = ("Not uploading file, because it has been "
-                   "moved, renamed or deleted.")
+        message = (
+            "Not uploading file, because it has been " "moved, renamed or deleted."
+        )
         upload.message = message
         upload.status = UploadStatus.FAILED
     return missing
@@ -252,8 +280,7 @@ def check_if_file_is_too_new(folder, upload):
     too_new = False
     if folder.file_is_too_new_to_upload(upload.datafile_index):
         too_new = True
-        message = ("Not uploading file, "
-                   "in case it is still being modified.")
+        message = "Not uploading file, " "in case it is still being modified."
         upload.message = message
         upload.status = UploadStatus.FAILED
     return too_new
@@ -264,7 +291,7 @@ def get_remote_file_path(location, lookup, df_post_response):
     """
     if lookup.existing_unverified_datafile:
         uri = lookup.existing_unverified_datafile.replicas[0].uri
-        return"%s/%s" % (location.rstrip('/'), uri)
+        return "%s/%s" % (location.rstrip("/"), uri)
     return df_post_response.text
 
 
@@ -273,4 +300,4 @@ def get_datafile_id(lookup, response):
     """
     if lookup.existing_unverified_datafile:
         return lookup.existing_unverified_datafile.id
-    return response.headers['Location'].split('/')[-2]
+    return response.headers["Location"].split("/")[-2]

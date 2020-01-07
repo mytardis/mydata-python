@@ -17,8 +17,7 @@ from ..conf import settings
 from ..utils.exceptions import InvalidFolderStructure
 
 
-def scan_folders(found_user_cb, found_group_cb,
-                 found_exp_folder_cb, found_dataset_cb):
+def scan_folders(found_user_cb, found_group_cb, found_exp_folder_cb, found_dataset_cb):
     """
     Scan dataset folders.
 
@@ -36,14 +35,14 @@ def scan_folders(found_user_cb, found_group_cb,
     default_owner = settings.general.default_owner
     folder_structure = settings.advanced.folder_structure
     logger.debug("FoldersModel.scan_folders(): Scanning " + data_dir + "...")
-    if folder_structure.startswith("Username") or \
-            folder_structure.startswith("Email"):
+    if folder_structure.startswith("Username") or folder_structure.startswith("Email"):
         scan_for_user_folders(found_user_cb, found_exp_folder_cb, found_dataset_cb)
     elif folder_structure.startswith("User Group"):
         scan_for_group_folders(found_group_cb, found_exp_folder_cb, found_dataset_cb)
     elif folder_structure.startswith("Experiment"):
         scan_for_experiment_folders(
-            found_exp_folder_cb, found_dataset_cb, data_dir, default_owner)
+            found_exp_folder_cb, found_dataset_cb, data_dir, default_owner
+        )
     elif folder_structure.startswith("Dataset"):
         scan_for_dataset_folders(found_dataset_cb, data_dir, default_owner)
     else:
@@ -55,60 +54,72 @@ def scan_for_user_folders(found_user_cb, found_exp_folder_cb, found_dataset_cb):
     Scan for user folders.
     """
     folder_structure = settings.advanced.folder_structure
-    upload_invalid_user_or_group_folders = \
+    upload_invalid_user_or_group_folders = (
         settings.advanced.upload_invalid_user_or_group_folders
-    for user_folder_name in \
-            user_folder_names(settings.general.data_directory):
+    )
+    for user_folder_name in user_folder_names(settings.general.data_directory):
         raise_exception_if_user_aborted()
         logger.debug(
-            "Found folder assumed to be %s: %s" % (user_folder_type(),
-                                                   user_folder_name))
+            "Found folder assumed to be %s: %s" % (user_folder_type(), user_folder_name)
+        )
         user = User.get_user_for_folder(user_folder_name.strip())
         raise_exception_if_user_aborted()
         if not user:
-            message = "Didn't find a MyTardis user record for folder " \
-                "\"%s\" in %s" % (user_folder_name,
-                                  settings.general.data_directory)
+            message = "Didn't find a MyTardis user record for folder " '"%s" in %s' % (
+                user_folder_name,
+                settings.general.data_directory,
+            )
             logger.warning(message)
             if not upload_invalid_user_or_group_folders:
-                logger.warning("Skipping %s, because "
-                               "'Upload invalid user folders' "
-                               "setting is not checked." % user_folder_name)
+                logger.warning(
+                    "Skipping %s, because "
+                    "'Upload invalid user folders' "
+                    "setting is not checked." % user_folder_name
+                )
                 continue
             user = User.get_user_for_folder(
-                user_folder_name, user_not_found_in_mytardis=True)
+                user_folder_name, user_not_found_in_mytardis=True
+            )
 
         found_user_cb(user)
 
         user_folder_path = os.path.join(
-            settings.general.data_directory, user_folder_name)
+            settings.general.data_directory, user_folder_name
+        )
         logger.debug("Folder structure: " + folder_structure)
-        if folder_structure in ('Username / Dataset', 'Email / Dataset'):
+        if folder_structure in ("Username / Dataset", "Email / Dataset"):
             scan_for_dataset_folders(
-                found_dataset_cb, user_folder_path, user, user_folder_name)
+                found_dataset_cb, user_folder_path, user, user_folder_name
+            )
         elif folder_structure in (
-                'Username / Experiment / Dataset',
-                'Email / Experiment / Dataset'):
+            "Username / Experiment / Dataset",
+            "Email / Experiment / Dataset",
+        ):
             scan_for_experiment_folders(
-                found_exp_folder_cb, found_dataset_cb, user_folder_path,
-                user, user_folder_name)
-        elif folder_structure == \
-                'Username / "MyTardis" / Experiment / Dataset':
+                found_exp_folder_cb,
+                found_dataset_cb,
+                user_folder_path,
+                user,
+                user_folder_name,
+            )
+        elif folder_structure == 'Username / "MyTardis" / Experiment / Dataset':
             user_folder_contents = os.listdir(user_folder_path)
             mytardis_folder_name = None
             for item in user_folder_contents:
-                if item.lower() == 'mytardis':
+                if item.lower() == "mytardis":
                     mytardis_folder_name = item
             if not mytardis_folder_name:
-                message = 'Didn\'t find "MyTardis" folder in ' \
-                    '"%s"' % user_folder_path
+                message = 'Didn\'t find "MyTardis" folder in ' '"%s"' % user_folder_path
                 logger.warning(message)
                 continue
-            mytardis_folder_path = os.path.join(
-                user_folder_path, mytardis_folder_name)
+            mytardis_folder_path = os.path.join(user_folder_path, mytardis_folder_name)
             scan_for_experiment_folders(
-                found_exp_folder_cb, found_dataset_cb, mytardis_folder_path,
-                user, user_folder_name)
+                found_exp_folder_cb,
+                found_dataset_cb,
+                mytardis_folder_path,
+                user,
+                user_folder_name,
+            )
         raise_exception_if_user_aborted()
 
 
@@ -117,41 +128,52 @@ def scan_for_group_folders(found_group_cb, found_exp_folder_cb, found_dataset_cb
     Scan for group folders.
     """
     folder_structure = settings.advanced.folder_structure
-    upload_invalid_user_or_group_folders = \
+    upload_invalid_user_or_group_folders = (
         settings.advanced.upload_invalid_user_or_group_folders
-    for group_folder_name in \
-            group_folder_names(settings.general.data_directory):
+    )
+    for group_folder_name in group_folder_names(settings.general.data_directory):
         raise_exception_if_user_aborted()
-        logger.debug("Found folder assumed to be user group name: " +
-                     group_folder_name)
+        logger.debug("Found folder assumed to be user group name: " + group_folder_name)
         group_name = settings.advanced.group_prefix + group_folder_name
         group = Group.get_group_by_name(group_name)
         if not group:
-            message = "Didn't find a MyTardis user group record for " \
-                "folder \"%s\" in %s" % (group_folder_name,
-                                         settings.general.data_directory)
+            message = (
+                "Didn't find a MyTardis user group record for "
+                'folder "%s" in %s'
+                % (group_folder_name, settings.general.data_directory)
+            )
             logger.warning(message)
             if not upload_invalid_user_or_group_folders:
-                logger.warning("Skipping %s, because "
-                               "'Upload invalid user group folders' "
-                               "setting is not checked." % group_folder_name)
+                logger.warning(
+                    "Skipping %s, because "
+                    "'Upload invalid user group folders' "
+                    "setting is not checked." % group_folder_name
+                )
                 continue
         raise_exception_if_user_aborted()
         group_folder_path = os.path.join(
-            settings.general.data_directory, group_folder_name)
+            settings.general.data_directory, group_folder_name
+        )
         default_owner = settings.general.default_owner
-        if folder_structure == \
-                'User Group / Instrument / Full Name / Dataset':
-            import_group_folders(
-                found_dataset_cb, group_folder_path, group)
-        elif folder_structure == 'User Group / Experiment / Dataset':
+        if folder_structure == "User Group / Instrument / Full Name / Dataset":
+            import_group_folders(found_dataset_cb, group_folder_path, group)
+        elif folder_structure == "User Group / Experiment / Dataset":
             scan_for_experiment_folders(
-                found_exp_folder_cb, found_dataset_cb, group_folder_path,
-                default_owner, group=group, group_folder_name=group_folder_name)
-        elif folder_structure == 'User Group / Dataset':
+                found_exp_folder_cb,
+                found_dataset_cb,
+                group_folder_path,
+                default_owner,
+                group=group,
+                group_folder_name=group_folder_name,
+            )
+        elif folder_structure == "User Group / Dataset":
             scan_for_dataset_folders(
-                found_dataset_cb, group_folder_path, owner=default_owner, group=group,
-                group_folder_name=group_folder_name)
+                found_dataset_cb,
+                group_folder_path,
+                owner=default_owner,
+                group=group,
+                group_folder_name=group_folder_name,
+            )
         else:
             raise InvalidFolderStructure("Unknown folder structure.")
         raise_exception_if_user_aborted()
@@ -159,8 +181,13 @@ def scan_for_group_folders(found_group_cb, found_exp_folder_cb, found_dataset_cb
 
 
 def scan_for_dataset_folders(
-        found_dataset_cb, path_to_scan, owner, user_folder_name=None,
-        group=None, group_folder_name=None):
+    found_dataset_cb,
+    path_to_scan,
+    owner,
+    user_folder_name=None,
+    group=None,
+    group_folder_name=None,
+):
     """
     Scan for dataset folders.
     """
@@ -169,13 +196,14 @@ def scan_for_dataset_folders(
     try:
         logger.debug("Scanning " + path_to_scan + " for dataset folders...")
         for dataset_folder_name in dataset_folder_names(path_to_scan):
-            logger.debug("Found folder assumed to be dataset: " +
-                         dataset_folder_name)
-            if settings.filters.ignore_old_datasets and \
-                    dataset_is_too_old(path_to_scan, dataset_folder_name):
+            logger.debug("Found folder assumed to be dataset: " + dataset_folder_name)
+            if settings.filters.ignore_old_datasets and dataset_is_too_old(
+                path_to_scan, dataset_folder_name
+            ):
                 continue
-            if settings.filters.ignore_new_datasets and \
-                    dataset_is_too_new(path_to_scan, dataset_folder_name):
+            if settings.filters.ignore_new_datasets and dataset_is_too_new(
+                path_to_scan, dataset_folder_name
+            ):
                 continue
             folder = Folder(
                 name=dataset_folder_name,
@@ -183,7 +211,8 @@ def scan_for_dataset_folders(
                 user_folder_name=user_folder_name,
                 group_folder_name=group_folder_name,
                 owner=owner,
-                group=group)
+                group=group,
+            )
             raise_exception_if_user_aborted()
             folder.set_created_date()
             set_experiment_title(folder, owner, group_folder_name)
@@ -193,8 +222,14 @@ def scan_for_dataset_folders(
 
 
 def scan_for_experiment_folders(
-        found_exp_folder_cb, found_dataset_cb, path_to_scan, owner,
-        user_folder_name=None, group=None, group_folder_name=None):
+    found_exp_folder_cb,
+    found_dataset_cb,
+    path_to_scan,
+    owner,
+    user_folder_name=None,
+    group=None,
+    group_folder_name=None,
+):
     """
     Scans for experiment folders.
 
@@ -211,11 +246,13 @@ def scan_for_experiment_folders(
     for exp_folder_name in experiment_folder_names(path_to_scan):
         exp_folder_path = os.path.join(path_to_scan, exp_folder_name)
         for dataset_folder_name in dataset_folder_names(exp_folder_path):
-            if settings.filters.ignore_old_datasets and \
-                    dataset_is_too_old(exp_folder_path, dataset_folder_name):
+            if settings.filters.ignore_old_datasets and dataset_is_too_old(
+                exp_folder_path, dataset_folder_name
+            ):
                 continue
-            if settings.filters.ignore_new_datasets and \
-                    dataset_is_too_new(exp_folder_path, dataset_folder_name):
+            if settings.filters.ignore_new_datasets and dataset_is_too_new(
+                exp_folder_path, dataset_folder_name
+            ):
                 continue
             folder = Folder(
                 name=dataset_folder_name,
@@ -223,27 +260,31 @@ def scan_for_experiment_folders(
                 user_folder_name=user_folder_name,
                 group_folder_name=group_folder_name,
                 owner=owner,
-                group=group)
+                group=group,
+            )
             raise_exception_if_user_aborted()
-            if folder_structure.startswith("Username") or \
-                    folder_structure.startswith("Email") or \
-                    folder_structure.startswith("Experiment"):
+            if (
+                folder_structure.startswith("Username")
+                or folder_structure.startswith("Email")
+                or folder_structure.startswith("Experiment")
+            ):
                 folder.experiment_title = exp_folder_name
             elif folder_structure.startswith("User Group / Experiment"):
                 if group:
                     group_name = group.short_name
                 else:
                     group_name = group_folder_name
-                folder.experiment_title = \
-                    "%s - %s" % (group_name, exp_folder_name)
+                folder.experiment_title = "%s - %s" % (group_name, exp_folder_name)
             else:
                 raise InvalidFolderStructure("Unknown folder structure.")
             folder.set_created_date()
             found_dataset_cb(folder)
         files_depth1 = files_in_top_level(exp_folder_path)
         if files_depth1:
-            logger.info("Found %s experiment file(s) in %s\n"
-                        % (len(files_depth1), exp_folder_path))
+            logger.info(
+                "Found %s experiment file(s) in %s\n"
+                % (len(files_depth1), exp_folder_path)
+            )
             folder = Folder(
                 name="__EXPERIMENT_FILES__",
                 location=exp_folder_path,
@@ -251,7 +292,8 @@ def scan_for_experiment_folders(
                 group_folder_name=group_folder_name,
                 owner=owner,
                 group=group,
-                is_exp_files_folder=True)
+                is_exp_files_folder=True,
+            )
             raise_exception_if_user_aborted()
             folder.experiment_title = exp_folder_name
             folder.set_created_date()
@@ -281,11 +323,11 @@ def import_group_folders(found_dataset_cb, group_folder_path, group):
     used to determine access control.
     """
     try:
-        logger.debug("Scanning " + group_folder_path +
-                     " for instrument folders...")
+        logger.debug("Scanning " + group_folder_path + " for instrument folders...")
 
-        instrument_folder_path = \
-            os.path.join(group_folder_path, settings.general.instrument_name)
+        instrument_folder_path = os.path.join(
+            group_folder_path, settings.general.instrument_name
+        )
 
         if not os.path.exists(instrument_folder_path):
             logger.warning("Path %s doesn't exist." % instrument_folder_path)
@@ -293,20 +335,20 @@ def import_group_folders(found_dataset_cb, group_folder_path, group):
 
         owner = settings.general.default_owner
 
-        logger.debug("Scanning " + instrument_folder_path +
-                     " for user folders...")
+        logger.debug("Scanning " + instrument_folder_path + " for user folders...")
         user_folders = next(os.walk(instrument_folder_path))[1]
         raise_exception_if_user_aborted()
         for user_folder_name in user_folders:
             user_folder_path = os.path.join(instrument_folder_path, user_folder_name)
-            logger.debug("Scanning " + user_folder_path +
-                         " for dataset folders...")
+            logger.debug("Scanning " + user_folder_path + " for dataset folders...")
             for dataset_folder_name in dataset_folder_names(user_folder_path):
-                if settings.filters.ignore_old_datasets and \
-                        dataset_is_too_old(user_folder_path, dataset_folder_name):
+                if settings.filters.ignore_old_datasets and dataset_is_too_old(
+                    user_folder_path, dataset_folder_name
+                ):
                     continue
-                if settings.filters.ignore_new_datasets and \
-                        dataset_is_too_new(user_folder_path, dataset_folder_name):
+                if settings.filters.ignore_new_datasets and dataset_is_too_new(
+                    user_folder_path, dataset_folder_name
+                ):
                     continue
                 group_folder_name = os.path.basename(group_folder_path)
                 folder = Folder(
@@ -315,12 +357,14 @@ def import_group_folders(found_dataset_cb, group_folder_path, group):
                     user_folder_name=user_folder_name,
                     group_folder_name=group_folder_name,
                     owner=owner,
-                    group=group)
+                    group=group,
+                )
                 raise_exception_if_user_aborted()
                 folder.set_created_date()
-                folder.experiment_title = \
-                    "%s - %s" % (settings.general.instrument_name,
-                                 user_folder_name)
+                folder.experiment_title = "%s - %s" % (
+                    settings.general.instrument_name,
+                    user_folder_name,
+                )
                 found_dataset_cb(folder)
     except InvalidFolderStructure:
         raise
@@ -328,12 +372,12 @@ def import_group_folders(found_dataset_cb, group_folder_path, group):
         logger.error(traceback.format_exc())
 
 
-def folder_names(path_to_scan, filter_pattern=''):
+def folder_names(path_to_scan, filter_pattern=""):
     """
     List of folder names in path matching the filter pattern
     (or all folders in the specified path if there is no filter).
     """
-    files_depth1 = glob(os.path.join(path_to_scan, '*%s*' % filter_pattern))
+    files_depth1 = glob(os.path.join(path_to_scan, "*%s*" % filter_pattern))
     dirs_depth1 = [item for item in files_depth1 if os.path.isdir(item)]
     return [os.path.basename(d) for d in dirs_depth1]
 
@@ -380,8 +424,9 @@ def files_in_top_level(exp_folder_path):
     Return a list of file names in the specified experiment
     folder path, not within any specific dataset folder.
     """
-    glob_depth1 = glob(os.path.join(
-        exp_folder_path, '*%s*' % settings.filters.dataset_filter))
+    glob_depth1 = glob(
+        os.path.join(exp_folder_path, "*%s*" % settings.filters.dataset_filter)
+    )
     return [item for item in glob_depth1 if os.path.isfile(item)]
 
 
@@ -394,13 +439,12 @@ def dataset_is_too_old(path_to_scan, dataset_folder_name):
     ctimestamp = os.path.getctime(dataset_folder_path)
     ctime = datetime.fromtimestamp(ctimestamp)
     age = datetime.now() - ctime
-    if age.total_seconds() > \
-            settings.filters.ignore_old_datasets_interval_seconds:
-        message = "Ignoring \"%s\", because it is " \
-            "older than %d %s" \
-            % (dataset_folder_path,
-               settings.filters.ignore_old_datasets_interval_number,
-               settings.filters.ignore_old_datasets_interval_unit)
+    if age.total_seconds() > settings.filters.ignore_old_datasets_interval_seconds:
+        message = 'Ignoring "%s", because it is ' "older than %d %s" % (
+            dataset_folder_path,
+            settings.filters.ignore_old_datasets_interval_number,
+            settings.filters.ignore_old_datasets_interval_unit,
+        )
         logger.warning(message)
         return True
     return False
@@ -415,13 +459,12 @@ def dataset_is_too_new(path_to_scan, dataset_folder_name):
     ctimestamp = os.path.getctime(dataset_folder_path)
     ctime = datetime.fromtimestamp(ctimestamp)
     age = datetime.now() - ctime
-    if age.total_seconds() < \
-            settings.filters.ignore_new_datasets_interval_seconds:
-        message = "Ignoring \"%s\", because it is " \
-            "newer than %d %s" \
-            % (dataset_folder_path,
-               settings.filters.ignore_new_datasets_interval_number,
-               settings.filters.ignore_new_datasets_interval_unit)
+    if age.total_seconds() < settings.filters.ignore_new_datasets_interval_seconds:
+        message = 'Ignoring "%s", because it is ' "newer than %d %s" % (
+            dataset_folder_path,
+            settings.filters.ignore_new_datasets_interval_number,
+            settings.filters.ignore_new_datasets_interval_unit,
+        )
         logger.warning(message)
         return True
     return False
@@ -444,31 +487,44 @@ def set_experiment_title(folder, owner, group_folder_name):
     """
     folder_structure = settings.advanced.folder_structure
     if folder_structure.startswith("User Group / Experiment"):
-        experiment_title = "%s - %s" \
-            % (settings.general.instrument_name, group_folder_name)
+        experiment_title = "%s - %s" % (
+            settings.general.instrument_name,
+            group_folder_name,
+        )
     elif folder_structure.startswith("User Group / Dataset"):
         experiment_title = group_folder_name
     elif not owner.user_not_found_in_mytardis:
         if owner.full_name.strip() != "":
-            experiment_title = "%s - %s" \
-                % (settings.general.instrument_name, owner.full_name)
+            experiment_title = "%s - %s" % (
+                settings.general.instrument_name,
+                owner.full_name,
+            )
         else:
-            experiment_title = "%s - %s" \
-                % (settings.general.instrument_name, owner.username)
+            experiment_title = "%s - %s" % (
+                settings.general.instrument_name,
+                owner.username,
+            )
     elif owner.full_name != User.user_not_found_string:
-        experiment_title = "%s - %s (%s)" \
-            % (settings.general.instrument_name,
-               owner.full_name, User.user_not_found_string)
+        experiment_title = "%s - %s (%s)" % (
+            settings.general.instrument_name,
+            owner.full_name,
+            User.user_not_found_string,
+        )
     elif owner.username != User.user_not_found_string:
-        experiment_title = "%s - %s (%s)" \
-            % (settings.general.instrument_name, owner.username,
-               User.user_not_found_string)
+        experiment_title = "%s - %s (%s)" % (
+            settings.general.instrument_name,
+            owner.username,
+            User.user_not_found_string,
+        )
     elif owner.email != User.user_not_found_string:
-        experiment_title = "%s - %s (%s)" \
-            % (settings.general.instrument_name, owner.email,
-               User.user_not_found_string)
+        experiment_title = "%s - %s (%s)" % (
+            settings.general.instrument_name,
+            owner.email,
+            User.user_not_found_string,
+        )
     else:
-        experiment_title = "%s - %s" \
-            % (settings.general.instrument_name,
-               User.user_not_found_string)
+        experiment_title = "%s - %s" % (
+            settings.general.instrument_name,
+            User.user_not_found_string,
+        )
     folder.experiment_title = experiment_title

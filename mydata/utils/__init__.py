@@ -36,25 +36,25 @@ def human_readable_size_string(num):
     """
     Returns human-readable string.
     """
-    for unit in ['bytes', 'KB', 'MB', 'GB']:
+    for unit in ["bytes", "KB", "MB", "GB"]:
         if -1024.0 < num < 1024.0:
             return "%3.1f %s" % (num, unit)
         num /= 1024.0
-    return "%3.1f %s" % (num, 'TB')
+    return "%3.1f %s" % (num, "TB")
 
 
 def bytes_to_human(num_bytes):
     """
     Returns human-readable string.
     """
-    symbols = ('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+    symbols = ("K", "M", "G", "T", "P", "E", "Z", "Y")
     prefix = {}
     for index, symbol in enumerate(symbols):
         prefix[symbol] = 1 << (index + 1) * 10
     for symbol in reversed(symbols):
         if num_bytes >= prefix[symbol]:
             value = float(num_bytes) / prefix[symbol]
-            return '%.1f%s' % (value, symbol)
+            return "%.1f%s" % (value, symbol)
     return "%sB" % num_bytes
 
 
@@ -81,10 +81,9 @@ def mydata_install_location():
     """
     Return MyData install location
     """
-    if hasattr(sys, 'frozen'):
+    if hasattr(sys, "frozen"):
         return os.path.dirname(sys.executable)
     try:
-        return os.path.realpath(
-            os.path.join(os.path.dirname(__file__), "..", ".."))
+        return os.path.realpath(os.path.join(os.path.dirname(__file__), "..", ".."))
     except:
         return os.getcwd()

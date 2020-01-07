@@ -21,11 +21,12 @@ from .miscellaneous import MiscellaneousSettings
 from .miscellaneous import LastSettingsUpdateTrigger
 
 
-class Settings():
+class Settings:
     """
     Model class for the settings displayed in the settings dialog
     and saved to disk in MyData.cfg
     """
+
     def __init__(self, config_path):
         super(Settings, self).__init__()
 
@@ -38,14 +39,14 @@ class Settings():
 
         self._uploader = None
 
-        self.last_settings_update_trigger = \
-            LastSettingsUpdateTrigger.READ_FROM_DISK
+        self.last_settings_update_trigger = LastSettingsUpdateTrigger.READ_FROM_DISK
 
         self.models = dict(
             general=GeneralSettings(),
             filters=FiltersSettings(),
             advanced=AdvancedSettings(),
-            miscellaneous=MiscellaneousSettings())
+            miscellaneous=MiscellaneousSettings(),
+        )
 
         self.set_default_config()
 
@@ -54,28 +55,28 @@ class Settings():
         """
         Settings in the Settings Dialog's General tab
         """
-        return self.models['general']
+        return self.models["general"]
 
     @property
     def filters(self):
         """
         Settings in the Settings Dialog's Filters tab
         """
-        return self.models['filters']
+        return self.models["filters"]
 
     @property
     def advanced(self):
         """
         Settings in the Settings Dialog's Advanced tab
         """
-        return self.models['advanced']
+        return self.models["advanced"]
 
     @property
     def miscellaneous(self):
         """
         Miscellaneous settings
         """
-        return self.models['miscellaneous']
+        return self.models["miscellaneous"]
 
     def __setitem__(self, key, item):
         """
@@ -120,7 +121,7 @@ class Settings():
           settings.general.instrument_name
           settings.advanced.folder_structure
         """
-        if name in ('models', 'general', 'filters', 'advanced', 'miscellaneous'):
+        if name in ("models", "general", "filters", "advanced", "miscellaneous"):
             return self.__getattribute__(name)
         if name in self.general.fields:
             return self.general.mydata_config[name]
@@ -141,6 +142,7 @@ class Settings():
         simultaneously, so it requires locking.
         """
         from ..uploader import Uploader
+
         if self._uploader:
             return self._uploader
         try:
@@ -161,14 +163,16 @@ class Settings():
         """
         Return True if a required field is blank
         """
-        return self.general.instrument_name == "" or \
-            self.general.facility_name == "" or \
-            self.general.contact_name == "" or \
-            self.general.contact_email == "" or \
-            self.general.data_directory == "" or \
-            self.general.mytardis_url == "" or \
-            self.general.username == "" or \
-            self.general.api_key == ""
+        return (
+            self.general.instrument_name == ""
+            or self.general.facility_name == ""
+            or self.general.contact_name == ""
+            or self.general.contact_email == ""
+            or self.general.data_directory == ""
+            or self.general.mytardis_url == ""
+            or self.general.username == ""
+            or self.general.api_key == ""
+        )
 
     def set_default_config(self):
         """
@@ -186,10 +190,10 @@ class Settings():
         Default HTTP headers, providing authorization for MyTardis API.
         """
         return {
-            "Authorization": "ApiKey %s:%s" % (self.general.username,
-                                               self.general.api_key),
+            "Authorization": "ApiKey %s:%s"
+            % (self.general.username, self.general.api_key),
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
         }
 
     @property
@@ -201,8 +205,8 @@ class Settings():
         parsed = urlparse(self.general.mytardis_url)
         return os.path.join(
             os.path.dirname(self.config_path),
-            "verified-files-%s-%s.pkl" %
-            (parsed.scheme, parsed.netloc))
+            "verified-files-%s-%s.pkl" % (parsed.scheme, parsed.netloc),
+        )
 
     def initialize_verified_datafiles_cache(self):
         """
@@ -211,7 +215,7 @@ class Settings():
         """
         try:
             if os.path.exists(self._verified_datafiles_cache):
-                with open(self._verified_datafiles_cache, 'rb') as cache_file:
+                with open(self._verified_datafiles_cache, "rb") as cache_file:
                     self._verified_datafiles_cache = pickle.load(cache_file)
             else:
                 self._verified_datafiles_cache = dict()
@@ -226,8 +230,7 @@ class Settings():
         """
         with LOCKS.close_cache:  # pylint: disable=no-member
             try:
-                with open(self._verified_datafiles_cache,
-                          'wb') as cache_file:
+                with open(self._verified_datafiles_cache, "wb") as cache_file:
                     pickle.dump(self._verified_datafiles_cache, cache_file)
             except:
                 logger.warning("Couldn't save verified datafiles cache.")
@@ -242,7 +245,7 @@ class Settings():
         """
         if not self._config_path:
             appdir_path = create_config_path_if_necessary()
-            self._config_path = os.path.join(appdir_path, APPNAME + '.cfg')
+            self._config_path = os.path.join(appdir_path, APPNAME + ".cfg")
         return self._config_path
 
     @config_path.setter

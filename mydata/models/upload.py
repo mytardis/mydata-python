@@ -12,7 +12,7 @@ from ..logs import logger
 from ..utils import human_readable_size_string
 
 
-class UploadStatus():
+class UploadStatus:
     """
     Enumerated data type.
 
@@ -20,6 +20,7 @@ class UploadStatus():
     Stored in an Upload model instance's status attribute, this
     field
     """
+
     # pylint: disable=invalid-name
     NOT_STARTED = 0
     IN_PROGRESS = 1
@@ -29,10 +30,11 @@ class UploadStatus():
     CANCELED = 5
 
 
-class UploadMethod():
+class UploadMethod:
     """
     Enumerated data type for upload methods
     """
+
     # pylint: disable=invalid-name
     MULTIPART_POST = 0
     SCP = 1
@@ -48,17 +50,20 @@ def add_uploader_info(datafile_dict):
     Uploader UUID and the ~/.ssh/MyData.pub key's fingerprint.
     """
     from mydata.conf import settings
-    datafile_dict['uploader_uuid'] = settings.miscellaneous.uuid
-    datafile_dict['requester_key_fingerprint'] = \
-        settings.uploader.ssh_key_pair.fingerprint
+
+    datafile_dict["uploader_uuid"] = settings.miscellaneous.uuid
+    datafile_dict[
+        "requester_key_fingerprint"
+    ] = settings.uploader.ssh_key_pair.fingerprint
     return datafile_dict
 
 
-class Upload():
+class Upload:
     """
     Model class for a datafile upload, which appears as one row in
     the Uploads view of MyData's main window.
     """
+
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
     def __init__(self, folder, datafile_index):
@@ -111,8 +116,11 @@ class Upload():
         if self.bytes_uploaded and self.latest_time:
             elapsed_time = self.latest_time - self.start_time
             if elapsed_time.total_seconds():
-                speed_mbs = (float(self.bytes_uploaded) / 1000000.0 /
-                             elapsed_time.total_seconds())
+                speed_mbs = (
+                    float(self.bytes_uploaded)
+                    / 1000000.0
+                    / elapsed_time.total_seconds()
+                )
                 if speed_mbs >= 1.0:
                     self.speed = "%3.1f MB/s" % speed_mbs
                 else:
@@ -137,8 +145,11 @@ class Upload():
         if self.bytes_uploaded and self.latest_time:
             elapsed_time = self.latest_time - self.start_time
             if elapsed_time.total_seconds():
-                speed_mbs = (float(self.bytes_uploaded) / 1000000.0 /
-                             elapsed_time.total_seconds())
+                speed_mbs = (
+                    float(self.bytes_uploaded)
+                    / 1000000.0
+                    / elapsed_time.total_seconds()
+                )
                 if speed_mbs >= 1.0:
                     self.speed = "%3.1f MB/s" % speed_mbs
                 else:
@@ -176,9 +187,11 @@ class Upload():
                     logger.error(traceback.format_exc())
             if self.buffered_reader is not None:
                 self.buffered_reader.close()
-                logger.debug("Closed buffered reader for \"" +
-                             self.get_relative_path_to_upload() +
-                             "\".")
+                logger.debug(
+                    'Closed buffered reader for "'
+                    + self.get_relative_path_to_upload()
+                    + '".'
+                )
             if self.scp_upload_process_pid:
                 if sys.platform.startswith("win"):
                     os.kill(self.scp_upload_process_pid, signal.SIGABRT)

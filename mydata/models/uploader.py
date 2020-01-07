@@ -92,17 +92,19 @@ from ..utils.exceptions import (
     MissingMyDataAppOnMyTardisServer,
     NoApprovedStorageBox,
     StorageBoxOptionNotFound,
-    StorageBoxAttributeNotFound)
+    StorageBoxAttributeNotFound,
+)
 from ..utils import bytes_to_human
 from ..utils import mydata_install_location
 from ..threads.locks import LOCKS
 from .storage import StorageBox
 
 
-class Uploader():
+class Uploader:
     """
     Model class for MyTardis API v1's UploaderAppResource.
     """
+
     def __init__(self):
         from mydata.conf import settings
 
@@ -125,38 +127,40 @@ class Uploader():
             processor=platform.processor(),
             memory=bytes_to_human(psutil.virtual_memory().total),
             cpus=psutil.cpu_count(),
-            hostname=platform.node())
+            hostname=platform.node(),
+        )
 
-        self.ifconfig = dict(interface=None, macAddress='', ipv4_addrs='',
-                             ipv6_addrs='', subnetMask='')
+        self.ifconfig = dict(
+            interface=None, macAddress="", ipv4_addrs="", ipv6_addrs="", subnetMask=""
+        )
 
         if settings.miscellaneous.uuid is None:
             settings.miscellaneous.uuid = str(uuid.uuid1())
 
         default_interface_type = get_default_interface_type()
         if default_interface_type:
-            self.ifconfig['interface'] = \
-                netifaces.gateways()['default'][default_interface_type][1]
-            ifaddresses = netifaces.ifaddresses(self.ifconfig['interface'])
+            self.ifconfig["interface"] = netifaces.gateways()["default"][
+                default_interface_type
+            ][1]
+            ifaddresses = netifaces.ifaddresses(self.ifconfig["interface"])
             if netifaces.AF_LINK in ifaddresses.keys():
-                self.ifconfig['macAddress'] = \
-                    ifaddresses[netifaces.AF_LINK][0]['addr']
+                self.ifconfig["macAddress"] = ifaddresses[netifaces.AF_LINK][0]["addr"]
             if netifaces.AF_INET in ifaddresses:
                 ipv4_addrs = ifaddresses[netifaces.AF_INET]
-                self.ifconfig['ipv4_addrs'] = ipv4_addrs[0]['addr']
-                self.ifconfig['subnetMask'] = ipv4_addrs[0]['netmask']
+                self.ifconfig["ipv4_addrs"] = ipv4_addrs[0]["addr"]
+                self.ifconfig["subnetMask"] = ipv4_addrs[0]["netmask"]
             if netifaces.AF_INET6 in ifaddresses:
                 ipv6_addrs = ifaddresses[netifaces.AF_INET6]
                 if sys.platform.startswith("win"):
-                    self.ifconfig['ipv6_addrs'] = ipv6_addrs[0]['addr']
+                    self.ifconfig["ipv6_addrs"] = ipv6_addrs[0]["addr"]
                 else:
                     for addr in ipv6_addrs:
-                        match = re.match(r'(.+)%(.+)', addr['addr'])
-                        if match and \
-                                match.group(2) == self.ifconfig['interface']:
-                            self.ifconfig['ipv6_addrs'] = match.group(1)
-            logger.debug("The active network interface is: %s"
-                         % str(self.ifconfig['interface']))
+                        match = re.match(r"(.+)%(.+)", addr["addr"])
+                        if match and match.group(2) == self.ifconfig["interface"]:
+                            self.ifconfig["ipv6_addrs"] = match.group(1)
+            logger.debug(
+                "The active network interface is: %s" % str(self.ifconfig["interface"])
+            )
         else:
             logger.warning("There is no active network interface.")
 
@@ -170,27 +174,31 @@ class Uploader():
         from mydata.conf import settings
 
         mytardis_url = settings.general.mytardis_url
-        url = mytardis_url + "/api/v1/mydata_uploader/?format=json" + \
-            "&uuid=" + urllib.parse.quote(settings.miscellaneous.uuid)
+        url = (
+            mytardis_url
+            + "/api/v1/mydata_uploader/?format=json"
+            + "&uuid="
+            + urllib.parse.quote(settings.miscellaneous.uuid)
+        )
         headers = settings.default_headers
         response = requests.get(
-            headers=headers, url=url,
-            timeout=settings.miscellaneous.connection_timeout)
+            headers=headers, url=url, timeout=settings.miscellaneous.connection_timeout
+        )
         response.raise_for_status()
         uploaders_dict = response.json()
-        num_existing_uploader_records = \
-            uploaders_dict['meta']['total_count']
+        num_existing_uploader_records = uploaders_dict["meta"]["total_count"]
         if num_existing_uploader_records > 0:
-            self.uploader_id = uploaders_dict['objects'][0]['id']
-            if 'settings' in uploaders_dict['objects'][0]:
-                self.uploader_settings = \
-                    uploaders_dict['objects'][0]['settings']
-                settings_updated_string = \
-                    uploaders_dict['objects'][0]['settings_updated']
+            self.uploader_id = uploaders_dict["objects"][0]["id"]
+            if "settings" in uploaders_dict["objects"][0]:
+                self.uploader_settings = uploaders_dict["objects"][0]["settings"]
+                settings_updated_string = uploaders_dict["objects"][0][
+                    "settings_updated"
+                ]
                 logger.info(settings_updated_string)
                 if settings_updated_string:
-                    self.settings_updated = \
-                        dateutil.parser.parse(settings_updated_string)
+                    self.settings_updated = dateutil.parser.parse(
+                        settings_updated_string
+                    )
 
         logger.debug("Uploading uploader info to MyTardis...")
 
@@ -204,36 +212,29 @@ class Uploader():
             "name": settings.general.instrument_name,
             "contact_name": settings.general.contact_name,
             "contact_email": settings.general.contact_email,
-
             "user_agent_name": "MyData",
             "user_agent_version": VERSION,
             "user_agent_install_location": mydata_install_location(),
-
-            "os_platform": self.sys_info['osPlatform'],
-            "os_system": self.sys_info['osSystem'],
-            "os_release": self.sys_info['osRelease'],
-            "os_version": self.sys_info['osVersion'],
-            "os_username": self.sys_info['osUsername'],
-
-            "machine": self.sys_info['machine'],
-            "architecture": self.sys_info['architecture'],
-            "processor": self.sys_info['processor'],
-            "memory": self.sys_info['memory'],
-            "cpus": self.sys_info['cpus'],
-
+            "os_platform": self.sys_info["osPlatform"],
+            "os_system": self.sys_info["osSystem"],
+            "os_release": self.sys_info["osRelease"],
+            "os_version": self.sys_info["osVersion"],
+            "os_username": self.sys_info["osUsername"],
+            "machine": self.sys_info["machine"],
+            "architecture": self.sys_info["architecture"],
+            "processor": self.sys_info["processor"],
+            "memory": self.sys_info["memory"],
+            "cpus": self.sys_info["cpus"],
             "disk_usage": "",
             "data_path": settings.general.data_directory,
             "default_user": settings.general.username,
-
-            "interface": self.ifconfig['interface'],
-            "mac_address": self.ifconfig['macAddress'],
-            "ipv4_address": self.ifconfig['ipv4_addrs'],
-            "ipv6_address": self.ifconfig['ipv6_addrs'],
-            "subnet_mask": self.ifconfig['subnetMask'],
-
-            "hostname": self.sys_info['hostname'],
-
-            "instruments": [settings.general.instrument.resource_uri]
+            "interface": self.ifconfig["interface"],
+            "mac_address": self.ifconfig["macAddress"],
+            "ipv4_address": self.ifconfig["ipv4_addrs"],
+            "ipv6_address": self.ifconfig["ipv6_addrs"],
+            "subnet_mask": self.ifconfig["subnetMask"],
+            "hostname": self.sys_info["hostname"],
+            "instruments": [settings.general.instrument.resource_uri],
         }
 
         data = json.dumps(uploader_dict, indent=4)
@@ -241,15 +242,21 @@ class Uploader():
         headers = settings.default_headers
         if num_existing_uploader_records > 0:
             response = requests.put(
-                headers=headers, url=url, data=data.encode(),
-                timeout=settings.miscellaneous.connection_timeout)
+                headers=headers,
+                url=url,
+                data=data.encode(),
+                timeout=settings.miscellaneous.connection_timeout,
+            )
         else:
             response = requests.post(
-                headers=headers, url=url, data=data.encode(),
-                timeout=settings.miscellaneous.connection_timeout)
+                headers=headers,
+                url=url,
+                data=data.encode(),
+                timeout=settings.miscellaneous.connection_timeout,
+            )
         response.raise_for_status()
         logger.debug("Upload succeeded for uploader info.")
-        self.resource_uri = response.json()['resource_uri']
+        self.resource_uri = response.json()["resource_uri"]
 
     @property
     def name(self):
@@ -267,7 +274,7 @@ class Uploader():
         """
         Return the instrument PC's hostname
         """
-        return self.sys_info['hostname']
+        return self.sys_info["hostname"]
 
     def existing_upload_to_staging_request(self):
         """
@@ -283,24 +290,25 @@ class Uploader():
         if not self.ssh_key_pair:
             self.ssh_key_pair = find_or_create_key_pair()
         mytardis_url = settings.general.mytardis_url
-        url = mytardis_url + \
-            "/api/v1/mydata_uploaderregistrationrequest/?format=json" + \
-            "&uploader__uuid=" + settings.miscellaneous.uuid + \
-            "&requester_key_fingerprint=" + urllib.parse.quote(
-                self.ssh_key_pair.fingerprint)
+        url = (
+            mytardis_url
+            + "/api/v1/mydata_uploaderregistrationrequest/?format=json"
+            + "&uploader__uuid="
+            + settings.miscellaneous.uuid
+            + "&requester_key_fingerprint="
+            + urllib.parse.quote(self.ssh_key_pair.fingerprint)
+        )
         logger.debug(url)
         headers = settings.default_headers
         response = requests.get(headers=headers, url=url)
         response.raise_for_status()
         logger.debug(response.text)
         uploaders_dict = response.json()
-        if uploaders_dict['meta']['total_count'] > 0:
-            approval_dict = uploaders_dict['objects'][0]
+        if uploaders_dict["meta"]["total_count"] > 0:
+            approval_dict = uploaders_dict["objects"][0]
             logger.debug("A request already exists for this uploader.")
-            return UploaderRegistrationRequest(
-                urr_dict=approval_dict)
-        message = "This uploader hasn't requested uploading " \
-                  "via staging yet."
+            return UploaderRegistrationRequest(urr_dict=approval_dict)
+        message = "This uploader hasn't requested uploading " "via staging yet."
         logger.debug(message)
         return None
 
@@ -318,19 +326,20 @@ class Uploader():
             self.ssh_key_pair = find_or_create_key_pair()
         mytardis_url = settings.general.mytardis_url
         url = mytardis_url + "/api/v1/mydata_uploaderregistrationrequest/"
-        urr_dict = \
-            {"uploader": self.resource_uri,
-             "name": settings.general.instrument_name,
-             "requester_name": settings.general.contact_name,
-             "requester_email": settings.general.contact_email,
-             "requester_public_key": self.ssh_key_pair.public_key,
-             "requester_key_fingerprint": self.ssh_key_pair.fingerprint}
+        urr_dict = {
+            "uploader": self.resource_uri,
+            "name": settings.general.instrument_name,
+            "requester_name": settings.general.contact_name,
+            "requester_email": settings.general.contact_email,
+            "requester_public_key": self.ssh_key_pair.public_key,
+            "requester_key_fingerprint": self.ssh_key_pair.fingerprint,
+        }
         data = json.dumps(urr_dict)
-        response = requests.post(headers=settings.default_headers, url=url,
-                                 data=data.encode())
+        response = requests.post(
+            headers=settings.default_headers, url=url, data=data.encode()
+        )
         response.raise_for_status()
-        return UploaderRegistrationRequest(
-            urr_dict=response.json())
+        return UploaderRegistrationRequest(urr_dict=response.json())
 
     def request_staging_access(self):
         """
@@ -344,26 +353,31 @@ class Uploader():
                 except:
                     logger.error(traceback.format_exc())
                     raise
-                self.upload_to_staging_request = \
+                self.upload_to_staging_request = (
                     self.existing_upload_to_staging_request()
+                )
                 if not self.upload_to_staging_request:
                     try:
-                        self.upload_to_staging_request = \
+                        self.upload_to_staging_request = (
                             self.request_upload_to_staging_approval()
+                        )
                         logger.debug("Uploader registration request created.")
                     except PrivateKeyDoesNotExist:
                         logger.debug(
                             "Generating new uploader registration request, "
-                            "because private key was moved or deleted.")
-                        self.upload_to_staging_request = \
+                            "because private key was moved or deleted."
+                        )
+                        self.upload_to_staging_request = (
                             self.request_upload_to_staging_approval()
-                        logger.debug("Generated new uploader registration request,"
-                                     " because private key was moved or deleted.")
+                        )
+                        logger.debug(
+                            "Generated new uploader registration request,"
+                            " because private key was moved or deleted."
+                        )
                 if self.upload_to_staging_request.approved:
                     logger.debug("Uploads to staging have been approved!")
                 else:
-                    logger.debug(
-                        "Uploads to staging haven't been approved yet.")
+                    logger.debug("Uploads to staging haven't been approved yet.")
             except:
                 logger.error(traceback.format_exc())
                 raise
@@ -381,29 +395,29 @@ class Uploader():
         headers = settings.default_headers
 
         if not self.uploader_id:
-            url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" \
-                % (mytardis_url,
-                   urllib.parse.quote(settings.miscellaneous.uuid))
+            url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" % (
+                mytardis_url,
+                urllib.parse.quote(settings.miscellaneous.uuid),
+            )
             response = requests.get(headers=headers, url=url)
             response.raise_for_status()
             uploaders_dict = response.json()
-            num_existing_uploader_records = \
-                uploaders_dict['meta']['total_count']
+            num_existing_uploader_records = uploaders_dict["meta"]["total_count"]
             if num_existing_uploader_records > 0:
-                self.uploader_id = uploaders_dict['objects'][0]['id']
+                self.uploader_id = uploaders_dict["objects"][0]["id"]
             else:
-                logger.debug("Uploader record doesn't exist yet, so "
-                             "we can't save settings to the server.")
+                logger.debug(
+                    "Uploader record doesn't exist yet, so "
+                    "we can't save settings to the server."
+                )
                 return
 
         url = "%s/api/v1/mydata_uploader/%s/" % (mytardis_url, self.uploader_id)
 
-        patch_data = {
-            'settings': settings_list,
-            'uuid': settings.miscellaneous.uuid
-        }
-        response = requests.patch(headers=headers, url=url,
-                                  data=json.dumps(patch_data).encode())
+        patch_data = {"settings": settings_list, "uuid": settings.miscellaneous.uuid}
+        response = requests.patch(
+            headers=headers, url=url, data=json.dumps(patch_data).encode()
+        )
         response.raise_for_status()
 
     def get_settings(self):
@@ -417,12 +431,16 @@ class Uploader():
 
         mytardis_url = settings.general.mytardis_url
         headers = settings.default_headers
-        url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" \
-            % (mytardis_url, urllib.parse.quote(settings.miscellaneous.uuid))
+        url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" % (
+            mytardis_url,
+            urllib.parse.quote(settings.miscellaneous.uuid),
+        )
         try:
             response = requests.get(
-                headers=headers, url=url,
-                timeout=settings.miscellaneous.connection_timeout)
+                headers=headers,
+                url=url,
+                timeout=settings.miscellaneous.connection_timeout,
+            )
         except Exception as err:
             logger.error(str(err))
             raise
@@ -433,27 +451,27 @@ class Uploader():
             raise MissingMyDataAppOnMyTardisServer(message)
         response.raise_for_status()
         uploaders_dict = response.json()
-        num_existing_uploader_records = \
-            uploaders_dict['meta']['total_count']
+        num_existing_uploader_records = uploaders_dict["meta"]["total_count"]
         if num_existing_uploader_records > 0:
-            if 'id' in uploaders_dict['objects'][0]:
-                self.uploader_id = uploaders_dict['objects'][0]['id']
-            if 'settings' in uploaders_dict['objects'][0]:
-                self.uploader_settings = \
-                    uploaders_dict['objects'][0]['settings']
-                settings_updated_string = \
-                    uploaders_dict['objects'][0]['settings_updated']
+            if "id" in uploaders_dict["objects"][0]:
+                self.uploader_id = uploaders_dict["objects"][0]["id"]
+            if "settings" in uploaders_dict["objects"][0]:
+                self.uploader_settings = uploaders_dict["objects"][0]["settings"]
+                settings_updated_string = uploaders_dict["objects"][0][
+                    "settings_updated"
+                ]
                 logger.debug("settings_updated: %s" % settings_updated_string)
                 if settings_updated_string:
-                    self.settings_updated = \
-                        dateutil.parser.parse(settings_updated_string)
+                    self.settings_updated = dateutil.parser.parse(
+                        settings_updated_string
+                    )
             else:
                 self.uploader_settings = None
 
         return self.uploader_settings
 
 
-class UploaderRegistrationRequest():
+class UploaderRegistrationRequest:
     """
     Model class for MyTardis API v1's UploaderRegistrationRequestAppResource.
     See: https://github.com/mytardis/mytardis-app-mydata/blob/master/api.py
@@ -463,6 +481,7 @@ class UploaderRegistrationRequest():
     on the SCP server, and the approved storage box (giving the remote file
     path to upload to, and the SCP username, hostname and port).
     """
+
     def __init__(self, urr_dict=None):
         self.urr_dict = urr_dict
 
@@ -471,14 +490,14 @@ class UploaderRegistrationRequest():
         """
         Return True if uploader registration request has been approved
         """
-        return self.urr_dict['approved']
+        return self.urr_dict["approved"]
 
     @property
     def approved_storage_box(self):
         """
         Return approved storage box
         """
-        storagebox_dict = self.urr_dict['approved_storage_box']
+        storagebox_dict = self.urr_dict["approved_storage_box"]
         if storagebox_dict:
             return StorageBox(storagebox_dict=storagebox_dict)
         return None
@@ -493,8 +512,7 @@ class UploaderRegistrationRequest():
         for attribute in self.approved_storage_box.attributes:
             if attribute.key == "scp_username":
                 return attribute.value
-        raise StorageBoxAttributeNotFound(
-            self.approved_storage_box, "scp_username")
+        raise StorageBoxAttributeNotFound(self.approved_storage_box, "scp_username")
 
     @property
     def scp_hostname(self):
@@ -506,8 +524,7 @@ class UploaderRegistrationRequest():
         for attribute in self.approved_storage_box.attributes:
             if attribute.key == "scp_hostname":
                 return attribute.value
-        raise StorageBoxAttributeNotFound(
-            self.approved_storage_box, "scp_hostname")
+        raise StorageBoxAttributeNotFound(self.approved_storage_box, "scp_hostname")
 
     @property
     def scp_port(self):

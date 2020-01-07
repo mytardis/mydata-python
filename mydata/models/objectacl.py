@@ -9,17 +9,19 @@ from ..conf import settings
 from ..logs import logger
 
 
-class ObjectACL():
+class ObjectACL:
     """
     Model class for MyTardis API v1's ObjectACLResource.
     """
+
     @staticmethod
     def share_exp_with_user(experiment, user):
         """
         Grants full ownership of experiment to user.
         """
-        logger.debug("\nSharing via ObjectACL with username \"" +
-                     user.username + "\"...\n")
+        logger.debug(
+            '\nSharing via ObjectACL with username "' + user.username + '"...\n'
+        )
 
         mytardis_url = settings.general.mytardis_url
 
@@ -35,11 +37,15 @@ class ObjectACL():
             "canWrite": True,
             "canDelete": False,
             "effectiveDate": None,
-            "expiryDate": None}
+            "expiryDate": None,
+        }
 
         url = mytardis_url + "/api/v1/objectacl/"
-        response = requests.post(headers=settings.default_headers, url=url,
-                                 data=json.dumps(object_acl_dict).encode())
+        response = requests.post(
+            headers=settings.default_headers,
+            url=url,
+            data=json.dumps(object_acl_dict).encode(),
+        )
         response.raise_for_status()
         logger.debug("Shared experiment with user " + user.username + ".")
 
@@ -48,8 +54,7 @@ class ObjectACL():
         """
         Grants read access to experiment to group.
         """
-        logger.debug("\nSharing via ObjectACL with group \"" +
-                     group.name + "\"...\n")
+        logger.debug('\nSharing via ObjectACL with group "' + group.name + '"...\n')
 
         mytardis_url = settings.general.mytardis_url
 
@@ -65,10 +70,14 @@ class ObjectACL():
             "canWrite": True,
             "canDelete": False,
             "effectiveDate": None,
-            "expiryDate": None}
+            "expiryDate": None,
+        }
 
         url = mytardis_url + "/api/v1/objectacl/"
-        response = requests.post(headers=settings.default_headers, url=url,
-                                 data=json.dumps(object_acl_dict).encode())
+        response = requests.post(
+            headers=settings.default_headers,
+            url=url,
+            data=json.dumps(object_acl_dict).encode(),
+        )
         response.raise_for_status()
         logger.debug("Shared experiment with group " + group.name + ".")

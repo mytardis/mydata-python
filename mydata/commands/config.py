@@ -7,7 +7,7 @@ import click
 
 from mydata.conf import settings
 
-SECTION = 'MyData'
+SECTION = "MyData"
 
 
 @click.group()
@@ -25,7 +25,7 @@ def discover():
     print(settings.config_path)
 
 
-@config.command(name='list')
+@config.command(name="list")
 def list_command():
     """
     List keys in MyData.cfg
@@ -37,7 +37,7 @@ def list_command():
 
 
 @config.command()
-@click.argument('key')
+@click.argument("key")
 def get(key):
     """
     Get value from MyData.cfg

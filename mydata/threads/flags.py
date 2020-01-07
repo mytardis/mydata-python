@@ -4,22 +4,23 @@ Thread-safe flags
 import threading
 
 
-class ThreadSafeFlags():
+class ThreadSafeFlags:
     """
     Thread-safe flags
     """
+
     def __init__(self):
         self._flags = dict()
-        self._flags['scanning_folders'] = threading.Event()
-        self._flags['test_run_running'] = threading.Event()
-        self._flags['should_abort'] = threading.Event()
+        self._flags["scanning_folders"] = threading.Event()
+        self._flags["test_run_running"] = threading.Event()
+        self._flags["should_abort"] = threading.Event()
 
     @property
     def scanning_folders(self):
         """
         Returns True if MyData is currently scanning data folders.
         """
-        return self._flags['scanning_folders'].isSet()
+        return self._flags["scanning_folders"].isSet()
 
     @scanning_folders.setter
     def scanning_folders(self, value):
@@ -27,9 +28,9 @@ class ThreadSafeFlags():
         Records whether MyData is currently scanning data folders.
         """
         if value:
-            self._flags['scanning_folders'].set()
+            self._flags["scanning_folders"].set()
         else:
-            self._flags['scanning_folders'].clear()
+            self._flags["scanning_folders"].clear()
 
     @property
     def test_run_running(self):
@@ -39,7 +40,7 @@ class ThreadSafeFlags():
         be aborted.  If not, we need to be careful to avoid
         aborting a real uploads run.
         """
-        return self._flags['test_run_running'].isSet()
+        return self._flags["test_run_running"].isSet()
 
     @test_run_running.setter
     def test_run_running(self, value):
@@ -47,9 +48,9 @@ class ThreadSafeFlags():
         Records whether MyData is currently performing a test run.
         """
         if value:
-            self._flags['test_run_running'].set()
+            self._flags["test_run_running"].set()
         else:
-            self._flags['test_run_running'].clear()
+            self._flags["test_run_running"].clear()
 
     @property
     def should_abort(self):
@@ -68,7 +69,7 @@ class ThreadSafeFlags():
         FoldersController's InitializeStatusFlags method the next time we run
         the scans and uploads.
         """
-        return self._flags['should_abort'].isSet()
+        return self._flags["should_abort"].isSet()
 
     @should_abort.setter
     def should_abort(self, should_abort):
@@ -77,8 +78,9 @@ class ThreadSafeFlags():
         datafile lookups (verifications) and/or uploads.
         """
         if should_abort:
-            self._flags['should_abort'].set()
+            self._flags["should_abort"].set()
         else:
-            self._flags['should_abort'].clear()
+            self._flags["should_abort"].clear()
+
 
 FLAGS = ThreadSafeFlags()

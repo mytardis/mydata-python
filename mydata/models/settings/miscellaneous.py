@@ -11,7 +11,7 @@ import sys
 from .base import BaseSettings
 
 
-class LastSettingsUpdateTrigger():
+class LastSettingsUpdateTrigger:
     """
     Enumerated data type encapsulating the trigger for the last change to
     the settings.
@@ -27,6 +27,7 @@ class LastSettingsUpdateTrigger():
     then the user clicks the "Upload" button without opening the settings
     dialog first, then we do need to validate settings.
     """
+
     # The last update to settings came from reading MyData.cfg from disk:
     READ_FROM_DISK = 0
     # The last update to settings came from the settings dialog:
@@ -39,6 +40,7 @@ class MiscellaneousSettings(BaseSettings):
     but accessible in MyData.cfg, or in the case of "locked", visible in the
     settings dialog, but not specific to any one tab view.
     """
+
     def __init__(self):
         super(MiscellaneousSettings, self).__init__()
 
@@ -46,15 +48,15 @@ class MiscellaneousSettings(BaseSettings):
         self.mydata_config = dict()
 
         self.fields = [
-            'locked',
-            'uuid',
-            'verification_delay',
-            'max_verification_threads',
-            'fake_md5_sum',
-            'cipher',
-            'progress_poll_interval',
-            'cache_datafile_lookups',
-            'connection_timeout'
+            "locked",
+            "uuid",
+            "verification_delay",
+            "max_verification_threads",
+            "fake_md5_sum",
+            "cipher",
+            "progress_poll_interval",
+            "cache_datafile_lookups",
+            "connection_timeout",
         ]
 
         self.default = dict(
@@ -66,7 +68,8 @@ class MiscellaneousSettings(BaseSettings):
             cipher="aes128-ctr",
             progress_poll_interval=1.0,
             cache_datafile_lookups=True,
-            connection_timeout=10.0)
+            connection_timeout=10.0,
+        )
 
         # Settings determined from command-line arguments of the
         # MyData binary or the run.py entry point which are
@@ -80,7 +83,7 @@ class MiscellaneousSettings(BaseSettings):
 
         Return True if settings are locked
         """
-        return self.mydata_config['locked']
+        return self.mydata_config["locked"]
 
     @locked.setter
     def locked(self, locked):
@@ -89,21 +92,21 @@ class MiscellaneousSettings(BaseSettings):
 
         Set this to True to lock settings
         """
-        self.mydata_config['locked'] = locked
+        self.mydata_config["locked"] = locked
 
     @property
     def uuid(self):
         """
         Get this MyData instance's unique ID
         """
-        return self.mydata_config['uuid']
+        return self.mydata_config["uuid"]
 
     @uuid.setter
     def uuid(self, uuid):
         """
         Set this MyData instance's unique ID
         """
-        self.mydata_config['uuid'] = uuid
+        self.mydata_config["uuid"] = uuid
 
     @property
     def fake_md5_sum(self):
@@ -113,7 +116,7 @@ class MiscellaneousSettings(BaseSettings):
         Until it is set properly, the file won't be
         verified on MyTardis.
         """
-        return self.mydata_config['fake_md5_sum']
+        return self.mydata_config["fake_md5_sum"]
 
     @property
     def verification_delay(self):
@@ -124,21 +127,21 @@ class MiscellaneousSettings(BaseSettings):
         :return: the delay in seconds
         :rtype: float
         """
-        return self.mydata_config['verification_delay']
+        return self.mydata_config["verification_delay"]
 
     @property
     def max_verification_threads(self):
         """
         Return the maximum number of concurrent DataFile lookups
         """
-        return int(self.mydata_config['max_verification_threads'])
+        return int(self.mydata_config["max_verification_threads"])
 
     @max_verification_threads.setter
     def max_verification_threads(self, max_verification_threads):
         """
         Set the maximum number of concurrent DataFile lookups
         """
-        self.mydata_config['max_verification_threads'] = max_verification_threads
+        self.mydata_config["max_verification_threads"] = max_verification_threads
 
     @staticmethod
     def get_fake_md5sum():
@@ -153,14 +156,14 @@ class MiscellaneousSettings(BaseSettings):
         """
         SSH Cipher for SCP uploads.
         """
-        return self.mydata_config['cipher']
+        return self.mydata_config["cipher"]
 
     @property
     def cipher_options(self):
         """
         SSH Cipher Options for SCP uploads.
         """
-        return ["-c", self.mydata_config['cipher']]
+        return ["-c", self.mydata_config["cipher"]]
 
     @property
     def progress_poll_interval(self):
@@ -171,7 +174,7 @@ class MiscellaneousSettings(BaseSettings):
         :return: the interval in seconds
         :rtype: float
         """
-        return self.mydata_config['progress_poll_interval']
+        return self.mydata_config["progress_poll_interval"]
 
     @property
     def cache_datafile_lookups(self):
@@ -179,7 +182,7 @@ class MiscellaneousSettings(BaseSettings):
         Returns True if MyData will cache local paths and dataset IDs of
         datafiles which have been previously found to be verified on MyTardis.
         """
-        return self.mydata_config['cache_datafile_lookups']
+        return self.mydata_config["cache_datafile_lookups"]
 
     @cache_datafile_lookups.setter
     def cache_datafile_lookups(self, cache_datafile_lookups):
@@ -187,7 +190,7 @@ class MiscellaneousSettings(BaseSettings):
         Set this to True if MyData should cache local paths and dataset IDs of
         datafiles which have been previously found to be verified on MyTardis.
         """
-        self.mydata_config['cache_datafile_lookups'] = cache_datafile_lookups
+        self.mydata_config["cache_datafile_lookups"] = cache_datafile_lookups
 
     @property
     def connection_timeout(self):
@@ -197,7 +200,7 @@ class MiscellaneousSettings(BaseSettings):
         :return: the timeout in seconds
         :rtype: float
         """
-        return self.mydata_config['connection_timeout']
+        return self.mydata_config["connection_timeout"]
 
     @connection_timeout.setter
     def connection_timeout(self, connection_timeout):
@@ -207,19 +210,18 @@ class MiscellaneousSettings(BaseSettings):
         :param connection_timeout: the timeout in seconds
         :type connection_timeout: float
         """
-        self.mydata_config['connection_timeout'] = connection_timeout
+        self.mydata_config["connection_timeout"] = connection_timeout
 
     def set_default_for_field(self, field):
         """
         Set default value for one field.
         """
         self.mydata_config[field] = self.default[field]
-        if field == 'cipher':
+        if field == "cipher":
             if sys.platform.startswith("win"):
-                self.mydata_config['cipher'] = \
-                    "aes128-gcm@openssh.com,aes128-ctr"
+                self.mydata_config["cipher"] = "aes128-gcm@openssh.com,aes128-ctr"
             else:
                 # On Mac/Linux, we don't bundle SSH binaries, we
                 # just use the installed SSH version, which might
                 # be too old to support aes128-gcm@openssh.com
-                self.mydata_config['cipher'] = "aes128-ctr"
+                self.mydata_config["cipher"] = "aes128-ctr"

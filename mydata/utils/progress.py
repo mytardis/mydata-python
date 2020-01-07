@@ -13,20 +13,33 @@ from ..models.upload import UploadStatus
 from ..utils.exceptions import MissingMyDataReplicaApiEndpoint
 
 
-def monitor_progress(progress_poll_interval, upload_model,
-                     file_size, monitoring_progress, progress_callback):
+def monitor_progress(
+    progress_poll_interval,
+    upload_model,
+    file_size,
+    monitoring_progress,
+    progress_callback,
+):
     """
     Monitor progress via RESTful queries.
     """
-    if should_cancel_upload(upload_model) or \
-            (upload_model.status != UploadStatus.IN_PROGRESS and
-             upload_model.status != UploadStatus.NOT_STARTED):
+    if should_cancel_upload(upload_model) or (
+        upload_model.status != UploadStatus.IN_PROGRESS
+        and upload_model.status != UploadStatus.NOT_STARTED
+    ):
         return
 
     timer = threading.Timer(
-        progress_poll_interval, monitor_progress,
-        args=[progress_poll_interval, upload_model, file_size,
-              monitoring_progress, progress_callback])
+        progress_poll_interval,
+        monitor_progress,
+        args=[
+            progress_poll_interval,
+            upload_model,
+            file_size,
+            monitoring_progress,
+            progress_callback,
+        ],
+    )
     timer.start()
     if upload_model.status == UploadStatus.NOT_STARTED:
         return
@@ -36,8 +49,7 @@ def monitor_progress(progress_poll_interval, upload_model,
     if upload_model.dfo_id is None:
         if upload_model.datafile_id is not None:
             try:
-                datafile = DataFile.get_datafile_from_id(
-                    upload_model.datafile_id)
+                datafile = DataFile.get_datafile_from_id(upload_model.datafile_id)
                 if datafile:
                     upload_model.dfo_id = datafile.replicas[0].dfo_id
             except requests.exceptions.RequestException:
@@ -51,8 +63,9 @@ def monitor_progress(progress_poll_interval, upload_model,
                 pass
     if upload_model.dfo_id:
         try:
-            bytes_uploaded = \
-                Replica.count_bytes_uploaded_to_staging(upload_model.dfo_id)
+            bytes_uploaded = Replica.count_bytes_uploaded_to_staging(
+                upload_model.dfo_id
+            )
             latest_update_time = datetime.now()
             # If this file already has a partial upload in staging,
             # progress and speed estimates can be misleading.

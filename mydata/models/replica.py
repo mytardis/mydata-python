@@ -7,12 +7,13 @@ import requests
 from ..conf import settings
 
 
-class Replica():
+class Replica:
     """
     The Replica model has been removed from MyTardis and replaced by
     the DataFileObject model.  But MyTardis's API still returns
     JSON labeled as "replicas" within each DataFileResource.
     """
+
     def __init__(self, replica_dict=None):
         self.id = None  # pylint: disable=invalid-name
         self.uri = None
@@ -24,7 +25,7 @@ class Replica():
             for key in replica_dict:
                 if hasattr(self, key):
                     self.__dict__[key] = replica_dict[key]
-            self.datafile_resource_uri = replica_dict['datafile']
+            self.datafile_resource_uri = replica_dict["datafile"]
 
     @staticmethod
     def count_bytes_uploaded_to_staging(dfo_id):
@@ -33,12 +34,14 @@ class Replica():
 
         :raises requests.exceptions.HTTPError:
         """
-        url = "%s/api/v1/mydata_replica/%s/?format=json" \
-            % (settings.general.mytardis_url, dfo_id)
+        url = "%s/api/v1/mydata_replica/%s/?format=json" % (
+            settings.general.mytardis_url,
+            dfo_id,
+        )
         response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         dfo_dict = response.json()
-        return dfo_dict['size']
+        return dfo_dict["size"]
 
     @property
     def dfo_id(self):

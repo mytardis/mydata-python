@@ -4,10 +4,15 @@ Locks for thread synchronization
 import threading
 
 LOCK_NAMES = [
-    'scanning_folders', 'create_uploader', 'request_staging_access',
-    'update_cache', 'close_cache']
+    "scanning_folders",
+    "create_uploader",
+    "request_staging_access",
+    "update_cache",
+    "close_cache",
+]
 
-class ThreadingLocks():
+
+class ThreadingLocks:
     """
     Locks for thread synchronization.
 
@@ -20,6 +25,7 @@ class ThreadingLocks():
         with LOCKS.update_cache:
             UpdateCache()
     """
+
     def __init__(self):
         """
         We will only define one instance of the ThreadingLocks class,
@@ -29,8 +35,11 @@ class ThreadingLocks():
         self._locks = dict()
         for lock_name in LOCK_NAMES:
             self._locks[lock_name] = threading.Lock()
-            setattr(ThreadingLocks, lock_name,
-                    property(lambda self, key=lock_name: self._locks[key]))
+            setattr(
+                ThreadingLocks,
+                lock_name,
+                property(lambda self, key=lock_name: self._locks[key]),
+            )
 
 
 LOCKS = ThreadingLocks()

@@ -14,15 +14,23 @@ from ..conf import settings
 from ..logs import logger
 
 
-class Folder():
+class Folder:
     """
     Model class representing a data folder which may or may not
     have a corresponding dataset record in MyTardis.
     """
+
     # pylint: disable=too-many-public-methods
-    def __init__(self, name, location, user_folder_name,
-                 group_folder_name, owner, group=None,
-                 is_exp_files_folder=False):
+    def __init__(
+        self,
+        name,
+        location,
+        user_folder_name,
+        group_folder_name,
+        owner,
+        group=None,
+        is_exp_files_folder=False,
+    ):
 
         self.data_view_fields = dict(
             name=name,
@@ -31,17 +39,15 @@ class Folder():
             experiment_title="",
             status="0 of 0 files uploaded",
             owner=owner,
-            group=group)
+            group=group,
+        )
 
         # If there are files in the top-level of an Experiment folder, not
         # within any dataset folder, then we create a special dataset to
         # collect these files:
         self.is_exp_files_folder = is_exp_files_folder
 
-        self.datafile_paths = dict(
-            files=[],
-            directories=[],
-            uploaded=[])
+        self.datafile_paths = dict(files=[], directories=[], uploaded=[])
         self.populate_datafile_paths()
 
         self.user_folder_name = user_folder_name
@@ -61,36 +67,41 @@ class Folder():
 
         for dirname, _, files in os.walk(absolute_folder_path):
             for filename in sorted(files):
-                if settings.filters.use_includes_file and \
-                        not settings.filters.use_excludes_file:
+                if (
+                    settings.filters.use_includes_file
+                    and not settings.filters.use_excludes_file
+                ):
                     if not Folder.matches_includes(filename):
-                        logger.debug("Ignoring %s, not matching includes."
-                                     % filename)
+                        logger.debug("Ignoring %s, not matching includes." % filename)
                         continue
-                elif not settings.filters.use_includes_file and \
-                        settings.filters.use_excludes_file:
+                elif (
+                    not settings.filters.use_includes_file
+                    and settings.filters.use_excludes_file
+                ):
                     if Folder.matches_excludes(filename):
-                        logger.debug("Ignoring %s, matching excludes."
-                                     % filename)
+                        logger.debug("Ignoring %s, matching excludes." % filename)
                         continue
-                elif settings.filters.use_includes_file and \
-                        settings.filters.use_excludes_file:
-                    if Folder.matches_excludes(filename) and \
-                            not Folder.matches_includes(filename):
-                        logger.debug("Ignoring %s, matching excludes "
-                                     "and not matching includes."
-                                     % filename)
+                elif (
+                    settings.filters.use_includes_file
+                    and settings.filters.use_excludes_file
+                ):
+                    if Folder.matches_excludes(
+                        filename
+                    ) and not Folder.matches_includes(filename):
+                        logger.debug(
+                            "Ignoring %s, matching excludes "
+                            "and not matching includes." % filename
+                        )
                         continue
-                self.datafile_paths['files'].append(
-                    os.path.join(dirname, filename))
-                self.datafile_paths['directories']\
-                    .append(os.path.relpath(dirname, absolute_folder_path))
-                self.datafile_paths['uploaded'].append(False)
+                self.datafile_paths["files"].append(os.path.join(dirname, filename))
+                self.datafile_paths["directories"].append(
+                    os.path.relpath(dirname, absolute_folder_path)
+                )
+                self.datafile_paths["uploaded"].append(False)
             if self.is_exp_files_folder:
                 break
         self.convert_subdirs_to_mytardis_format()
-        self.data_view_fields['status'] = \
-            "0 of %d files uploaded" % self.num_files
+        self.data_view_fields["status"] = "0 of %d files uploaded" % self.num_files
 
     def convert_subdirs_to_mytardis_format(self):
         """
@@ -99,11 +110,12 @@ class Folder():
         empty string (rather than ".") to indicate that the file is in
         the dataset's top-level directory
         """
-        for i in range(0, len(self.datafile_paths['directories'])):
-            if self.datafile_paths['directories'][i] == ".":
-                self.datafile_paths['directories'][i] = ""
-            self.datafile_paths['directories'][i] = \
-                self.datafile_paths['directories'][i].replace("\\", "/")
+        for i in range(0, len(self.datafile_paths["directories"])):
+            if self.datafile_paths["directories"][i] == ".":
+                self.datafile_paths["directories"][i] = ""
+            self.datafile_paths["directories"][i] = self.datafile_paths["directories"][
+                i
+            ].replace("\\", "/")
 
     def set_datafile_uploaded(self, datafile_index, uploaded):
         """
@@ -112,26 +124,28 @@ class Folder():
         Used to update the number of files uploaded per folder
         displayed in the Status column of the Folders view.
         """
-        self.datafile_paths['uploaded'][datafile_index] = uploaded
-        num_files_uploaded = sum(self.datafile_paths['uploaded'])
-        self.data_view_fields['status'] = \
-            "%d of %d files uploaded" % (num_files_uploaded,
-                                         self.num_files)
+        self.datafile_paths["uploaded"][datafile_index] = uploaded
+        num_files_uploaded = sum(self.datafile_paths["uploaded"])
+        self.data_view_fields["status"] = "%d of %d files uploaded" % (
+            num_files_uploaded,
+            self.num_files,
+        )
 
     def get_datafile_path(self, datafile_index):
         """
         Get the absolute path to a file within this folder's root directory
         which is os.path.join(self.location, self.name)
         """
-        return self.datafile_paths['files'][datafile_index]
+        return self.datafile_paths["files"][datafile_index]
 
     def get_datafile_rel_path(self, datafile_index):
         """
         Get the path to a file relative to the folder's root directory
         which is os.path.join(self.location, self.name)
         """
-        return os.path.relpath(self.get_datafile_path(datafile_index),
-                               settings.general.data_directory)
+        return os.path.relpath(
+            self.get_datafile_path(datafile_index), settings.general.data_directory
+        )
 
     def get_datafile_directory(self, datafile_index):
         """
@@ -139,13 +153,13 @@ class Folder():
         folder's root directory which is
         os.path.join(self.location, self.name)
         """
-        return self.datafile_paths['directories'][datafile_index]
+        return self.datafile_paths["directories"][datafile_index]
 
     def get_datafile_name(self, datafile_index):
         """
         Return a file's filename
         """
-        return os.path.basename(self.datafile_paths['files'][datafile_index])
+        return os.path.basename(self.datafile_paths["files"][datafile_index])
 
     def get_datafile_size(self, datafile_index):
         """
@@ -160,7 +174,8 @@ class Folder():
         absolute_file_path = self.get_datafile_path(datafile_index)
         try:
             created_time_iso_string = datetime.fromtimestamp(
-                os.stat(absolute_file_path).st_ctime).isoformat()
+                os.stat(absolute_file_path).st_ctime
+            ).isoformat()
             return created_time_iso_string
         except:
             logger.error(traceback.format_exc())
@@ -173,7 +188,8 @@ class Folder():
         absolute_file_path = self.get_datafile_path(datafile_index)
         try:
             modified_time_iso_string = datetime.fromtimestamp(
-                os.stat(absolute_file_path).st_mtime).isoformat()
+                os.stat(absolute_file_path).st_mtime
+            ).isoformat()
             return modified_time_iso_string
         except:
             logger.error(traceback.format_exc())
@@ -185,12 +201,12 @@ class Folder():
         data directory configured in MyData's settings
         """
         if self.is_exp_files_folder:
-            relpath = os.path.relpath(
-                self.location, settings.general.data_directory)
+            relpath = os.path.relpath(self.location, settings.general.data_directory)
         else:
             relpath = os.path.join(
                 os.path.relpath(self.location, settings.general.data_directory),
-                self.name)
+                self.name,
+            )
         return relpath
 
     @property
@@ -198,7 +214,7 @@ class Folder():
         """
         Return total number of files in this folder
         """
-        return len(self.datafile_paths['files'])
+        return len(self.datafile_paths["files"])
 
     def set_created_date(self):
         """
@@ -208,23 +224,23 @@ class Folder():
             absolute_folder_path = self.location
         else:
             absolute_folder_path = os.path.join(self.location, self.name)
-        self.data_view_fields['created'] = datetime.fromtimestamp(
-            os.stat(absolute_folder_path).st_ctime)\
-            .strftime('%Y-%m-%d')
+        self.data_view_fields["created"] = datetime.fromtimestamp(
+            os.stat(absolute_folder_path).st_ctime
+        ).strftime("%Y-%m-%d")
 
     @property
     def experiment_title(self):
         """
         Get MyTardis experiment title associated with this folder
         """
-        return self.data_view_fields['experiment_title']
+        return self.data_view_fields["experiment_title"]
 
     @experiment_title.setter
     def experiment_title(self, title):
         """
         Set MyTardis experiment title associated with this folder
         """
-        self.data_view_fields['experiment_title'] = title
+        self.data_view_fields["experiment_title"] = title
 
     @staticmethod
     def matches_patterns(filename, includes_or_excludes_file):
@@ -233,7 +249,7 @@ class Folder():
         or excludes file.
         """
         match = False
-        with open(includes_or_excludes_file, 'r') as patterns_file:
+        with open(includes_or_excludes_file, "r") as patterns_file:
             for glob in patterns_file.readlines():
                 glob = glob.strip()
                 if glob == "":
@@ -251,8 +267,7 @@ class Folder():
         Return True if file matches at least one pattern in the includes
         file.
         """
-        return Folder.matches_patterns(
-            filename, settings.filters.includes_file)
+        return Folder.matches_patterns(filename, settings.filters.includes_file)
 
     @staticmethod
     def matches_excludes(filename):
@@ -260,8 +275,7 @@ class Folder():
         Return True if file matches at least one pattern in the excludes
         file.
         """
-        return Folder.matches_patterns(
-            filename, settings.filters.excludes_file)
+        return Folder.matches_patterns(filename, settings.filters.excludes_file)
 
     def file_is_too_new_to_upload(self, datafile_index):
         """
@@ -271,14 +285,14 @@ class Folder():
         """
         if settings.filters.ignore_new_files:
             absolute_file_path = self.get_datafile_path(datafile_index)
-            too_new = (time.time() - os.path.getmtime(absolute_file_path)) <= \
-                (settings.filters.ignore_new_files_minutes * 60)
+            too_new = (time.time() - os.path.getmtime(absolute_file_path)) <= (
+                settings.filters.ignore_new_files_minutes * 60
+            )
         else:
             too_new = False
         return too_new
 
-    def calculate_md5_sum(self, datafile_index, progress_cb=None,
-                          canceled_cb=None):
+    def calculate_md5_sum(self, datafile_index, progress_cb=None, canceled_cb=None):
         """
         Calculate MD5 checksum.
 
@@ -295,14 +309,15 @@ class Folder():
         while (file_size / chunk_size) > 50 and chunk_size < max_chunk_size:
             chunk_size *= 2
         bytes_processed = 0
-        with open(absolute_file_path, 'rb') as file_handle:
+        with open(absolute_file_path, "rb") as file_handle:
             # Note that the iter() func needs an empty byte string
             # for the returned iterator to halt at EOF, since read()
             # returns b'' (not just '').
-            for chunk in iter(lambda: file_handle.read(chunk_size), b''):
+            for chunk in iter(lambda: file_handle.read(chunk_size), b""):
                 if canceled_cb and canceled_cb():
-                    logger.debug("Aborting MD5 calculation for "
-                                 "%s" % absolute_file_path)
+                    logger.debug(
+                        "Aborting MD5 calculation for " "%s" % absolute_file_path
+                    )
                     return None
                 md5.update(chunk)
                 bytes_processed += len(chunk)
@@ -315,9 +330,9 @@ class Folder():
         """
         Reset counts of uploaded files etc.
         """
-        self.datafile_paths['uploaded'] = []
+        self.datafile_paths["uploaded"] = []
         for _ in range(0, self.num_files):
-            self.datafile_paths['uploaded'].append(False)
+            self.datafile_paths["uploaded"].append(False)
 
     @property
     def name(self):
@@ -325,7 +340,7 @@ class Folder():
         The folder name, displayed in the Folder (dataset)
         column of MyData's Folders view
         """
-        return self.data_view_fields['name']
+        return self.data_view_fields["name"]
 
     @property
     def location(self):
@@ -333,7 +348,7 @@ class Folder():
         The folder location, displayed in the Location
         column of MyData's Folders view
         """
-        return self.data_view_fields['location']
+        return self.data_view_fields["location"]
 
     @property
     def created(self):
@@ -341,7 +356,7 @@ class Folder():
         The folder's created date/time stamp, displayed
         in the Created column of MyData's Folders view
         """
-        return self.data_view_fields['created']
+        return self.data_view_fields["created"]
 
     @property
     def status(self):
@@ -349,7 +364,7 @@ class Folder():
         The folder's upload status, displayed in the
         Status column of MyData's Folders view
         """
-        return self.data_view_fields['status']
+        return self.data_view_fields["status"]
 
     @property
     def owner(self):
@@ -358,7 +373,7 @@ class Folder():
         be granted access in the ObjectACL), displayed in
         the Owner column of MyData's Folders view
         """
-        return self.data_view_fields['owner']
+        return self.data_view_fields["owner"]
 
     @property
     def group(self):
@@ -367,4 +382,4 @@ class Folder():
         via its ObjectACL, displayed in the Group column of
         MyData's Folders view
         """
-        return self.data_view_fields['group']
+        return self.data_view_fields["group"]

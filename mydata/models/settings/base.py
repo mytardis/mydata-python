@@ -4,11 +4,12 @@ displayed in each tab of the settings dialog
 """
 
 
-class BaseSettings():
+class BaseSettings:
     """
     Base class for deriving a model class for the settings
     displayed in each tab of the settings dialog
     """
+
     def __init__(self):
         # Saved in MyData.cfg:
         self.mydata_config = dict()

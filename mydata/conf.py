@@ -11,5 +11,5 @@ import os
 from mydata.models.settings import Settings
 from mydata.models.settings.serialize import load_settings
 
-settings = Settings(config_path=os.environ.get('MYDATA_CONFIG_PATH'))
+settings = Settings(config_path=os.environ.get("MYDATA_CONFIG_PATH"))
 load_settings()

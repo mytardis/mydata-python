@@ -9,19 +9,20 @@ from ..conf import settings
 from ..logs import logger
 
 
-class Group():
+class Group:
     """
     Model class for MyTardis API v1's GroupResource.
     """
+
     def __init__(self, name=None, group_dict=None):
         self.group_id = None
         self.name = name
         self.group_dict = group_dict
 
         if group_dict is not None:
-            self.group_id = group_dict['id']
+            self.group_id = group_dict["id"]
             if name is None:
-                self.name = group_dict['name']
+                self.name = group_dict["name"]
 
         self.short_name = name
         length = len(settings.advanced.group_prefix)
@@ -41,15 +42,16 @@ class Group():
 
         :raises requests.exceptions.HTTPError:
         """
-        url = "%s/api/v1/group/?format=json&name=%s" \
-            % (settings.general.mytardis_url,
-               urllib.parse.quote(name.encode('utf-8')))
+        url = "%s/api/v1/group/?format=json&name=%s" % (
+            settings.general.mytardis_url,
+            urllib.parse.quote(name.encode("utf-8")),
+        )
         response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()
         groups_dict = response.json()
-        num_groups_found = groups_dict['meta']['total_count']
+        num_groups_found = groups_dict["meta"]["total_count"]
 
         if num_groups_found == 0:
             return None
         logger.debug("Found group record for name '" + name + "'.")
-        return Group(name=name, group_dict=groups_dict['objects'][0])
+        return Group(name=name, group_dict=groups_dict["objects"][0])

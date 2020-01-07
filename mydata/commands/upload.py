@@ -12,7 +12,7 @@ def upload():
     """
     Upload files from structure described in MyData.cfg
     """
-    assert settings.folder_structure == 'Experiment / Dataset'
+    assert settings.folder_structure == "Experiment / Dataset"
 
     exps = []
     folders = []

@@ -3,10 +3,11 @@ Models for datafile lookup / verification.
 """
 
 
-class LookupStatus():
+class LookupStatus:
     """
     Enumerated data type for lookup states.
     """
+
     NOT_STARTED = 0
 
     IN_PROGRESS = 1
@@ -40,10 +41,11 @@ class LookupStatus():
     FAILED = 9
 
 
-class Lookup():
+class Lookup:
     """
     Model for datafile verification / lookup.
     """
+
     def __init__(self, folder, datafile_index):
         self.folder_name = folder.name
         self.subdirectory = folder.get_datafile_directory(datafile_index)
