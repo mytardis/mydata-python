@@ -6,11 +6,9 @@ setup.py for mydata-python
 import io
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 HERE = os.path.abspath(os.path.dirname(__file__))
-
-PACKAGES = ['mydata']
 
 REQUIRED = [
     'appdirs>=1.4',
@@ -48,7 +46,7 @@ setup(
     author_email=ABOUT['__author_email__'],
     python_requires=">=3.5",
     url=ABOUT['__url__'],
-    packages=PACKAGES,
+    packages=find_packages(),
     install_requires=REQUIRED,
     extras_require={},
     include_package_data=True,
@@ -70,5 +68,10 @@ setup(
     tests_require=TEST_REQUIRED,
     project_urls={
         'Source': 'https://github.com/jameswettenhall/mydata-python'
+    },
+    entry_points={
+        "console_scripts": [
+            "mydata = mydata.client:run",
+        ],
     }
 )

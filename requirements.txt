@@ -1,6 +1,8 @@
 # requirements.txt
 
 appdirs==1.4.3
+click==7.0
+configparser==4.0.2
 netifaces==0.10.9
 paramiko==2.6.0 # Unit tests only
 psutil==5.6.5
