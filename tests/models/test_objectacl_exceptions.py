@@ -10,9 +10,7 @@ import requests_mock
 from requests.exceptions import HTTPError
 
 from tests.fixtures import set_exp_dataset_config
-from tests.mocks import (
-    EXISTING_EXP_RESPONSE,
-    MOCK_GROUP_RESPONSE)
+from tests.mocks import EXISTING_EXP_RESPONSE, MOCK_GROUP_RESPONSE
 
 
 def test_objectacl_exceptions(set_exp_dataset_config):
@@ -28,30 +26,31 @@ def test_objectacl_exceptions(set_exp_dataset_config):
     from mydata.models.folder import Folder
     from mydata.models.group import Group
 
-    mock_user_response = json.dumps({
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "username": "testfacility",
-            "first_name": "TestFacility",
-            "last_name": "RoleAccount",
-            "email": "testfacility@example.com",
-            "groups": [{
-                "id": 1,
-                "name": "test-facility-managers"
-            }]
-        }]
-    })
+    mock_user_response = json.dumps(
+        {
+            "meta": {
+                "limit": 20,
+                "next": None,
+                "offset": 0,
+                "previous": None,
+                "total_count": 1,
+            },
+            "objects": [
+                {
+                    "id": 1,
+                    "username": "testfacility",
+                    "first_name": "TestFacility",
+                    "last_name": "RoleAccount",
+                    "email": "testfacility@example.com",
+                    "groups": [{"id": 1, "name": "test-facility-managers"}],
+                }
+            ],
+        }
+    )
     with requests_mock.Mocker() as mocker:
         get_user_url = (
             "%s/api/v1/user/?format=json&username=testfacility"
-        )% settings.general.mytardis_url
+        ) % settings.general.mytardis_url
         mocker.get(get_user_url, text=mock_user_response)
         owner = settings.general.default_owner
     dataset_folder_name = "Flowers"
@@ -63,8 +62,8 @@ def test_objectacl_exceptions(set_exp_dataset_config):
     user_folder_name = owner.username
     group_folder_name = None
     folder = Folder(
-        dataset_folder_name, location,
-        user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = "Existing Experiment"
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
@@ -90,8 +89,7 @@ def test_objectacl_exceptions(set_exp_dataset_config):
         group = Group.get_group_by_name("TestFacility-Group1")
         post_acl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
         mocker.post(post_acl_url, status_code=201)
-        ObjectACL.share_exp_with_group(
-            experiment, group, is_owner=True)
+        ObjectACL.share_exp_with_group(experiment, group, is_owner=True)
 
     # Try to create a user ObjectACL record with
     # an invalid API key, which should give 401 (Unauthorized)
@@ -113,7 +111,6 @@ def test_objectacl_exceptions(set_exp_dataset_config):
         post_acl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
         mocker.post(post_acl_url, status_code=401)
         with pytest.raises(HTTPError) as excinfo:
-            ObjectACL.share_exp_with_group(
-                experiment, group, is_owner=True)
+            ObjectACL.share_exp_with_group(experiment, group, is_owner=True)
         assert excinfo.value.response.status_code == 401
     settings.general.api_key = api_key

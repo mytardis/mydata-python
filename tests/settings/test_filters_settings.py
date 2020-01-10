@@ -8,7 +8,7 @@ from tests.mocks import (
     MOCK_API_ENDPOINTS_RESPONSE,
     MOCK_USER_RESPONSE,
     MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE
+    MOCK_INSTRUMENT_RESPONSE,
 )
 
 from tests.fixtures import set_user_exp_dataset_config
@@ -23,13 +23,23 @@ def test_filters_settings(set_user_exp_dataset_config):
     from mydata.logs import logger
 
     with requests_mock.Mocker() as mocker:
-        list_api_endpoints_url = "%s/api/v1/?format=json" % settings.general.mytardis_url
+        list_api_endpoints_url = (
+            "%s/api/v1/?format=json" % settings.general.mytardis_url
+        )
         mocker.get(list_api_endpoints_url, text=MOCK_API_ENDPOINTS_RESPONSE)
-        get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % settings.general.mytardis_url
+        get_user_api_url = (
+            "%s/api/v1/user/?format=json&username=testfacility"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        get_facility_api_url = (
+            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        )
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % settings.general.mytardis_url
+        get_instrument_api_url = (
+            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
 
         log_output = logger.get_value()
@@ -110,8 +120,13 @@ def test_filters_settings(set_user_exp_dataset_config):
         settings.filters.ignore_new_datasets = old_value
 
         def test_globs_validation(
-                use_includes_file, use_excludes_file, includes_file, excludes_file,
-                expected_warning=None, expected_exception_msg=None):
+            use_includes_file,
+            use_excludes_file,
+            includes_file,
+            excludes_file,
+            expected_warning=None,
+            expected_exception_msg=None,
+        ):
             """
             Test globs files settings validation / warnings
             """
@@ -149,21 +164,33 @@ def test_filters_settings(set_user_exp_dataset_config):
         )
         message = "No includes file was specified."
         test_globs_validation(
-            use_includes_file=True, use_excludes_file=False,
-            includes_file="", excludes_file="",
-            expected_warning=warning, expected_exception_msg=message)
+            use_includes_file=True,
+            use_excludes_file=False,
+            includes_file="",
+            excludes_file="",
+            expected_warning=warning,
+            expected_exception_msg=message,
+        )
 
         message = "Specified includes file doesn't exist."
         test_globs_validation(
-            use_includes_file=True, use_excludes_file=False,
-            includes_file="file/does/not/exist", excludes_file="",
-            expected_warning=warning, expected_exception_msg=message)
+            use_includes_file=True,
+            use_excludes_file=False,
+            includes_file="file/does/not/exist",
+            excludes_file="",
+            expected_warning=warning,
+            expected_exception_msg=message,
+        )
 
         message = "Specified includes file path is not a file."
         test_globs_validation(
-            use_includes_file=True, use_excludes_file=False,
-            includes_file=".", excludes_file="",
-            expected_warning=warning, expected_exception_msg=message)
+            use_includes_file=True,
+            use_excludes_file=False,
+            includes_file=".",
+            excludes_file="",
+            expected_warning=warning,
+            expected_exception_msg=message,
+        )
 
         warning = (
             "Files matching patterns in excludes "
@@ -171,9 +198,13 @@ def test_filters_settings(set_user_exp_dataset_config):
         )
         message = "No excludes file was specified."
         test_globs_validation(
-            use_includes_file=False, use_excludes_file=True,
-            includes_file="", excludes_file="",
-            expected_warning=warning, expected_exception_msg=message)
+            use_includes_file=False,
+            use_excludes_file=True,
+            includes_file="",
+            excludes_file="",
+            expected_warning=warning,
+            expected_exception_msg=message,
+        )
 
         warning = (
             "Files matching patterns in excludes "
@@ -182,6 +213,10 @@ def test_filters_settings(set_user_exp_dataset_config):
         )
         message = "No includes file was specified."
         test_globs_validation(
-            use_includes_file=True, use_excludes_file=True,
-            includes_file="", excludes_file="",
-            expected_warning=warning, expected_exception_msg=message)
+            use_includes_file=True,
+            use_excludes_file=True,
+            includes_file="",
+            excludes_file="",
+            expected_warning=warning,
+            expected_exception_msg=message,
+        )

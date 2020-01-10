@@ -10,7 +10,7 @@ from tests.mocks import (
     MOCK_USER_RESPONSE,
     MOCK_FACILITY_RESPONSE,
     MOCK_INSTRUMENT_RESPONSE,
-    EXISTING_DATASET_RESPONSE
+    EXISTING_DATASET_RESPONSE,
 )
 
 from tests.fixtures import set_exp_dataset_config
@@ -26,7 +26,10 @@ def test_dataset_exceptions(set_exp_dataset_config):
     from mydata.threads.flags import FLAGS
 
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % settings.general.mytardis_url
+        get_user_api_url = (
+            "%s/api/v1/user/?format=json&username=testfacility"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
         owner = settings.general.default_owner
     dataset_folder_name = "Flowers"
@@ -37,22 +40,22 @@ def test_dataset_exceptions(set_exp_dataset_config):
     # is raised:
     user_folder_name = owner.username
     group_folder_name = None
-    folder = Folder(dataset_folder_name, location,
-                    user_folder_name, group_folder_name, owner)
+    folder = Folder(
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experimentTitle = "Existing Experiment"
-    mock_exp_response = json.dumps({
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "title": "Existing Experiment"
-        }]
-    })
+    mock_exp_response = json.dumps(
+        {
+            "meta": {
+                "limit": 20,
+                "next": None,
+                "offset": 0,
+                "previous": None,
+                "total_count": 1,
+            },
+            "objects": [{"id": 1, "title": "Existing Experiment"}],
+        }
+    )
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
             "%s/api/v1/mydata_experiment/?format=json&title="
@@ -65,26 +68,27 @@ def test_dataset_exceptions(set_exp_dataset_config):
     folder.experiment = experiment
     FLAGS.test_run_running = False
 
-    mock_dataset_response = json.dumps({
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "description": "Flowers"
-        }]
-    })
+    mock_dataset_response = json.dumps(
+        {
+            "meta": {
+                "limit": 20,
+                "next": None,
+                "offset": 0,
+                "previous": None,
+                "total_count": 1,
+            },
+            "objects": [{"id": 1, "description": "Flowers"}],
+        }
+    )
     with requests_mock.Mocker() as mocker:
         get_dataset_url = (
             "%s/api/v1/dataset/?format=json&experiments__id=1"
             "&description=Flowers&instrument__id=1"
         ) % settings.general.mytardis_url
         mocker.get(get_dataset_url, text=mock_dataset_response)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        get_facility_api_url = (
+            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        )
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
         get_instrument_api_url = (
             "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
@@ -93,17 +97,18 @@ def test_dataset_exceptions(set_exp_dataset_config):
         dataset = Dataset.create_dataset_if_necessary(folder)
         assert dataset.description == dataset_folder_name
 
-    mock_dataset_response = json.dumps({
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 0
-        },
-        "objects": [
-        ]
-    })
+    mock_dataset_response = json.dumps(
+        {
+            "meta": {
+                "limit": 20,
+                "next": None,
+                "offset": 0,
+                "previous": None,
+                "total_count": 0,
+            },
+            "objects": [],
+        }
+    )
     with requests_mock.Mocker() as mocker:
         get_dataset_url = (
             "%s/api/v1/dataset/?format=json&experiments__id=1"
@@ -125,10 +130,12 @@ def test_dataset_exceptions(set_exp_dataset_config):
             "&description=Existing%%20Dataset&instrument__id=1"
         ) % settings.general.mytardis_url
         mocker.get(get_dataset_url, text=EXISTING_DATASET_RESPONSE)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        get_facility_api_url = (
+            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        )
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
         FLAGS.test_run_running = True
-        folder.data_view_fields['name'] = "Existing Dataset"
+        folder.data_view_fields["name"] = "Existing Dataset"
         dataset = Dataset.create_dataset_if_necessary(folder)
         FLAGS.test_run_running = False
         assert dataset.description == "Existing Dataset"

@@ -13,7 +13,7 @@ from tests.mocks import (
     MOCK_INSTRUMENT_RESPONSE,
     EXISTING_EXP_RESPONSE,
     EXP1_RESPONSE,
-    EMPTY_LIST_RESPONSE
+    EMPTY_LIST_RESPONSE,
 )
 
 from tests.fixtures import set_exp_dataset_config
@@ -40,23 +40,25 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "next": None,
             "offset": 0,
             "previous": None,
-            "total_count": 1
+            "total_count": 1,
         },
-        "objects": [{
-            "id": 1,
-            "username": "testfacility",
-            "first_name": "TestFacility",
-            "last_name": "RoleAccount",
-            "email": "testfacility@example.com",
-            "groups": [{
+        "objects": [
+            {
                 "id": 1,
-                "name": "test-facility-managers"
-            }]
-        }]
+                "username": "testfacility",
+                "first_name": "TestFacility",
+                "last_name": "RoleAccount",
+                "email": "testfacility@example.com",
+                "groups": [{"id": 1, "name": "test-facility-managers"}],
+            }
+        ],
     }
     mock_user_response = json.dumps(mock_user_dict)
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = "%s/api/v1/user/?format=json&username=testfacility" % settings.general.mytardis_url
+        get_user_api_url = (
+            "%s/api/v1/user/?format=json&username=testfacility"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_user_api_url, text=mock_user_response)
         owner = settings.general.default_owner
     dataset_folder_name = "Flowers"
@@ -71,7 +73,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = owner.username
     group_folder_name = None
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = exp_folder_name
 
     with requests_mock.Mocker() as mocker:
@@ -99,7 +102,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
         user_folder_name = owner.username
         group_folder_name = None
         folder = Folder(
-            dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+            dataset_folder_name, location, user_folder_name, group_folder_name, owner
+        )
         folder.experiment_title = "Existing Experiment"
         experiment = Experiment.get_exp_for_folder(folder)
         assert experiment.title == "Existing Experiment"
@@ -113,18 +117,12 @@ def test_experiment_exceptions(set_exp_dataset_config):
             "next": None,
             "offset": 0,
             "previous": None,
-            "total_count": 2
+            "total_count": 2,
         },
         "objects": [
-            {
-                "id": 1,
-                "title": "Existing Experiment1"
-            },
-            {
-                "id": 2,
-                "title": "Existing Experiment2"
-            }
-        ]
+            {"id": 1, "title": "Existing Experiment1"},
+            {"id": 2, "title": "Existing Experiment2"},
+        ],
     }
     mock_exp_response = json.dumps(mock_exp_dict)
     with requests_mock.Mocker() as mocker:
@@ -138,7 +136,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
         user_folder_name = owner.username
         group_folder_name = None
         folder = Folder(
-            dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+            dataset_folder_name, location, user_folder_name, group_folder_name, owner
+        )
         folder.experiment_title = "Multiple Existing Experiments"
         experiment = Experiment.get_exp_for_folder(folder)
         assert experiment.title == "Existing Experiment1"
@@ -149,7 +148,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = None
     group_folder_name = "Test Group1"
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = exp_folder_name
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
@@ -167,7 +167,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = None
     group_folder_name = "Test Group1"
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = "Existing Experiment"
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
@@ -184,7 +185,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = owner.username
     group_folder_name = "Test Group1"
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = exp_folder_name
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
@@ -202,7 +204,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = owner.username
     group_folder_name = "Test Group1"
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = "Existing Experiment"
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
@@ -220,7 +223,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = None
     group_folder_name = None
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = exp_folder_name
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
@@ -237,7 +241,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = None
     group_folder_name = None
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
     folder.experiment_title = "Existing Experiment"
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
@@ -300,9 +305,14 @@ def test_experiment_exceptions(set_exp_dataset_config):
         mocker.post(post_exp_url, text=EXP1_RESPONSE, status_code=201)
         post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
         mocker.post(post_objectacl_url, status_code=201)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        get_facility_api_url = (
+            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        )
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % settings.general.mytardis_url
+        get_instrument_api_url = (
+            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         experiment = Experiment.create_exp_for_folder(folder)
         assert experiment.title == exp_folder_name
@@ -341,13 +351,16 @@ def test_experiment_exceptions(set_exp_dataset_config):
     api_key = settings.general.api_key
     settings.general.api_key = "invalid"
     with requests_mock.Mocker() as mocker:
-        post_exp_url = (
-            "%s/api/v1/mydata_experiment/"
-        ) % settings.general.mytardis_url
+        post_exp_url = ("%s/api/v1/mydata_experiment/") % settings.general.mytardis_url
         mocker.post(post_exp_url, status_code=401)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        get_facility_api_url = (
+            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        )
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % settings.general.mytardis_url
+        get_instrument_api_url = (
+            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         with pytest.raises(HTTPError) as excinfo:
             _ = Experiment.create_exp_for_folder(folder)
@@ -361,19 +374,23 @@ def test_experiment_exceptions(set_exp_dataset_config):
     user_folder_name = owner.username
     group_folder_name = None
     folder = Folder(
-        dataset_folder_name, location, user_folder_name, group_folder_name, owner)
+        dataset_folder_name, location, user_folder_name, group_folder_name, owner
+    )
 
     # Test case where MyTardis API returns a 404, e.g. because a
     # requested Experiment Schema can't be found.
     folder.experiment_title = "Request 404 from Fake MyTardis Server"
     with requests_mock.Mocker() as mocker:
-        post_exp_url = (
-            "%s/api/v1/mydata_experiment/"
-        ) % settings.general.mytardis_url
+        post_exp_url = ("%s/api/v1/mydata_experiment/") % settings.general.mytardis_url
         mocker.post(post_exp_url, status_code=404)
-        get_facility_api_url = "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        get_facility_api_url = (
+            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
+        )
         mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument" % settings.general.mytardis_url
+        get_instrument_api_url = (
+            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
         with pytest.raises(HTTPError) as excinfo:
             _ = Experiment.create_exp_for_folder(folder)

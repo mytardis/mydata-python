@@ -13,9 +13,7 @@ from string import Template
 import pytest
 import requests_mock
 
-from tests.mocks import (
-    MOCK_UPLOADER_WITH_settings
-)
+from tests.mocks import MOCK_UPLOADER_WITH_settings
 
 from tests.fixtures import set_exp_dataset_config
 from tests.utils import unload_modules
@@ -31,9 +29,9 @@ def test_read_settings(set_exp_dataset_config):
     from mydata.models.settings.validation import validate_settings
     from mydata.utils.exceptions import InvalidSettings
 
-    assert settings.config_path == os.environ['MYDATA_CONFIG_PATH']
-    assert settings.general.instrument_name == 'Test Instrument'
-    assert settings.general.mytardis_url == 'https://mytardis.example.com'
+    assert settings.config_path == os.environ["MYDATA_CONFIG_PATH"]
+    assert settings.general.instrument_name == "Test Instrument"
+    assert settings.general.mytardis_url == "https://mytardis.example.com"
 
     # Validate settings, and expect MyTardis URL to raise InvalidSettings:
     with pytest.raises(InvalidSettings) as excinfo:
@@ -44,8 +42,7 @@ def test_read_settings(set_exp_dataset_config):
 def test_write_settings(set_exp_dataset_config):
     """Test writing settings to disk
     """
-    from mydata.models.settings.serialize import (
-        save_settings_to_disk, load_settings)
+    from mydata.models.settings.serialize import save_settings_to_disk, load_settings
     from mydata.conf import settings
 
     settings.general.contact_name = "Joe Bloggs"
@@ -74,18 +71,19 @@ def test_check_for_updated_settings_on_server():
     # the URLs used to check for updating settings on the server before
     # loading settings:
     unload_modules()
-    assert 'mydata.settings' not in sys.modules
-    os.environ['MYDATA_CONFIG_PATH'] = os.path.abspath(
-        os.path.join('.', 'tests', 'testdata', 'testdata-exp-dataset.cfg'))
+    assert "mydata.settings" not in sys.modules
+    os.environ["MYDATA_CONFIG_PATH"] = os.path.abspath(
+        os.path.join(".", "tests", "testdata", "testdata-exp-dataset.cfg")
+    )
 
     with requests_mock.Mocker() as mocker:
         get_uploader_url = (
             "https://mytardis.example.com/api/v1/mydata_uploader/?format=json"
             "&uuid=1234567890"
         )
-        uploader_response = Template(
-            MOCK_UPLOADER_WITH_settings).substitute(
-                settings_updated=str(datetime.datetime.now()))
+        uploader_response = Template(MOCK_UPLOADER_WITH_settings).substitute(
+            settings_updated=str(datetime.datetime.now())
+        )
         mocker.get(get_uploader_url, text=uploader_response)
         from mydata.conf import settings
 
@@ -103,7 +101,9 @@ def test_check_for_updated_settings_on_server():
 
         # An invalid setting value (not a floating point number) is specified
         # for connection_timeout in MOCK_UPLOADER_WITH_settings:
-        assert settings.miscellaneous.connection_timeout == \
-            settings.miscellaneous.default['connection_timeout']
+        assert (
+            settings.miscellaneous.connection_timeout
+            == settings.miscellaneous.default["connection_timeout"]
+        )
 
     unload_modules()

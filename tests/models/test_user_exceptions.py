@@ -19,28 +19,32 @@ def test_user_exceptions(set_exp_dataset_config):
 
     # Test retrieving default owner's user record (using the User model's
     # get_user_by_username method) and ensure that no exception is raised:
-    mock_user_response = json.dumps({
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1
-        },
-        "objects": [{
-            "id": 1,
-            "username": "testfacility",
-            "first_name": "TestFacility",
-            "last_name": "RoleAccount",
-            "email": "testfacility@example.com",
-            "groups": [{
-                "id": 1,
-                "name": "test-facility-managers"
-            }]
-        }]
-    })
+    mock_user_response = json.dumps(
+        {
+            "meta": {
+                "limit": 20,
+                "next": None,
+                "offset": 0,
+                "previous": None,
+                "total_count": 1,
+            },
+            "objects": [
+                {
+                    "id": 1,
+                    "username": "testfacility",
+                    "first_name": "TestFacility",
+                    "last_name": "RoleAccount",
+                    "email": "testfacility@example.com",
+                    "groups": [{"id": 1, "name": "test-facility-managers"}],
+                }
+            ],
+        }
+    )
     with requests_mock.Mocker() as mocker:
-        get_user_url = "%s/api/v1/user/?format=json&username=testfacility" % settings.general.mytardis_url
+        get_user_url = (
+            "%s/api/v1/user/?format=json&username=testfacility"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_user_url, text=mock_user_response)
         owner = settings.general.default_owner
 
@@ -59,7 +63,10 @@ def test_user_exceptions(set_exp_dataset_config):
     api_key = settings.general.api_key
     settings.general.api_key = "invalid"
     with requests_mock.Mocker() as mocker:
-        get_user_url = "%s/api/v1/user/?format=json&username=testfacility" % settings.general.mytardis_url
+        get_user_url = (
+            "%s/api/v1/user/?format=json&username=testfacility"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_user_url, status_code=401)
         with pytest.raises(HTTPError) as excinfo:
             _ = User.get_user_by_username(owner.username)
@@ -100,29 +107,34 @@ def test_user_exceptions(set_exp_dataset_config):
     # get_value_for_key is used to display User field values
     # in the Users or Folders view:
 
-    assert owner.get_value_for_key('email') == owner.email
+    assert owner.get_value_for_key("email") == owner.email
 
     email = owner.email
     owner.email = None
     owner.user_not_found_in_mytardis = True
-    assert owner.get_value_for_key('email') == User.user_not_found_string
+    assert owner.get_value_for_key("email") == User.user_not_found_string
     owner.user_not_found_in_mytardis = False
     owner.email = email
 
-    assert not owner.get_value_for_key('invalid')
+    assert not owner.get_value_for_key("invalid")
 
-    empty_user_response = json.dumps({
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 0
-        },
-        "objects": []
-    })
+    empty_user_response = json.dumps(
+        {
+            "meta": {
+                "limit": 20,
+                "next": None,
+                "offset": 0,
+                "previous": None,
+                "total_count": 0,
+            },
+            "objects": [],
+        }
+    )
     with requests_mock.Mocker() as mocker:
-        get_user_url = "%s/api/v1/user/?format=json&username=INVALID_USER" % settings.general.mytardis_url
+        get_user_url = (
+            "%s/api/v1/user/?format=json&username=INVALID_USER"
+            % settings.general.mytardis_url
+        )
         mocker.get(get_user_url, text=empty_user_response)
         user = User.get_user_by_username("INVALID_USER")
         assert not user

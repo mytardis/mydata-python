@@ -11,4 +11,4 @@ def version():
     """
     Display version
     """
-    print("MyData Command-Line Client v%s" % VERSION)
+    click.echo("MyData Command-Line Client v%s" % VERSION)

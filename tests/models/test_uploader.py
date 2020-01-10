@@ -4,10 +4,7 @@ Test ability to create an Uploader and an Uploader Registration Request
 import pytest
 import requests_mock
 
-from tests.fixtures import (
-    set_username_dataset_config,
-    mock_key_pair
-)
+from tests.fixtures import set_username_dataset_config, mock_key_pair
 
 from tests.mocks import (
     MOCK_USER_RESPONSE,
@@ -23,18 +20,18 @@ from tests.mocks import (
     EXISTING_EXP_RESPONSE,
     EXISTING_DATASET_RESPONSE,
     CREATED_URR_RESPONSE,
-    MOCK_URR_MISSING_SBOX_ATTRS
+    MOCK_URR_MISSING_SBOX_ATTRS,
 )
 
-def test_uploader(
-        set_username_dataset_config, mock_key_pair):
+
+def test_uploader(set_username_dataset_config, mock_key_pair):
     """Test ability to create an Uploader and an Uploader Registration Request
     """
     from mydata.conf import settings
     from mydata.utils.exceptions import (
         NoApprovedStorageBox,
         StorageBoxAttributeNotFound,
-        StorageBoxOptionNotFound
+        StorageBoxOptionNotFound,
     )
 
     # Firstly, let's test the case where we don't have an existing uploader

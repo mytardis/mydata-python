@@ -43,14 +43,14 @@ def test_folder_model(set_username_dataset_config):
     # Windows uses a case-insensitive filesystem, so the
     # expected results will be slightly different.
 
-    with open(includes_file_path, 'w') as includes_file:
+    with open(includes_file_path, "w") as includes_file:
         includes_file.write("# Includes comment\n")
         includes_file.write("; Includes comment\n")
         includes_file.write("\n")
         includes_file.write("*.jpg\n")
         includes_file.write("zero*\n")
 
-    with open(excludes_file_path, 'w') as excludes_file:
+    with open(excludes_file_path, "w") as excludes_file:
         excludes_file.write("# Excludes comment\n")
         excludes_file.write("; Excludes comment\n")
         excludes_file.write("\n")
@@ -66,31 +66,29 @@ def test_folder_model(set_username_dataset_config):
 
     settings.filters.use_includes_file = False
     settings.filters.use_excludes_file = False
-    folder = Folder(name, location, user_folder_name,
-                    group_folder_name, testuser1)
+    folder = Folder(name, location, user_folder_name, group_folder_name, testuser1)
     assert folder.num_files == 8
 
     settings.filters.use_includes_file = True
     settings.filters.use_excludes_file = True
     expected_files = [
-        ('Flowers_growing_on_the_campus_of_Cebu_City_'
-         'National_Science_High_School.jpg'),
-        'Pond_Water_Hyacinth_Flowers.jpg',
-        'zero_sized_file.txt']
+        (
+            "Flowers_growing_on_the_campus_of_Cebu_City_"
+            "National_Science_High_School.jpg"
+        ),
+        "Pond_Water_Hyacinth_Flowers.jpg",
+        "zero_sized_file.txt",
+    ]
     if sys.platform.startswith("win"):
-        expected_files.insert(0, '1024px-Colourful_flowers.JPG')
-    folder = Folder(name, location, user_folder_name,
-                    group_folder_name, testuser1)
-    actual_files = sorted(
-        [os.path.basename(f) for f in folder.datafile_paths['files']])
+        expected_files.insert(0, "1024px-Colourful_flowers.JPG")
+    folder = Folder(name, location, user_folder_name, group_folder_name, testuser1)
+    actual_files = sorted([os.path.basename(f) for f in folder.datafile_paths["files"]])
     assert actual_files == expected_files
 
     settings.filters.use_includes_file = True
     settings.filters.use_excludes_file = False
-    folder = Folder(name, location, user_folder_name,
-                    group_folder_name, testuser1)
-    actual_files = sorted(
-        [os.path.basename(f) for f in folder.datafile_paths['files']])
+    folder = Folder(name, location, user_folder_name, group_folder_name, testuser1)
+    actual_files = sorted([os.path.basename(f) for f in folder.datafile_paths["files"]])
     assert actual_files == expected_files
 
     settings.filters.use_includes_file = False
@@ -99,14 +97,14 @@ def test_folder_model(set_username_dataset_config):
         expected_files = []
     else:
         expected_files = [
-            ('Flowers_growing_on_the_campus_of_Cebu_City_'
-             'National_Science_High_School.jpg'),
-            'Pond_Water_Hyacinth_Flowers.jpg'
+            (
+                "Flowers_growing_on_the_campus_of_Cebu_City_"
+                "National_Science_High_School.jpg"
+            ),
+            "Pond_Water_Hyacinth_Flowers.jpg",
         ]
-    folder = Folder(name, location, user_folder_name,
-                    group_folder_name, testuser1)
-    actual_files = sorted(
-        [os.path.basename(f) for f in folder.datafile_paths['files']])
+    folder = Folder(name, location, user_folder_name, group_folder_name, testuser1)
+    actual_files = sorted([os.path.basename(f) for f in folder.datafile_paths["files"]])
     assert actual_files == expected_files
 
     if os.path.exists(includes_file_path):

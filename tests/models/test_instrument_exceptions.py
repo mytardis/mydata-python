@@ -10,7 +10,7 @@ from tests.fixtures import set_exp_dataset_config
 from tests.mocks import (
     MOCK_FACILITY_RESPONSE,
     MOCK_INSTRUMENT_RESPONSE,
-    EMPTY_LIST_RESPONSE
+    EMPTY_LIST_RESPONSE,
 )
 
 
@@ -96,5 +96,6 @@ def test_instrument_exceptions(set_exp_dataset_config):
             instrument.rename_instrument(
                 settings.general.facility_name,
                 settings.general.instrument_name,
-                "New instrument name")
+                "New instrument name",
+            )
         assert excinfo.value.response.status_code == 500

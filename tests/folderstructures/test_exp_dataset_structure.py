@@ -8,7 +8,7 @@ from tests.fixtures import set_exp_dataset_config
 from tests.mocks import (
     MOCK_USER_RESPONSE,
     MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE
+    MOCK_INSTRUMENT_RESPONSE,
 )
 
 

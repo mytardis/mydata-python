@@ -23,18 +23,22 @@ def test_replica_exceptions(set_exp_dataset_config):
     from mydata.models.datafile import DataFile
     from mydata.models.replica import Replica
 
-    mock_datafile_response = json.dumps({
-        "id": 1,
-        "filename": "test1.txt",
-        "replicas": [{
-            "id": 12345,
-            "datafile": "/api/v1/dataset_file/1234/",
-            "location": "local-storage",
-            "resource_uri": "/api/v1/replica/12345/",
-            "uri": "dataset1-123/test1.txt",
-            "verified": True
-        }]
-    })
+    mock_datafile_response = json.dumps(
+        {
+            "id": 1,
+            "filename": "test1.txt",
+            "replicas": [
+                {
+                    "id": 12345,
+                    "datafile": "/api/v1/dataset_file/1234/",
+                    "location": "local-storage",
+                    "resource_uri": "/api/v1/replica/12345/",
+                    "uri": "dataset1-123/test1.txt",
+                    "verified": True,
+                }
+            ],
+        }
+    )
     with requests_mock.Mocker() as mocker:
         get_datafile_url = (
             "%s/api/v1/mydata_dataset_file/12345/?format=json"
@@ -43,15 +47,17 @@ def test_replica_exceptions(set_exp_dataset_config):
         datafile = DataFile.get_datafile_from_id(12345)
         replica = datafile.replicas[0]
 
-    mock_replica_response = json.dumps({
-        "id": 12345,
-        "datafile": "/api/v1/dataset_file/1234/",
-        "location": "local-storage",
-        "resource_uri": "/api/v1/mydata_replica/12345/",
-        "size": 1024,
-        "uri": "dataset1-123/test1.txt",
-        "verified": True
-    })
+    mock_replica_response = json.dumps(
+        {
+            "id": 12345,
+            "datafile": "/api/v1/dataset_file/1234/",
+            "location": "local-storage",
+            "resource_uri": "/api/v1/mydata_replica/12345/",
+            "size": 1024,
+            "uri": "dataset1-123/test1.txt",
+            "verified": True,
+        }
+    )
     with requests_mock.Mocker() as mocker:
         get_replica_url = (
             "%s/api/v1/mydata_replica/12345/?format=json"

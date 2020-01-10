@@ -4,6 +4,7 @@ tests/utils.py
 import socket
 import sys
 
+
 def unload_modules():
     """Unload modules - called at the end of a test
 
@@ -13,7 +14,7 @@ def unload_modules():
     """
     sys_modules = list(sys.modules.keys())
     for module in sys_modules:
-        if 'mydata' in module:
+        if "mydata" in module:
             del sys.modules[module]
 
 
