@@ -5,6 +5,7 @@ client.py
 import click
 
 from mydata.commands.config import config
+from mydata.commands.scan import scan
 from mydata.commands.upload import upload
 from mydata.commands.version import version
 
@@ -22,6 +23,7 @@ def run():
     """
 
     entry_point.add_command(config)
+    entry_point.add_command(scan)
     entry_point.add_command(upload)
     entry_point.add_command(version)
 
