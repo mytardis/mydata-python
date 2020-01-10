@@ -64,3 +64,26 @@ def test_config_get_command(set_exp_dataset_config):
     result = runner.invoke(config, ["get", "data_directory"])
     assert result.exit_code == 0
     assert result.output == "tests/testdata/testdata-exp-dataset\n"
+
+
+def test_config_get_command(set_exp_dataset_config):
+    from mydata.commands.config import config
+
+    runner = CliRunner()
+    result = runner.invoke(config, ["get", "contact_name"])
+    assert result.exit_code == 0
+    assert result.output == "MyData Tester\n"
+
+    result = runner.invoke(config, ["set", "contact_name", "Another Name"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(config, ["get", "contact_name"])
+    assert result.exit_code == 0
+    assert result.output == "Another Name\n"
+
+    result = runner.invoke(config, ["set", "contact_name", "MyData Tester"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(config, ["get", "contact_name"])
+    assert result.exit_code == 0
+    assert result.output == "MyData Tester\n"

@@ -49,3 +49,17 @@ def get(key):
             click.echo(parser[SECTION][key])
             return
     raise ValueError("%s was not found in settings." % key)
+
+
+@config.command(name="set")
+@click.argument("key")
+@click.argument("value")
+def set_command(key, value):
+    """
+    Set value in MyData.cfg
+    """
+    parser = ConfigParser()
+    parser.read(settings.config_path)
+    parser[SECTION][key] = value
+    with open(settings.config_path, "w") as configfile:
+        parser.write(configfile)
