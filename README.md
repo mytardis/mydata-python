@@ -3,7 +3,7 @@
 [![Travis CI](https://travis-ci.org/jameswettenhall/mydata-python.svg?branch=master)](https://travis-ci.org/jameswettenhall/mydata-python) [![codecov](https://codecov.io/gh/jameswettenhall/mydata-python/branch/master/graph/badge.svg)](https://codecov.io/gh/jameswettenhall/mydata-python) [![Python 3](https://pyup.io/repos/github/jameswettenhall/mydata-python/python-3-shield.svg)](https://pyup.io/repos/github/jameswettenhall/mydata-python/) [![Updates](https://pyup.io/repos/github/jameswettenhall/mydata-python/shield.svg)](https://pyup.io/repos/github/jameswettenhall/mydata-python/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
-A Python library for managing data uploads to MyTardis
+A Python library and command-line interface for managing data uploads to MyTardis
 
 mydata-python is MyData without wxPython.
 
