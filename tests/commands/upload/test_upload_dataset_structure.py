@@ -57,7 +57,7 @@ def test_upload_dataset_structure(set_dataset_config):
         mocker.post(post_objectacl_url, status_code=201)
 
         # A partial query-string match can be used for mocking:
-        get_dataset_url = "/api/v1/dataset/?format=json&experiments__id=1&description="
+        get_dataset_url = "/api/v1/dataset/?format=json&experiments__id=1"
         mocker.get(get_dataset_url, text=EMPTY_LIST_RESPONSE)
 
         post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
@@ -66,9 +66,7 @@ def test_upload_dataset_structure(set_dataset_config):
         mocker.post(post_dataset_url, text=CREATED_DATASET_RESPONSE)
 
         # A partial query-string match can be used for mocking:
-        get_datafile_url = (
-            "/api/v1/mydata_dataset_file/?format=json" "&dataset__id=1&filename="
-        )
+        get_datafile_url = "/api/v1/mydata_dataset_file/?format=json&dataset__id=1"
         mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
 
         post_datafile_url = "/api/v1/mydata_dataset_file/"
