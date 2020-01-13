@@ -59,7 +59,8 @@ def upload_cmd(verbose):
         % (data_directory, settings.folder_structure)
     )
 
-    settings.initialize_verified_datafiles_cache()
+    if settings.miscellaneous.cache_datafile_lookups:
+        settings.initialize_verified_datafiles_cache()
 
     users, groups, exps, folders = scan()
 
@@ -105,7 +106,8 @@ def upload_cmd(verbose):
             folder, lookup_callback, upload_callback, UploadMethod.MULTIPART_POST
         )
 
-    settings.save_verified_datafiles_cache()
+    if settings.miscellaneous.cache_datafile_lookups:
+        settings.save_verified_datafiles_cache()
 
     num_files_uploaded = sum([folder.num_files_uploaded for folder in folders])
 
