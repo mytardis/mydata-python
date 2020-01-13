@@ -26,8 +26,10 @@ class UploadStatus:
     IN_PROGRESS = 1
     COMPLETED = 2
     FAILED = 3
-    PAUSED = 4
-    CANCELED = 5
+    CANCELED = 4
+
+
+UPLOAD_STATUS = ["Not Started", "In Progress", "Completed", "Failed", "Canceled"]
 
 
 class UploadMethod:

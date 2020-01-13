@@ -10,14 +10,14 @@ from mydata.conf import settings
 SECTION = "MyData"
 
 
-@click.group()
-def config():
+@click.group(name="config")
+def config_cmd():
     """
-    Manage runtime config options.
+    Query or update settings in MyData.cfg
     """
 
 
-@config.command()
+@config_cmd.command()
 def discover():
     """
     Display location of MyData.cfg
@@ -25,7 +25,7 @@ def discover():
     print(settings.config_path)
 
 
-@config.command(name="list")
+@config_cmd.command(name="list")
 def list_command():
     """
     List keys in MyData.cfg
@@ -36,7 +36,7 @@ def list_command():
         print(key)
 
 
-@config.command()
+@config_cmd.command()
 @click.argument("key")
 def get(key):
     """
@@ -51,7 +51,7 @@ def get(key):
     raise ValueError("%s was not found in settings." % key)
 
 
-@config.command(name="set")
+@config_cmd.command(name="set")
 @click.argument("key")
 @click.argument("value")
 def set_command(key, value):

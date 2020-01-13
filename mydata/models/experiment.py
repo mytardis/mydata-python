@@ -99,7 +99,7 @@ class Experiment:
         user_folder_name = folder.user_folder_name
         group_folder_name = folder.group_folder_name
         try:
-            owner_user_id = folder.owner.userId
+            owner_user_id = folder.owner.id
         except:
             owner_user_id = None
 
@@ -202,10 +202,7 @@ class Experiment:
             and owner_user_id is not None
         ):
             ObjectACL.share_exp_with_user(created_exp, folder.owner)
-        if (
-            folder.group is not None
-            and folder.group.group_id != facility_managers_group.group_id
-        ):
+        if folder.group is not None and folder.group.id != facility_managers_group.id:
             ObjectACL.share_exp_with_group(created_exp, folder.group, is_owner=True)
         return created_exp
 

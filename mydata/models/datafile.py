@@ -130,10 +130,7 @@ class DataFile:
         Upload a file to the MyTardis API via POST, creating a new
         DataFile record.
         """
-        # from ..dataviewmodels.dataview import DATAVIEW_MODELS
         url = "%s/api/v1/mydata_dataset_file/" % settings.general.mytardis_url
-        # message = "Initializing buffered reader..."
-        # DATAVIEW_MODELS['uploads'].SetMessage(upload, message)
         upload.buffered_reader = io.open(datafile_path, "rb")
 
         encoded = encoder.MultipartEncoder(

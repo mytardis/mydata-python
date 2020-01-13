@@ -26,15 +26,27 @@ class Lookups:
         """
         for dfi in range(0, self.folder.num_files):
             lookup = Lookup(self.folder, dfi)
-            datafile_path = self.folder.get_datafile_path(dfi)
+            datafile_path = os.path.join(lookup.subdirectory, lookup.filename)
             datafile_dir = self.folder.get_datafile_directory(dfi)
-            datafile_name = os.path.basename(datafile_path)
             try:
+
+                lookup.message = "Looking for matching file in verified files cache..."
+                cache_key = "%s,%s" % (self.folder.dataset.dataset_id, datafile_path)
+                if (
+                    settings.miscellaneous.cache_datafile_lookups
+                    and cache_key in settings.verified_datafiles_cache
+                ):
+                    self.folder.num_cache_hits += 1
+                    self.folder.set_datafile_uploaded(dfi, True)
+                    lookup.status = LookupStatus.FOUND_VERIFIED
+                    self.lookup_done_cb(lookup)
+                    continue
+
                 lookup.message = "Looking for matching file on MyTardis server..."
                 lookup.status = LookupStatus.IN_PROGRESS
                 existing_datafile = DataFile.get_datafile(
                     dataset=self.folder.dataset,
-                    filename=datafile_name,
+                    filename=lookup.filename,
                     directory=datafile_dir,
                 )
                 if existing_datafile:

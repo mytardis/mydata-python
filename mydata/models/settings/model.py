@@ -35,7 +35,7 @@ class Settings:
         # "/Users/jsmith/Library/Application Support/MyData/MyData.cfg":
         self._config_path = config_path
 
-        self._verified_datafiles_cache = dict()
+        self.verified_datafiles_cache = dict()
 
         self._uploader = None
 
@@ -197,7 +197,7 @@ class Settings:
         }
 
     @property
-    def verified_datafiles_cache(self):
+    def verified_datafiles_cache_path(self):
         """
         We use a serialized dictionary to cache DataFile lookup results.
         We'll use a separate cache file for each MyTardis server we connect to.
@@ -214,13 +214,13 @@ class Settings:
         We'll use a separate cache file for each MyTardis server we connect to.
         """
         try:
-            if os.path.exists(self._verified_datafiles_cache):
-                with open(self._verified_datafiles_cache, "rb") as cache_file:
-                    self._verified_datafiles_cache = pickle.load(cache_file)
+            if os.path.exists(self.verified_datafiles_cache_path):
+                with open(self.verified_datafiles_cache_path, "rb") as cache_file:
+                    self.verified_datafiles_cache = pickle.load(cache_file)
             else:
-                self._verified_datafiles_cache = dict()
+                self.verified_datafiles_cache = dict()
         except:
-            self._verified_datafiles_cache = dict()
+            self.verified_datafiles_cache = dict()
             logger.warning(traceback.format_exc())
 
     def save_verified_datafiles_cache(self):
@@ -230,8 +230,8 @@ class Settings:
         """
         with LOCKS.close_cache:  # pylint: disable=no-member
             try:
-                with open(self._verified_datafiles_cache, "wb") as cache_file:
-                    pickle.dump(self._verified_datafiles_cache, cache_file)
+                with open(self.verified_datafiles_cache_path, "wb") as cache_file:
+                    pickle.dump(self.verified_datafiles_cache, cache_file)
             except:
                 logger.warning("Couldn't save verified datafiles cache.")
                 logger.warning(traceback.format_exc())

@@ -23,9 +23,11 @@ class User:
         full_name=None,
         email=None,
         user_dict=None,
+        user_folder_name=None,
         user_not_found_in_mytardis=False,
     ):
-        self.user_id = None
+        self.user_folder_name = user_folder_name
+        self.id = None  # pylint: disable=invalid-name
         self._username = username
         self._full_name = full_name
         self._email = email
@@ -33,7 +35,7 @@ class User:
         self.user_not_found_in_mytardis = user_not_found_in_mytardis
 
         if user_dict is not None:
-            self.user_id = user_dict["id"]
+            self.id = user_dict["id"]
             if username is None:
                 self._username = user_dict["username"]
             if full_name is None:
@@ -117,12 +119,13 @@ class User:
         return value
 
     @staticmethod
-    def get_user_by_username(username):
+    def get_user_by_username(username, user_folder_name=None):
         """
         Get user by username
 
         :raises requests.exceptions.HTTPError:
         """
+        user_folder_name = user_folder_name or username
         url = "%s/api/v1/user/?format=json&username=%s" % (
             settings.general.mytardis_url,
             username,
@@ -135,15 +138,20 @@ class User:
         if num_user_records_found == 0:
             return None
         logger.debug("Found user record for username '" + username + "'.")
-        return User(username=username, user_dict=user_dicts["objects"][0])
+        return User(
+            username=username,
+            user_dict=user_dicts["objects"][0],
+            user_folder_name=user_folder_name,
+        )
 
     @staticmethod
-    def get_user_by_email(email):
+    def get_user_by_email(email, user_folder_name=None):
         """
         Get user by email
 
         :raises requests.exceptions.HTTPError:
         """
+        user_folder_name = user_folder_name or email
         url = "%s/api/v1/user/?format=json&email__iexact=%s" % (
             settings.general.mytardis_url,
             urllib.parse.quote(email.encode("utf-8")),
@@ -156,7 +164,9 @@ class User:
         if num_user_records_found == 0:
             return None
         logger.debug("Found user record for email '" + email + "'.")
-        return User(user_dict=user_dicts["objects"][0])
+        return User(
+            user_dict=user_dicts["objects"][0], user_folder_name=user_folder_name
+        )
 
     @staticmethod
     def get_user_for_folder(user_folder_name, user_not_found_in_mytardis=False):
@@ -170,10 +180,22 @@ class User:
         folder_structure = settings.advanced.folder_structure
         if folder_structure.startswith("Username"):
             if user_not_found_in_mytardis:
-                return User(username=user_folder_name, user_not_found_in_mytardis=True)
-            return User.get_user_by_username(user_folder_name)
+                return User(
+                    username=user_folder_name,
+                    user_folder_name=user_folder_name,
+                    user_not_found_in_mytardis=True,
+                )
+            return User.get_user_by_username(
+                username=user_folder_name, user_folder_name=user_folder_name
+            )
         if folder_structure.startswith("Email"):
             if user_not_found_in_mytardis:
-                return User(email=user_folder_name, user_not_found_in_mytardis=True)
-            return User.get_user_by_email(user_folder_name)
+                return User(
+                    email=user_folder_name,
+                    user_folder_name=user_folder_name,
+                    user_not_found_in_mytardis=True,
+                )
+            return User.get_user_by_email(
+                email=user_folder_name, user_folder_name=user_folder_name
+            )
         return None

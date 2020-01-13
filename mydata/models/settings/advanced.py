@@ -22,7 +22,7 @@ class AdvancedSettings:
             "max_upload_threads",
             "max_upload_retries",
             "start_automatically_on_login",
-            "upload_invalid_user_folders",
+            "upload_invalid_user_or_group_folders",
         ]
 
     @property
@@ -87,7 +87,7 @@ class AdvancedSettings:
         MyData can't find a MyTardis user (or group) record corresponding to
         the the user (or group) folder.
         """
-        return self.mydata_config["upload_invalid_user_folders"]
+        return self.mydata_config["upload_invalid_user_or_group_folders"]
 
     @upload_invalid_user_or_group_folders.setter
     def upload_invalid_user_or_group_folders(
@@ -99,7 +99,7 @@ class AdvancedSettings:
         the the user (or group) folder.
         """
         self.mydata_config[
-            "upload_invalid_user_folders"
+            "upload_invalid_user_or_group_folders"
         ] = upload_invalid_user_or_group_folders
 
     @property
@@ -173,4 +173,4 @@ class AdvancedSettings:
         self.mydata_config["max_upload_threads"] = 5
         self.mydata_config["max_upload_retries"] = 1
         self.mydata_config["start_automatically_on_login"] = True
-        self.mydata_config["upload_invalid_user_folders"] = True
+        self.mydata_config["upload_invalid_user_or_group_folders"] = True

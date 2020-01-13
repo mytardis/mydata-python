@@ -27,7 +27,7 @@ class ObjectACL:
 
         object_acl_dict = {
             "pluginId": "django_user",
-            "entityId": str(user.user_id),
+            "entityId": str(user.id),
             "content_object": experiment.resource_uri.replace("mydata_", ""),
             "content_type": "experiment",
             "object_id": experiment.exp_id,
@@ -60,7 +60,7 @@ class ObjectACL:
 
         object_acl_dict = {
             "pluginId": "django_group",
-            "entityId": str(group.group_id),
+            "entityId": str(group.id),
             "content_object": experiment.resource_uri.replace("mydata_", ""),
             "content_type": "experiment",
             "object_id": experiment.exp_id,

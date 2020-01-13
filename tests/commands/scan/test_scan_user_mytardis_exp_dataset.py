@@ -19,7 +19,7 @@ from tests.mocks import (
 
 
 def test_scan_user_mytardis_exp_dataset(set_user_mytardis_exp_dataset_config):
-    from mydata.commands.scan import scan
+    from mydata.commands.scan import scan_cmd
     from mydata.conf import settings
 
     with requests_mock.Mocker() as mocker:
@@ -49,16 +49,18 @@ def test_scan_user_mytardis_exp_dataset(set_user_mytardis_exp_dataset_config):
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
 
         runner = CliRunner()
-        result = runner.invoke(scan, [])
+        result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
             """\
-            Scanning tests/testdata/testdata-user-mytardis-exp-dataset/ using Username / "MyTardis" / Experiment / Dataset folder structure...
+            Scanning tests/testdata/testdata-user-mytardis-exp-dataset/ using the "Username / "MyTardis" / Experiment / Dataset" folder structure...
 
-            Found user: testuser1@example.com
-            Found user: testuser2@example.com
-            Found user: testuser3@example.com
+            Found user folder: testuser1
+            Found user folder: testuser2
+            Found user folder: testuser3
 
             Found 2 dataset folders in tests/testdata/testdata-user-mytardis-exp-dataset/
+
+            Datasets will be collected into 2 experiments.
             """
         )

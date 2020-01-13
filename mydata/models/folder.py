@@ -56,6 +56,9 @@ class Folder:
         self.dataset = None
         self.experiment = None
 
+        self.num_files_uploaded = 0
+        self.num_cache_hits = 0
+
     def populate_datafile_paths(self):
         """
         Populate data file paths within folder object
@@ -125,9 +128,9 @@ class Folder:
         displayed in the Status column of the Folders view.
         """
         self.datafile_paths["uploaded"][datafile_index] = uploaded
-        num_files_uploaded = sum(self.datafile_paths["uploaded"])
+        self.num_files_uploaded = sum(self.datafile_paths["uploaded"])
         self.data_view_fields["status"] = "%d of %d files uploaded" % (
-            num_files_uploaded,
+            self.num_files_uploaded,
             self.num_files,
         )
 

@@ -19,7 +19,7 @@ from tests.mocks import (
 
 
 def test_scan_group_instrument(set_group_instrument_config):
-    from mydata.commands.scan import scan
+    from mydata.commands.scan import scan_cmd
     from mydata.conf import settings
 
     with requests_mock.Mocker() as mocker:
@@ -46,14 +46,14 @@ def test_scan_group_instrument(set_group_instrument_config):
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
 
         runner = CliRunner()
-        result = runner.invoke(scan, [])
+        result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
             """\
-            Scanning tests/testdata/testdata-group-instrument/ using User Group / Instrument / Full Name / Dataset folder structure...
+            Scanning tests/testdata/testdata-group-instrument/ using the "User Group / Instrument / Full Name / Dataset" folder structure...
 
-            Found group: TestFacility-Group1
-            Found group: TestFacility-Group2
+            Found group folder: Group1
+            Found group folder: Group2
 
             Found 8 dataset folders in tests/testdata/testdata-group-instrument/
             """

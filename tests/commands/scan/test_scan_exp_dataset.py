@@ -17,7 +17,7 @@ from tests.mocks import (
 
 
 def test_scan_exp_dataset(set_exp_dataset_config):
-    from mydata.commands.scan import scan
+    from mydata.commands.scan import scan_cmd
     from mydata.conf import settings
 
     with requests_mock.Mocker() as mocker:
@@ -36,12 +36,14 @@ def test_scan_exp_dataset(set_exp_dataset_config):
         mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
 
         runner = CliRunner()
-        result = runner.invoke(scan, [])
+        result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
             """\
-            Scanning tests/testdata/testdata-exp-dataset/ using Experiment / Dataset folder structure...
+            Scanning tests/testdata/testdata-exp-dataset/ using the "Experiment / Dataset" folder structure...
             
             Found 2 dataset folders in tests/testdata/testdata-exp-dataset/
+
+            Datasets will be collected into 2 experiments.
             """
         )

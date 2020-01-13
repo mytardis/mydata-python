@@ -6,6 +6,7 @@ import os
 import traceback
 
 from datetime import datetime
+from http.client import responses
 
 from ..models.dataset import Dataset
 from ..models.experiment import Experiment
@@ -74,14 +75,29 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
     upload.message = "Defining JSON data for POST..."
     datafile_dict = construct_datafile_post_body(folder, upload)
 
-    def progress_callback():
+    def progress_callback(bytes_uploaded):
+        # pylint: disable=unused-argument
         pass
 
     if upload_method == UploadMethod.MULTIPART_POST:
-        DataFile.upload_datafile_with_post(
+        response = DataFile.upload_datafile_with_post(
             datafile_path, datafile_dict, upload, progress_callback
         )
-    elif upload_method == UploadMethod.SCP:
+        message = None
+        if not response.ok:
+            message = "Upload failed with HTTP %s - %s" % (
+                response.status_code,
+                responses[response.status_code],
+            )
+        finalize_upload(
+            folder,
+            upload,
+            success=response.ok,
+            message=message,
+            upload_callback=upload_callback,
+        )
+        return
+    if upload_method == UploadMethod.SCP:
         datafile_dict = add_uploader_info(datafile_dict)
         df_post_response = None
         if not lookup.existing_unverified_datafile:
@@ -132,11 +148,7 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
                 upload_callback=upload_callback,
             )
         return
-    else:
-        raise NotImplementedError("upload_file received unimplemented upload method")
-
-    success = True
-    finalize_upload(folder, upload, success, upload_callback=upload_callback)
+    raise NotImplementedError("upload_file received unimplemented upload method")
 
 
 def finalize_upload(folder, upload, success, message=None, upload_callback=None):

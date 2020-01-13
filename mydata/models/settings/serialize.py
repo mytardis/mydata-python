@@ -173,7 +173,7 @@ def load_advanced_settings(config_parser):
         "max_upload_retries",
         "validate_folder_structure",
         "start_automatically_on_login",
-        "upload_invalid_user_folders",
+        "upload_invalid_user_or_group_folders",
     ]
     for field in fields:
         if config_parser.has_option(config_file_section, field):
@@ -181,11 +181,18 @@ def load_advanced_settings(config_parser):
     boolean_fields = [
         "validate_folder_structure",
         "start_automatically_on_login",
-        "upload_invalid_user_folders",
+        "upload_invalid_user_or_group_folders",
     ]
     for field in boolean_fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.getboolean(config_file_section, field)
+    # For backwards compatibility:
+    if not config_parser.has_option(
+        config_file_section, "upload_invalid_user_or_group_folders"
+    ) and config_parser.has_option(config_file_section, "upload_invalid_user_folders"):
+        settings["upload_invalid_user_or_group_folders"] = config_parser.getboolean(
+            config_file_section, "upload_invalid_user_folders"
+        )
     int_fields = ["max_upload_threads", "max_upload_retries"]
     for field in int_fields:
         if config_parser.has_option(config_file_section, field):
@@ -269,7 +276,7 @@ def check_for_updated_settings_on_server():
                     "ignore_new_files",
                     "validate_folder_structure",
                     "start_automatically_on_login",
-                    "upload_invalid_user_folders",
+                    "upload_invalid_user_or_group_folders",
                     "fake_md5_sum",
                     "locked",
                     "monday_checked",
@@ -368,7 +375,7 @@ def save_settings_to_disk(config_path=None):
             "verification_delay",
             "start_automatically_on_login",
             "cache_datafile_lookups",
-            "upload_invalid_user_folders",
+            "upload_invalid_user_or_group_folders",
             "connection_timeout",
         ]
         settings_list = []

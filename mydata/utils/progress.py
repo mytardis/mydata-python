@@ -14,18 +14,14 @@ from ..utils.exceptions import MissingMyDataReplicaApiEndpoint
 
 
 def monitor_progress(
-    progress_poll_interval,
-    upload_model,
-    file_size,
-    monitoring_progress,
-    progress_callback,
+    progress_poll_interval, upload, file_size, monitoring_progress, progress_callback,
 ):
     """
     Monitor progress via RESTful queries.
     """
-    if should_cancel_upload(upload_model) or (
-        upload_model.status != UploadStatus.IN_PROGRESS
-        and upload_model.status != UploadStatus.NOT_STARTED
+    if should_cancel_upload(upload) or (
+        upload.status != UploadStatus.IN_PROGRESS
+        and upload.status != UploadStatus.NOT_STARTED
     ):
         return
 
@@ -34,24 +30,24 @@ def monitor_progress(
         monitor_progress,
         args=[
             progress_poll_interval,
-            upload_model,
+            upload,
             file_size,
             monitoring_progress,
             progress_callback,
         ],
     )
     timer.start()
-    if upload_model.status == UploadStatus.NOT_STARTED:
+    if upload.status == UploadStatus.NOT_STARTED:
         return
     if monitoring_progress.isSet():
         return
     monitoring_progress.set()
-    if upload_model.dfo_id is None:
-        if upload_model.datafile_id is not None:
+    if upload.dfo_id is None:
+        if upload.datafile_id is not None:
             try:
-                datafile = DataFile.get_datafile_from_id(upload_model.datafile_id)
+                datafile = DataFile.get_datafile_from_id(upload.datafile_id)
                 if datafile:
-                    upload_model.dfo_id = datafile.replicas[0].dfo_id
+                    upload.dfo_id = datafile.replicas[0].dfo_id
             except requests.exceptions.RequestException:
                 # If something goes wrong trying to retrieve
                 # the DataFile from the MyTardis API, don't
@@ -61,17 +57,15 @@ def monitor_progress(
                 # If the datafile.replicas[0] DFO doesn't exist yet,
                 # don't worry, just check again later.
                 pass
-    if upload_model.dfo_id:
+    if upload.dfo_id:
         try:
-            bytes_uploaded = Replica.count_bytes_uploaded_to_staging(
-                upload_model.dfo_id
-            )
+            bytes_uploaded = Replica.count_bytes_uploaded_to_staging(upload.dfo_id)
             latest_update_time = datetime.now()
             # If this file already has a partial upload in staging,
             # progress and speed estimates can be misleading.
-            upload_model.set_latest_time(latest_update_time)
-            if bytes_uploaded > upload_model.bytes_uploaded:
-                upload_model.set_bytes_uploaded(bytes_uploaded)
+            upload.set_latest_time(latest_update_time)
+            if bytes_uploaded > upload.bytes_uploaded:
+                upload.set_bytes_uploaded(bytes_uploaded)
             progress_callback(bytes_uploaded, file_size)
         except requests.exceptions.RequestException:
             timer.cancel()
