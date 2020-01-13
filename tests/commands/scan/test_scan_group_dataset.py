@@ -49,7 +49,7 @@ def test_scan_group_dataset(set_group_dataset_config):
         result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
-            """\
+            """
             Scanning tests/testdata/testdata-group-dataset/ using the "User Group / Dataset" folder structure...
 
             Found group folder: Group1

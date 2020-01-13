@@ -49,7 +49,7 @@ def test_scan_group_instrument(set_group_instrument_config):
         result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
-            """\
+            """
             Scanning tests/testdata/testdata-group-instrument/ using the "User Group / Instrument / Full Name / Dataset" folder structure...
 
             Found group folder: Group1

@@ -40,7 +40,7 @@ def test_scan_dataset(set_dataset_config):
         result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
-            """\
+            """
             Scanning tests/testdata/testdata-dataset/ using the "Dataset" folder structure...
 
             Found 2 dataset folders in tests/testdata/testdata-dataset/

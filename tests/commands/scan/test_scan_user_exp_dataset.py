@@ -48,7 +48,7 @@ def test_scan_user_exp_dataset(set_user_exp_dataset_config):
         result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
-            """\
+            """
             Scanning tests/testdata/testdata-user-exp-dataset/ using the "Username / Experiment / Dataset" folder structure...
 
             Found user folder: testuser1

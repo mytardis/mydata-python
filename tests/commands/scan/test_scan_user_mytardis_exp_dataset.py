@@ -52,7 +52,7 @@ def test_scan_user_mytardis_exp_dataset(set_user_mytardis_exp_dataset_config):
         result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
-            """\
+            """
             Scanning tests/testdata/testdata-user-mytardis-exp-dataset/ using the "Username / "MyTardis" / Experiment / Dataset" folder structure...
 
             Found user folder: testuser1

@@ -48,7 +48,7 @@ def test_scan_email_exp_dataset(set_email_exp_dataset_config):
         result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
-            """\
+            """
             Scanning tests/testdata/testdata-email-exp-dataset/ using the "Email / Experiment / Dataset" folder structure...
 
             Found user folder: testuser1@example.com

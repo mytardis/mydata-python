@@ -39,7 +39,7 @@ def test_scan_exp_dataset(set_exp_dataset_config):
         result = runner.invoke(scan_cmd, [])
         assert result.exit_code == 0
         assert result.output == "%s\n" % textwrap.dedent(
-            """\
+            """
             Scanning tests/testdata/testdata-exp-dataset/ using the "Experiment / Dataset" folder structure...
             
             Found 2 dataset folders in tests/testdata/testdata-exp-dataset/
