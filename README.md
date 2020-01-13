@@ -127,7 +127,7 @@ supporting large files will be added soon.
 ```
 $ mydata upload -v
 
-Using MyData configuration in: /Users/wettenhj/Library/Application Support/MyData/MyData.cfg
+Using MyData configuration in: /Users/james/Library/Application Support/MyData/MyData.cfg
 
 Scanning /Users/Shared/GroupDatasetDemoData/ using the "User Group / Dataset" folder structure...
 
