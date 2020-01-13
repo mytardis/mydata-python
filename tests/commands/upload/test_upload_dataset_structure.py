@@ -3,6 +3,7 @@ tests/commands/upload/test_upload_dataset_structure.py
 
 Tests for uploading files from within the "Dataset" folder structure
 """
+import json
 import textwrap
 
 import requests_mock
@@ -18,6 +19,8 @@ from tests.mocks import (
     EMPTY_LIST_RESPONSE,
     CREATED_EXP_RESPONSE,
     CREATED_DATASET_RESPONSE,
+    EXISTING_DATASET_RESPONSE,
+    VERIFIED_DATAFILE_RESPONSE,
 )
 
 
@@ -57,8 +60,17 @@ def test_upload_dataset_structure(set_dataset_config):
         mocker.post(post_objectacl_url, status_code=201)
 
         # A partial query-string match can be used for mocking:
-        get_dataset_url = "/api/v1/dataset/?format=json&experiments__id=1"
-        mocker.get(get_dataset_url, text=EMPTY_LIST_RESPONSE)
+        get_birds_dataset_url = (
+            "/api/v1/dataset/?format=json&experiments__id=1&description=Birds"
+        )
+        mocker.get(get_birds_dataset_url, text=EMPTY_LIST_RESPONSE)
+        get_flowers_dataset_url = (
+            "/api/v1/dataset/?format=json&experiments__id=1&description=Flowers"
+        )
+        mocker.get(
+            get_flowers_dataset_url,
+            text=EXISTING_DATASET_RESPONSE.replace("Existing Dataset", "Flowers"),
+        )
 
         post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
         # Response really should be different for each dataset,
@@ -66,8 +78,34 @@ def test_upload_dataset_structure(set_dataset_config):
         mocker.post(post_dataset_url, text=CREATED_DATASET_RESPONSE)
 
         # A partial query-string match can be used for mocking:
-        get_datafile_url = "/api/v1/mydata_dataset_file/?format=json&dataset__id=1"
-        mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
+        for filename in (
+            "1024px-Colourful_flowers.JPG",
+            "Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg",
+            "Pond_Water_Hyacinth_Flowers.jpg",
+        ):
+            get_datafile_url = (
+                "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
+                % filename
+            )
+            mocker.get(
+                get_datafile_url,
+                text=VERIFIED_DATAFILE_RESPONSE.replace("Verified File", filename),
+            )
+        for filename in (
+            "1024px-Australian_Birds_%40_Jurong_Bird_Park_%284374195521%29.jpg",
+        ):
+            get_datafile_url = (
+                "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
+                % filename
+            )
+            mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
+        for filename in ("Black-beaked-sea-bird-close-up.jpg",):
+            get_datafile_url = (
+                "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
+                % filename
+            )
+            error_response = json.dumps({"error_message": "Internal Server Error"})
+            mocker.get(get_datafile_url, text=error_response, status_code=500)
 
         post_datafile_url = "/api/v1/mydata_dataset_file/"
         mocker.post(post_datafile_url, status_code=201)
@@ -92,24 +130,19 @@ def test_upload_dataset_structure(set_dataset_config):
         assert result.output.endswith(
             textwrap.dedent(
                 """\
-            5 of 5 files have been uploaded to MyTardis.
-            0 of 5 files have been verified by MyTardis.
-            5 of 5 files were newly uploaded in this session.
-            0 of 5 file lookups were found in the local cache.
+                4 of 5 files have been uploaded to MyTardis.
+                3 of 5 files have been verified by MyTardis.
+                1 of 5 files were newly uploaded in this session.
+                0 of 5 file lookups were found in the local cache.
 
-            Not found on MyTardis server:
-            1024px-Colourful_flowers.JPG
-            Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg
-            Pond_Water_Hyacinth_Flowers.jpg
-            1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg
-            Black-beaked-sea-bird-close-up.jpg
+                Failed lookups:
+                Black-beaked-sea-bird-close-up.jpg
 
-            Files uploaded:
-            1024px-Colourful_flowers.JPG [Completed]
-            Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg [Completed]
-            Pond_Water_Hyacinth_Flowers.jpg [Completed]
-            1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg [Completed]
-            Black-beaked-sea-bird-close-up.jpg [Completed]
+                Not found on MyTardis server:
+                1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg
+
+                Files uploaded:
+                1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg [Completed]
 
             """
             )

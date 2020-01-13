@@ -301,3 +301,46 @@ MOCK_URR_MISSING_SBOX_ATTRS = json.dumps(
         ],
     }
 )
+
+VERIFIED_DATAFILE_RESPONSE = json.dumps(
+    {
+        "meta": {
+            "limit": 20,
+            "next": None,
+            "offset": 0,
+            "previous": None,
+            "total_count": 1,
+        },
+        "objects": [
+            {
+                "id": 290386,
+                "created_time": "2015-06-25T00:26:21",
+                "datafile": None,
+                "dataset": "/api/v1/dataset/1/",
+                "deleted": False,
+                "deleted_time": None,
+                "directory": "",
+                "filename": "Verified File",
+                "md5sum": "0d2a8fb0a57bf4a9aabce5f7e69b36e9",
+                "mimetype": "image/jpeg",
+                "modification_time": None,
+                "parameter_sets": [],
+                "replicas": [
+                    {
+                        "created_time": "2015-10-06T10:21:48.910470",
+                        "datafile": "/api/v1/dataset_file/290386/",
+                        "id": 444893,
+                        "last_verified_time": "2015-10-06T10:21:53.952521",
+                        "resource_uri": "/api/v1/replica/444893/",
+                        "uri": "DatasetDescription-1/Verified File",
+                        "verified": True,
+                    }
+                ],
+                "resource_uri": "/api/v1/mydata_dataset_file/290386/",
+                "sha512sum": "",
+                "size": "23",
+                "version": 1,
+            }
+        ],
+    }
+)
