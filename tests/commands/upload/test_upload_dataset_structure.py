@@ -76,7 +76,8 @@ def test_upload_dataset_structure(set_dataset_config):
 
         runner = CliRunner()
         result = runner.invoke(upload_cmd, ["-vv"])
-        assert not result.exception
+        if result.exception:
+            raise result.exception
         assert result.exit_code == 0
         assert result.output.startswith(
             textwrap.dedent(
