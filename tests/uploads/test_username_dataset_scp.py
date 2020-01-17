@@ -16,7 +16,7 @@ from tests.fixtures import (
 )
 
 from tests.mocks import (
-    MOCK_USER_RESPONSE,
+    mock_testfacility_user_response,
     MOCK_TESTUSER1_RESPONSE,
     MOCK_TESTUSER2_RESPONSE,
     MOCK_FACILITY_RESPONSE,
@@ -151,10 +151,7 @@ def test_scan_username_dataset_folders(
     found_group = None
 
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-        ) % settings.general.mytardis_url
-        mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         get_testuser1_url = (
             "%s/api/v1/user/?format=json&username=testuser1"
         ) % settings.general.mytardis_url

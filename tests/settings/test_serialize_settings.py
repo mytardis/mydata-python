@@ -13,7 +13,7 @@ from string import Template
 import pytest
 import requests_mock
 
-from tests.mocks import MOCK_UPLOADER_WITH_settings
+from tests.mocks import MOCK_UPLOADER_WITH_SETTINGS
 
 from tests.fixtures import set_exp_dataset_config
 from tests.utils import unload_modules
@@ -81,7 +81,7 @@ def test_check_for_updated_settings_on_server():
             "https://mytardis.example.com/api/v1/mydata_uploader/?format=json"
             "&uuid=1234567890"
         )
-        uploader_response = Template(MOCK_UPLOADER_WITH_settings).substitute(
+        uploader_response = Template(MOCK_UPLOADER_WITH_SETTINGS).substitute(
             settings_updated=str(datetime.datetime.now())
         )
         mocker.get(get_uploader_url, text=uploader_response)
@@ -100,7 +100,7 @@ def test_check_for_updated_settings_on_server():
         assert settings.miscellaneous.verification_delay == 4.0
 
         # An invalid setting value (not a floating point number) is specified
-        # for connection_timeout in MOCK_UPLOADER_WITH_settings:
+        # for connection_timeout in MOCK_UPLOADER_WITH_SETTINGS:
         assert (
             settings.miscellaneous.connection_timeout
             == settings.miscellaneous.default["connection_timeout"]

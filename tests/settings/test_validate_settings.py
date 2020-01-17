@@ -7,8 +7,8 @@ import pytest
 import requests_mock
 
 from tests.mocks import (
+    mock_testfacility_user_response,
     MOCK_API_ENDPOINTS_RESPONSE,
-    MOCK_USER_RESPONSE,
     MOCK_FACILITY_RESPONSE,
     MOCK_INSTRUMENT_RESPONSE,
 )
@@ -28,11 +28,7 @@ def test_validate_settings(set_exp_dataset_config):
             "%s/api/v1/?format=json" % settings.general.mytardis_url
         )
         mocker.get(list_api_endpoints_url, text=MOCK_API_ENDPOINTS_RESPONSE)
-        get_user_api_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         get_facility_api_url = (
             "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
         )

@@ -1,14 +1,12 @@
 """
 Test ability to handle group-related exceptions.
 """
-import json
-
 import pytest
 import requests_mock
 
 from requests.exceptions import HTTPError
 
-from tests.mocks import MOCK_GROUP_RESPONSE
+from tests.mocks import EMPTY_LIST_RESPONSE, MOCK_GROUP_RESPONSE
 from tests.fixtures import set_exp_dataset_config
 
 
@@ -43,22 +41,10 @@ def test_group_exceptions(set_exp_dataset_config):
         assert excinfo.value.response.status_code == 401
     settings.general.api_key = api_key
 
-    empty_group_response = json.dumps(
-        {
-            "meta": {
-                "limit": 20,
-                "next": None,
-                "offset": 0,
-                "previous": None,
-                "total_count": 0,
-            },
-            "objects": [],
-        }
-    )
     with requests_mock.Mocker() as mocker:
         get_group_url = (
             "%s/api/v1/group/?format=json&name=INVALID_GROUP"
         ) % settings.general.mytardis_url
-        mocker.get(get_group_url, text=empty_group_response)
+        mocker.get(get_group_url, text=EMPTY_LIST_RESPONSE)
         group = Group.get_group_by_name("INVALID_GROUP")
         assert not group

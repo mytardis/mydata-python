@@ -10,7 +10,7 @@ from click.testing import CliRunner
 from tests.fixtures import set_dataset_config
 
 from tests.mocks import (
-    MOCK_USER_RESPONSE,
+    mock_testfacility_user_response,
     MOCK_FACILITY_RESPONSE,
     MOCK_INSTRUMENT_RESPONSE,
 )
@@ -21,11 +21,7 @@ def test_scan_dataset(set_dataset_config):
     from mydata.conf import settings
 
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         get_facility_api_url = (
             "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
         )

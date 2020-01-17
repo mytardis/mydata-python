@@ -9,6 +9,7 @@ import requests_mock
 from requests.exceptions import HTTPError
 
 from tests.mocks import (
+    mock_testfacility_user_response,
     MOCK_FACILITY_RESPONSE,
     MOCK_INSTRUMENT_RESPONSE,
     EXISTING_EXP_RESPONSE,
@@ -34,32 +35,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     # which depends on the UUID of the MyData instance:
     settings.miscellaneous.uuid = "1234567890"
 
-    mock_user_dict = {
-        "meta": {
-            "limit": 20,
-            "next": None,
-            "offset": 0,
-            "previous": None,
-            "total_count": 1,
-        },
-        "objects": [
-            {
-                "id": 1,
-                "username": "testfacility",
-                "first_name": "TestFacility",
-                "last_name": "RoleAccount",
-                "email": "testfacility@example.com",
-                "groups": [{"id": 1, "name": "test-facility-managers"}],
-            }
-        ],
-    }
-    mock_user_response = json.dumps(mock_user_dict)
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_user_api_url, text=mock_user_response)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         owner = settings.general.default_owner
     dataset_folder_name = "Flowers"
     exp_folder_name = "Exp1"

@@ -1,12 +1,14 @@
 """
 Test ability to handle dataset-related exceptions.
 """
-import json
 import os
 
 import requests_mock
 
 from tests.mocks import (
+    build_list_response,
+    mock_testfacility_user_response,
+    EMPTY_LIST_RESPONSE,
     MOCK_USER_RESPONSE,
     MOCK_FACILITY_RESPONSE,
     MOCK_INSTRUMENT_RESPONSE,
@@ -26,11 +28,7 @@ def test_dataset_exceptions(set_exp_dataset_config):
     from mydata.threads.flags import FLAGS
 
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         owner = settings.general.default_owner
     dataset_folder_name = "Flowers"
     exp_folder_name = "Exp1"
@@ -44,18 +42,7 @@ def test_dataset_exceptions(set_exp_dataset_config):
         dataset_folder_name, location, user_folder_name, group_folder_name, owner
     )
     folder.experimentTitle = "Existing Experiment"
-    mock_exp_response = json.dumps(
-        {
-            "meta": {
-                "limit": 20,
-                "next": None,
-                "offset": 0,
-                "previous": None,
-                "total_count": 1,
-            },
-            "objects": [{"id": 1, "title": "Existing Experiment"}],
-        }
-    )
+    mock_exp_response = build_list_response([{"id": 1, "title": "Existing Experiment"}])
     with requests_mock.Mocker() as mocker:
         get_exp_url = (
             "%s/api/v1/mydata_experiment/?format=json&title="
@@ -68,18 +55,7 @@ def test_dataset_exceptions(set_exp_dataset_config):
     folder.experiment = experiment
     FLAGS.test_run_running = False
 
-    mock_dataset_response = json.dumps(
-        {
-            "meta": {
-                "limit": 20,
-                "next": None,
-                "offset": 0,
-                "previous": None,
-                "total_count": 1,
-            },
-            "objects": [{"id": 1, "description": "Flowers"}],
-        }
-    )
+    mock_dataset_response = build_list_response([{"id": 1, "description": "Flowers"}])
     with requests_mock.Mocker() as mocker:
         get_dataset_url = (
             "%s/api/v1/dataset/?format=json&experiments__id=1"
@@ -97,18 +73,7 @@ def test_dataset_exceptions(set_exp_dataset_config):
         dataset = Dataset.create_dataset_if_necessary(folder)
         assert dataset.description == dataset_folder_name
 
-    mock_dataset_response = json.dumps(
-        {
-            "meta": {
-                "limit": 20,
-                "next": None,
-                "offset": 0,
-                "previous": None,
-                "total_count": 0,
-            },
-            "objects": [],
-        }
-    )
+    mock_dataset_response = EMPTY_LIST_RESPONSE
     with requests_mock.Mocker() as mocker:
         get_dataset_url = (
             "%s/api/v1/dataset/?format=json&experiments__id=1"

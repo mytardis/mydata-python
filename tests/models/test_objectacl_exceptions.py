@@ -1,7 +1,6 @@
 """
 Test ability to handle ObjectACL-related exceptions.
 """
-import json
 import os
 
 import pytest
@@ -10,7 +9,7 @@ import requests_mock
 from requests.exceptions import HTTPError
 
 from tests.fixtures import set_exp_dataset_config
-from tests.mocks import EXISTING_EXP_RESPONSE, MOCK_GROUP_RESPONSE
+from tests.mocks import EXISTING_EXP_RESPONSE, MOCK_USER_RESPONSE, MOCK_GROUP_RESPONSE
 
 
 def test_objectacl_exceptions(set_exp_dataset_config):
@@ -26,32 +25,11 @@ def test_objectacl_exceptions(set_exp_dataset_config):
     from mydata.models.folder import Folder
     from mydata.models.group import Group
 
-    mock_user_response = json.dumps(
-        {
-            "meta": {
-                "limit": 20,
-                "next": None,
-                "offset": 0,
-                "previous": None,
-                "total_count": 1,
-            },
-            "objects": [
-                {
-                    "id": 1,
-                    "username": "testfacility",
-                    "first_name": "TestFacility",
-                    "last_name": "RoleAccount",
-                    "email": "testfacility@example.com",
-                    "groups": [{"id": 1, "name": "test-facility-managers"}],
-                }
-            ],
-        }
-    )
     with requests_mock.Mocker() as mocker:
         get_user_url = (
             "%s/api/v1/user/?format=json&username=testfacility"
         ) % settings.general.mytardis_url
-        mocker.get(get_user_url, text=mock_user_response)
+        mocker.get(get_user_url, text=MOCK_USER_RESPONSE)
         owner = settings.general.default_owner
     dataset_folder_name = "Flowers"
     exp_folder_name = "Exp1"

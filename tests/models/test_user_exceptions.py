@@ -1,14 +1,13 @@
 """
 Test ability to handle user-related exceptions.
 """
-import json
-
 import pytest
 import requests_mock
 
 from requests.exceptions import HTTPError
 
 from tests.fixtures import set_exp_dataset_config
+from tests.mocks import build_list_response, EMPTY_LIST_RESPONSE, MOCK_USER_RESPONSE
 
 
 def test_user_exceptions(set_exp_dataset_config):
@@ -19,33 +18,12 @@ def test_user_exceptions(set_exp_dataset_config):
 
     # Test retrieving default owner's user record (using the User model's
     # get_user_by_username method) and ensure that no exception is raised:
-    mock_user_response = json.dumps(
-        {
-            "meta": {
-                "limit": 20,
-                "next": None,
-                "offset": 0,
-                "previous": None,
-                "total_count": 1,
-            },
-            "objects": [
-                {
-                    "id": 1,
-                    "username": "testfacility",
-                    "first_name": "TestFacility",
-                    "last_name": "RoleAccount",
-                    "email": "testfacility@example.com",
-                    "groups": [{"id": 1, "name": "test-facility-managers"}],
-                }
-            ],
-        }
-    )
     with requests_mock.Mocker() as mocker:
         get_user_url = (
             "%s/api/v1/user/?format=json&username=testfacility"
             % settings.general.mytardis_url
         )
-        mocker.get(get_user_url, text=mock_user_response)
+        mocker.get(get_user_url, text=MOCK_USER_RESPONSE)
         owner = settings.general.default_owner
 
     # Test retrieving default owner's user record (using the User model's
@@ -54,7 +32,7 @@ def test_user_exceptions(set_exp_dataset_config):
         get_user_url = (
             "%s/api/v1/user/?format=json&email__iexact=testfacility%%40example.com"
         ) % settings.general.mytardis_url
-        mocker.get(get_user_url, text=mock_user_response)
+        mocker.get(get_user_url, text=MOCK_USER_RESPONSE)
         owner = settings.general.default_owner
         _ = User.get_user_by_email(owner.email)
 
@@ -118,24 +96,12 @@ def test_user_exceptions(set_exp_dataset_config):
 
     assert not owner.get_value_for_key("invalid")
 
-    empty_user_response = json.dumps(
-        {
-            "meta": {
-                "limit": 20,
-                "next": None,
-                "offset": 0,
-                "previous": None,
-                "total_count": 0,
-            },
-            "objects": [],
-        }
-    )
     with requests_mock.Mocker() as mocker:
         get_user_url = (
             "%s/api/v1/user/?format=json&username=INVALID_USER"
             % settings.general.mytardis_url
         )
-        mocker.get(get_user_url, text=empty_user_response)
+        mocker.get(get_user_url, text=EMPTY_LIST_RESPONSE)
         user = User.get_user_by_username("INVALID_USER")
         assert not user
 
@@ -143,6 +109,6 @@ def test_user_exceptions(set_exp_dataset_config):
         get_user_url = (
             "%s/api/v1/user/?format=json&email__iexact=invalid%%40email.com"
         ) % settings.general.mytardis_url
-        mocker.get(get_user_url, text=empty_user_response)
+        mocker.get(get_user_url, text=EMPTY_LIST_RESPONSE)
         user = User.get_user_by_email("invalid@email.com")
         assert not user

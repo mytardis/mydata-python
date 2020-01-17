@@ -10,7 +10,7 @@ from click.testing import CliRunner
 from tests.fixtures import set_group_exp_dataset_config
 
 from tests.mocks import (
-    MOCK_USER_RESPONSE,
+    mock_testfacility_user_response,
     MOCK_GROUP_RESPONSE,
     MOCK_GROUP2_RESPONSE,
     MOCK_FACILITY_RESPONSE,
@@ -23,11 +23,7 @@ def test_scan_group_exp_dataset(set_group_exp_dataset_config):
     from mydata.conf import settings
 
     with requests_mock.Mocker() as mocker:
-        get_user_api_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_user_api_url, text=MOCK_USER_RESPONSE)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         get_group1_url = (
             "%s/api/v1/group/?format=json&name=TestFacility-Group1"
             % settings.general.mytardis_url
