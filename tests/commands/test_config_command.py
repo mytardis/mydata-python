@@ -49,6 +49,8 @@ def test_config_list_command(set_exp_dataset_config):
         validate_folder_structure
         locked
         start_automatically_on_login
+        cache_datafile_lookups
+        ignore_new_files
         """
     )
 
