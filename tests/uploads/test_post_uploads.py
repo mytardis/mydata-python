@@ -12,7 +12,7 @@ from tests.fixtures import set_username_dataset_config
 
 from tests.mocks import (
     mock_testfacility_user_response,
-    mock_testuser_response,
+    mock_testusers_response,
     mock_test_facility_response,
     mock_test_instrument_response,
     EMPTY_LIST_RESPONSE,
@@ -45,13 +45,7 @@ def test_post_uploads(set_username_dataset_config):
 
     with requests_mock.Mocker() as mocker:
         mock_testfacility_user_response(mocker, settings.general.mytardis_url)
-        for username in ("testuser1", "testuser2"):
-            mock_testuser_response(
-                mocker,
-                settings.general.mytardis_url,
-                settings.advanced.folder_structure,
-                username,
-            )
+        mock_testusers_response(mocker, settings, ["testuser1", "testuser2"])
         get_invalid_user_url = (
             "%s/api/v1/user/?format=json&username=INVALID_USER"
             % settings.general.mytardis_url

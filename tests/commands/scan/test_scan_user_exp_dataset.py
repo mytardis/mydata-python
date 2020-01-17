@@ -11,11 +11,9 @@ from tests.fixtures import set_user_exp_dataset_config
 
 from tests.mocks import (
     mock_testfacility_user_response,
-    mock_testuser_response,
+    mock_testusers_response,
     mock_test_facility_response,
     mock_test_instrument_response,
-    MOCK_TESTUSER1_RESPONSE,
-    MOCK_TESTUSER2_RESPONSE,
 )
 
 
@@ -25,13 +23,7 @@ def test_scan_user_exp_dataset(set_user_exp_dataset_config):
 
     with requests_mock.Mocker() as mocker:
         mock_testfacility_user_response(mocker, settings.general.mytardis_url)
-        for username in ("testuser1", "testuser2"):
-            mock_testuser_response(
-                mocker,
-                settings.general.mytardis_url,
-                settings.advanced.folder_structure,
-                username,
-            )
+        mock_testusers_response(mocker, settings, ["testuser1", "testuser2"])
         mock_test_facility_response(mocker, settings.general.mytardis_url)
         mock_test_instrument_response(mocker, settings.general.mytardis_url)
 

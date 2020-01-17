@@ -267,13 +267,16 @@ def mock_test_instrument_response(mocker, mytardis_url):
     mocker.get(get_instrument_url, text=MOCK_INSTRUMENT_RESPONSE)
 
 
-def mock_testuser_response(mocker, mytardis_url, folder_structure, username):
+def mock_testuser_response(mocker, settings, username):
     """Mock the list response for looking up "testuser1" or "testuser2" or "testuser3"
 
     folder_structure should begin with "Username" or "Email"
     """
     if username not in ("testuser1", "testuser2", "testuser3"):
         raise ValueError("Expecting 'testuser1' or 'testuser2' or 'testuser3'.")
+
+    mytardis_url = settings.general.mytardis_url
+    folder_structure = settings.advanced.folder_structure
 
     if not folder_structure.startswith("Username") and not folder_structure.startswith(
         "Email"
@@ -297,6 +300,13 @@ def mock_testuser_response(mocker, mytardis_url, folder_structure, username):
     if username == "testuser3":
         mock_user_response = mock_user_response.replace("ser1", "ser3")
     mocker.get(get_user_url, text=mock_user_response)
+
+
+def mock_testusers_response(mocker, settings, usernames):
+    """Mock the list responses for looking up a list of usernames
+    """
+    for username in usernames:
+        mock_testuser_response(mocker, settings, username)
 
 
 def mock_get_group(mocker, mytardis_url, group_name):

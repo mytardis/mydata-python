@@ -16,7 +16,7 @@ from tests.mocks import (
     mock_testfacility_user_response,
     mock_test_facility_response,
     mock_test_instrument_response,
-    mock_testuser_response,
+    mock_testusers_response,
     EMPTY_LIST_RESPONSE,
     CREATED_EXP_RESPONSE,
     CREATED_DATASET_RESPONSE,
@@ -36,13 +36,7 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
         mock_test_facility_response(mocker, settings.general.mytardis_url)
         mock_test_instrument_response(mocker, settings.general.mytardis_url)
 
-        for username in ("testuser1", "testuser2"):
-            mock_testuser_response(
-                mocker,
-                settings.general.mytardis_url,
-                settings.advanced.folder_structure,
-                username,
-            )
+        mock_testusers_response(mocker, settings, ["testuser1", "testuser2"])
 
         for user in ("testuser1", "testuser2"):
             name = "Test%20User1" if user == "testuser1" else "Test%20User2"
