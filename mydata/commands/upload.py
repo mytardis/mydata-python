@@ -83,8 +83,10 @@ def upload_cmd(verbose):
         elif lookup.status == LookupStatus.FAILED:
             lookups["failed"].append(lookup)
 
+        total_lookups = sum([len(lookups[lookup_status]) for lookup_status in lookups])
+
         print(
-            "Looked up %s of %s files..." % (len(lookups), num_files),
+            "Looked up %s of %s files..." % (total_lookups, num_files),
             end="\r",
             flush=True,
         )
