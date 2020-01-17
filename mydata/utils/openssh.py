@@ -9,7 +9,6 @@ import os
 import subprocess
 import re
 import getpass
-import threading
 import time
 import struct
 
@@ -24,8 +23,6 @@ from ..utils.exceptions import PrivateKeyDoesNotExist
 
 from ..subprocesses import DEFAULT_STARTUP_INFO
 from ..subprocesses import DEFAULT_CREATION_FLAGS
-
-from .progress import monitor_progress
 
 if sys.platform.startswith("win"):
     import win32process  # pylint: disable=import-error
@@ -326,14 +323,7 @@ def find_or_create_key_pair(key_name="MyData"):
 
 
 def upload_with_scp(
-    file_path,
-    username,
-    private_key_path,
-    host,
-    port,
-    remote_file_path,
-    progress_callback,
-    upload,
+    file_path, username, private_key_path, host, port, remote_file_path, upload,
 ):
     """
     Upload a file to staging using SCP.
@@ -347,18 +337,6 @@ def upload_with_scp(
         private_key_path = get_cygwin_path(private_key_path)
 
     upload.start_time = datetime.now()
-    if progress_callback:
-        progress_callback(current=0, total=upload.file_size, message="Uploading...")
-
-    monitoring_progress = threading.Event()
-    upload.startTime = datetime.now()
-    monitor_progress(
-        settings.miscellaneous.progress_poll_interval,
-        upload,
-        upload.file_size,
-        monitoring_progress,
-        progress_callback,
-    )
 
     remote_dir = os.path.dirname(remote_file_path)
     create_remote_dir(remote_dir, username, private_key_path, host, port)
@@ -387,8 +365,6 @@ def upload_with_scp(
 
     upload.set_latest_time(datetime.now())
     upload.bytes_uploaded = upload.file_size
-    if progress_callback:
-        progress_callback(current=upload.file_size, total=upload.file_size)
 
 
 def scp_upload(upload, scp_command_list):

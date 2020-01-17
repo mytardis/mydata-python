@@ -54,7 +54,6 @@ class MiscellaneousSettings(BaseSettings):
             "max_verification_threads",
             "fake_md5_sum",
             "cipher",
-            "progress_poll_interval",
             "cache_datafile_lookups",
             "connection_timeout",
         ]
@@ -66,7 +65,6 @@ class MiscellaneousSettings(BaseSettings):
             max_verification_threads=5,
             fake_md5_sum=False,
             cipher="aes128-ctr",
-            progress_poll_interval=1.0,
             cache_datafile_lookups=True,
             connection_timeout=10.0,
         )
@@ -164,17 +162,6 @@ class MiscellaneousSettings(BaseSettings):
         SSH Cipher Options for SCP uploads.
         """
         return ["-c", self.mydata_config["cipher"]]
-
-    @property
-    def progress_poll_interval(self):
-        """
-        Upload progress is queried periodically via the MyTardis API.
-        Returns the interval in seconds between RESTful progress queries.
-
-        :return: the interval in seconds
-        :rtype: float
-        """
-        return self.mydata_config["progress_poll_interval"]
 
     @property
     def cache_datafile_lookups(self):

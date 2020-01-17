@@ -75,13 +75,9 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
     upload.message = "Defining JSON data for POST..."
     datafile_dict = construct_datafile_post_body(folder, upload)
 
-    def progress_callback(bytes_uploaded):
-        # pylint: disable=unused-argument
-        pass
-
     if upload_method == UploadMethod.MULTIPART_POST:
         response = DataFile.upload_datafile_with_post(
-            datafile_path, datafile_dict, upload, progress_callback
+            datafile_path, datafile_dict, upload
         )
         message = None
         if not response.ok:
@@ -163,13 +159,11 @@ def finalize_upload(folder, upload, success, message=None, upload_callback=None)
             message = "Upload complete!"
         upload.message = message
         upload.set_latest_time(datetime.now())
-        upload.set_progress(100)
     else:
         upload.status = UploadStatus.FAILED
         if not message:
             message = "Upload failed for %s" % datafile_name
         upload.message = message
-        upload.set_progress(0)
     folder.set_datafile_uploaded(upload.datafile_index, uploaded=success)
     if upload_callback:
         upload_callback(upload)
@@ -184,9 +178,7 @@ def construct_datafile_post_body(folder, upload):
     upload.file_size = folder.get_datafile_size(upload.datafile_index)
 
     upload.message = "Calculating MD5 checksum..."
-    md5sum = folder.calculate_md5_sum(
-        upload.datafile_index, progress_cb=None, canceled_cb=None
-    )
+    md5sum = folder.calculate_md5_sum(upload.datafile_index, canceled_cb=None)
 
     upload.message = "Checking MIME type..."
     mime_type = mimetypes.MimeTypes().guess_type(datafile_path)[0]
@@ -245,7 +237,6 @@ def upload_via_scp_with_retries(
     while True:
         # Upload retries loop:
         try:
-            progress_cb = None
             upload_with_scp(
                 datafile_path,
                 username,
@@ -253,7 +244,6 @@ def upload_via_scp_with_retries(
                 host,
                 port,
                 remote_file_path,
-                progress_cb,
                 upload,
             )
             # Break out of upload retries loop.
@@ -265,7 +255,6 @@ def upload_via_scp_with_retries(
                 logger.warning(str(err))
                 upload.retries += 1
                 logger.debug("Restarting upload for " + datafile_path)
-                upload.set_progress(0)
                 continue
             raise
 

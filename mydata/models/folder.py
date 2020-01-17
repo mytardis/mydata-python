@@ -295,7 +295,7 @@ class Folder:
             too_new = False
         return too_new
 
-    def calculate_md5_sum(self, datafile_index, progress_cb=None, canceled_cb=None):
+    def calculate_md5_sum(self, datafile_index, canceled_cb=None):
         """
         Calculate MD5 checksum.
 
@@ -311,7 +311,6 @@ class Folder:
         chunk_size = default_chunk_size
         while (file_size / chunk_size) > 50 and chunk_size < max_chunk_size:
             chunk_size *= 2
-        bytes_processed = 0
         with open(absolute_file_path, "rb") as file_handle:
             # Note that the iter() func needs an empty byte string
             # for the returned iterator to halt at EOF, since read()
@@ -323,10 +322,7 @@ class Folder:
                     )
                     return None
                 md5.update(chunk)
-                bytes_processed += len(chunk)
                 del chunk
-                if progress_cb:
-                    progress_cb(bytes_processed)
         return md5.hexdigest()
 
     def reset_counts(self):

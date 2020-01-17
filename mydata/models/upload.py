@@ -77,9 +77,7 @@ class Upload:
         # Human-readable string displayed in data view:
         self.filesize_string = ""
 
-        # Number of bytes uploaded (used to render progress bar):
         self.bytes_uploaded = 0
-        self.progress = 0  # Percentage used to render progress bar
         self.status = UploadStatus.NOT_STARTED
         self.message = ""
         self.speed = ""
@@ -128,20 +126,9 @@ class Upload:
                 else:
                     self.speed = "%3.1f KB/s" % (speed_mbs * 1000.0)
 
-    def set_progress(self, progress):
-        """
-        Set upload progress and update UploadStatus.
-        """
-        self.progress = progress
-        if 0 < progress < 100:
-            self.status = UploadStatus.IN_PROGRESS
-
     def set_latest_time(self, latest_time):
         """
         Set the latest time at which this upload is/was still progressing.
-
-        This is updated while the upload is still in progress, so we can
-        provide real time upload speed estimates.
         """
         self.latest_time = latest_time
         if self.bytes_uploaded and self.latest_time:

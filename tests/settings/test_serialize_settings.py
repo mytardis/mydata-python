@@ -97,7 +97,7 @@ def test_check_for_updated_settings_on_server():
         assert not settings.filters.ignore_new_files
 
         # Test updating a floating-point setting value from the server:
-        assert settings.miscellaneous.progress_poll_interval == 2.0
+        assert settings.miscellaneous.verification_delay == 4.0
 
         # An invalid setting value (not a floating point number) is specified
         # for connection_timeout in MOCK_UPLOADER_WITH_settings:

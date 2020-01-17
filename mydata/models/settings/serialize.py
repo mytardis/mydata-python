@@ -220,7 +220,6 @@ def load_miscellaneous_settings(config_parser):
         "max_verification_threads",
         "verification_delay",
         "fake_md5_sum",
-        "progress_poll_interval",
         "cache_datafile_lookups",
         "connection_timeout",
     ]
@@ -237,7 +236,6 @@ def load_miscellaneous_settings(config_parser):
             settings[field] = config_parser.getint(config_file_section, field)
     float_fields = [
         "verification_delay",
-        "progress_poll_interval",
         "connection_timeout",
     ]
     for field in float_fields:
@@ -301,11 +299,7 @@ def check_for_updated_settings_on_server():
                     "max_upload_retries",
                 ):
                     settings[setting["key"]] = int(setting["value"])
-                elif setting["key"] in (
-                    "progress_poll_interval",
-                    "verification_delay",
-                    "connection_timeout",
-                ):
+                elif setting["key"] in ("verification_delay", "connection_timeout",):
                     try:
                         settings[setting["key"]] = float(setting["value"])
                     except ValueError:
@@ -371,7 +365,6 @@ def save_settings_to_disk(config_path=None):
             "cipher",
             "locked",
             "uuid",
-            "progress_poll_interval",
             "verification_delay",
             "start_automatically_on_login",
             "cache_datafile_lookups",

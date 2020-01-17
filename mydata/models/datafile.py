@@ -123,9 +123,7 @@ class DataFile:
         return response
 
     @staticmethod
-    def upload_datafile_with_post(
-        datafile_path, datafile_dict, upload, progress_callback
-    ):
+    def upload_datafile_with_post(datafile_path, datafile_dict, upload):
         """
         Upload a file to the MyTardis API via POST, creating a new
         DataFile record.
@@ -150,7 +148,7 @@ class DataFile:
         multipart_encoder_read_method = encoded.read
         encoded.read = lambda size: multipart_encoder_read_method(1024 * 1024)
 
-        multipart = encoder.MultipartEncoderMonitor(encoded, progress_callback)
+        multipart = encoder.MultipartEncoderMonitor(encoded)
 
         headers = settings.default_headers
         headers["Content-Type"] = multipart.content_type

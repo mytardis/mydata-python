@@ -210,7 +210,7 @@ MOCK_UPLOADER_WITH_settings = json.dumps(
                     },
                     {"key": "ignore_new_files", "value": False},
                     {"key": "ignore_new_files_minutes", "value": 0},
-                    {"key": "progress_poll_interval", "value": 2.0},
+                    {"key": "verification_delay", "value": 4.0},
                     {"key": "connection_timeout", "value": "trigger ValueError"},
                 ],
             }
