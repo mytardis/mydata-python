@@ -3,7 +3,6 @@ tests/commands/upload/test_upload_email_dataset_structure.py
 
 Tests for uploading files from within the "Email / Dataset" folder structure
 """
-import json
 import textwrap
 
 import requests_mock
@@ -17,11 +16,10 @@ from tests.mocks import (
     mock_test_facility_response,
     mock_test_instrument_response,
     mock_testusers_response,
+    mock_birds_flowers_dataset_creation,
+    mock_birds_flowers_datafile_lookups,
+    mock_exp_creation,
     EMPTY_LIST_RESPONSE,
-    CREATED_EXP_RESPONSE,
-    CREATED_DATASET_RESPONSE,
-    EXISTING_DATASET_RESPONSE,
-    VERIFIED_DATAFILE_RESPONSE,
 )
 
 
@@ -39,72 +37,14 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
         mock_testusers_response(mocker, settings, ["testuser1", "testuser2"])
 
         for user in ("testuser1", "testuser2"):
-            name = "Test%20User1" if user == "testuser1" else "Test%20User2"
-            get_exp_url = (
-                "%s/api/v1/mydata_experiment/?format=json"
-                "&title=Test%%20Instrument%%20-%%20%s"
-                "&folder_structure=Email%%20/%%20Dataset"
-                "&user_folder_name=%s%%40example.com"
-                % (settings.general.mytardis_url, name, user)
-            )
-            mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
-        post_experiment_url = (
-            "%s/api/v1/mydata_experiment/" % settings.general.mytardis_url
-        )
-        mocker.post(post_experiment_url, text=CREATED_EXP_RESPONSE)
-        post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
-        mocker.post(post_objectacl_url, status_code=201)
+            name = "Test User1" if user == "testuser1" else "Test User2"
+            title = "Test Instrument - %s" % name
+            user_folder_name = "%s@example.com" % user
+            mock_exp_creation(mocker, settings, title, user_folder_name)
 
-        # A partial query-string match can be used for mocking:
-        get_birds_dataset_url = (
-            "/api/v1/dataset/?format=json&experiments__id=1&description=Birds"
-        )
-        mocker.get(get_birds_dataset_url, text=EMPTY_LIST_RESPONSE)
-        get_flowers_dataset_url = (
-            "/api/v1/dataset/?format=json&experiments__id=1&description=Flowers"
-        )
-        mocker.get(
-            get_flowers_dataset_url,
-            text=EXISTING_DATASET_RESPONSE.replace("Existing Dataset", "Flowers"),
-        )
+        mock_birds_flowers_dataset_creation(mocker, settings)
 
-        post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
-        # Response really should be different for each dataset,
-        # but that would complicate mocking:
-        mocker.post(post_dataset_url, text=CREATED_DATASET_RESPONSE)
-
-        # A partial query-string match can be used for mocking:
-        for filename in (
-            "1024px-Colourful_flowers.JPG",
-            "Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg",
-            "Pond_Water_Hyacinth_Flowers.jpg",
-        ):
-            get_datafile_url = (
-                "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
-                % filename
-            )
-            mocker.get(
-                get_datafile_url,
-                text=VERIFIED_DATAFILE_RESPONSE.replace("Verified File", filename),
-            )
-        for filename in (
-            "1024px-Australian_Birds_%40_Jurong_Bird_Park_%284374195521%29.jpg",
-        ):
-            get_datafile_url = (
-                "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
-                % filename
-            )
-            mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
-        for filename in ("Black-beaked-sea-bird-close-up.jpg",):
-            get_datafile_url = (
-                "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
-                % filename
-            )
-            error_response = json.dumps({"error_message": "Internal Server Error"})
-            mocker.get(get_datafile_url, text=error_response, status_code=500)
-
-        post_datafile_url = "/api/v1/mydata_dataset_file/"
-        mocker.post(post_datafile_url, status_code=201)
+        mock_birds_flowers_datafile_lookups(mocker)
 
         runner = CliRunner()
         result = runner.invoke(upload_cmd, ["-vv"])

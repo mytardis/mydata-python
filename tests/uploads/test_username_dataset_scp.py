@@ -20,10 +20,10 @@ from tests.mocks import (
     mock_testusers_response,
     mock_test_facility_response,
     mock_test_instrument_response,
+    mock_exp_creation,
     EMPTY_LIST_RESPONSE,
     MOCK_UPLOADER_RESPONSE,
     MOCK_EXISTING_UPLOADER_RESPONSE,
-    CREATED_EXP_RESPONSE,
     CREATED_DATASET_RESPONSE,
     MOCK_URR_RESPONSE,
     EXISTING_EXP_RESPONSE,
@@ -104,21 +104,9 @@ def test_scan_username_dataset_folders(
         # responses we want to provide in this test, it is easier to
         # explicitly create the experiment and dataset here:
         with requests_mock.Mocker() as mocker:
-            get_exp_url = (
-                "%s/api/v1/mydata_experiment/?format=json&title=%s"
-                "&folder_structure=Username%%20/%%20Dataset&user_folder_name=%s"
-            ) % (
-                settings.general.mytardis_url,
-                quote(folder.experiment_title),
-                quote(folder.user_folder_name),
+            mock_exp_creation(
+                mocker, settings, folder.experiment_title, folder.user_folder_name
             )
-            mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
-            post_experiment_url = (
-                "%s/api/v1/mydata_experiment/" % settings.general.mytardis_url
-            )
-            mocker.post(post_experiment_url, text=CREATED_EXP_RESPONSE)
-            post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
-            mocker.post(post_objectacl_url, status_code=201)
             get_dataset_url = (
                 "%s/api/v1/dataset/?format=json&experiments__id=1"
                 "&description=%s&instrument__id=1"

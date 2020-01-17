@@ -15,8 +15,8 @@ from tests.mocks import (
     mock_testusers_response,
     mock_test_facility_response,
     mock_test_instrument_response,
+    mock_exp_creation,
     EMPTY_LIST_RESPONSE,
-    CREATED_EXP_RESPONSE,
     CREATED_DATASET_RESPONSE,
 )
 
@@ -72,28 +72,15 @@ def test_post_uploads(set_username_dataset_config):
     with requests_mock.Mocker() as mocker:
         mock_test_facility_response(mocker, settings.general.mytardis_url)
         mock_test_instrument_response(mocker, settings.general.mytardis_url)
-        get_exp_url_template = Template(
-            (
-                "%s/api/v1/mydata_experiment/?format=json&title=Test%%20Instrument%%20-%%20$name"
-                "&folder_structure=Username%%20/%%20Dataset&user_folder_name=$username"
-            )
-            % settings.general.mytardis_url
-        )
         for username, name in [
-            ("testuser1", quote("Test User1")),
-            ("testuser2", quote("Test User2")),
-            ("INVALID_USER", "INVALID_USER%20%28USER%20NOT%20FOUND%20IN%20MYTARDIS%29"),
+            ("testuser1", "Test User1"),
+            ("testuser2", "Test User2"),
+            ("INVALID_USER", "INVALID_USER (USER NOT FOUND IN MYTARDIS)"),
         ]:
-            mocker.get(
-                get_exp_url_template.substitute(username=username, name=name),
-                text=EMPTY_LIST_RESPONSE,
-            )
-        post_experiment_url = (
-            "%s/api/v1/mydata_experiment/" % settings.general.mytardis_url
-        )
-        mocker.post(post_experiment_url, text=CREATED_EXP_RESPONSE)
-        post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
-        mocker.post(post_objectacl_url, status_code=201)
+            title = "Test Instrument - %s" % name
+            user_folder_name = username
+            mock_exp_creation(mocker, settings, title, user_folder_name)
+
         for folder in folders:
             get_dataset_url = (
                 "%s/api/v1/dataset/?format=json&experiments__id=1"

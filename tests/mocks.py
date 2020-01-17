@@ -6,6 +6,9 @@ Mock MyTardis API responses which can be used in unit tests
 import copy
 import json
 
+from urllib.parse import quote
+
+
 EMPTY_LIST_RESPONSE_DICT = {
     "meta": {
         "limit": 20,
@@ -321,3 +324,82 @@ def mock_get_group(mocker, mytardis_url, group_name):
     else:
         mock_group_response = MOCK_GROUP2_RESPONSE
     mocker.get(get_group_url, text=mock_group_response)
+
+
+def mock_birds_flowers_dataset_creation(mocker, settings):
+    """Mock the creation of the Birds and Flowers datasets used in tests
+    """
+    # A partial query-string match can be used for mocking:
+    get_birds_dataset_url = (
+        "/api/v1/dataset/?format=json&experiments__id=1&description=Birds"
+    )
+    mocker.get(get_birds_dataset_url, text=EMPTY_LIST_RESPONSE)
+    get_flowers_dataset_url = (
+        "/api/v1/dataset/?format=json&experiments__id=1&description=Flowers"
+    )
+    mocker.get(
+        get_flowers_dataset_url,
+        text=EXISTING_DATASET_RESPONSE.replace("Existing Dataset", "Flowers"),
+    )
+
+    post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
+    # Response really should be different for each dataset,
+    # but that would complicate mocking:
+    mocker.post(post_dataset_url, text=CREATED_DATASET_RESPONSE)
+
+
+def mock_birds_flowers_datafile_lookups(mocker):
+    """Mock the lookups of the Birds and Flowers datafiles used in tests
+    """
+    # A partial query-string match can be used for mocking:
+    for filename in (
+        "1024px-Colourful_flowers.JPG",
+        "Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg",
+        "Pond_Water_Hyacinth_Flowers.jpg",
+    ):
+        get_datafile_url = (
+            "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
+            % filename
+        )
+        mocker.get(
+            get_datafile_url,
+            text=VERIFIED_DATAFILE_RESPONSE.replace("Verified File", filename),
+        )
+    for filename in (
+        "1024px-Australian_Birds_%40_Jurong_Bird_Park_%284374195521%29.jpg",
+    ):
+        get_datafile_url = (
+            "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
+            % filename
+        )
+        mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
+    for filename in ("Black-beaked-sea-bird-close-up.jpg",):
+        get_datafile_url = (
+            "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
+            % filename
+        )
+        error_response = json.dumps({"error_message": "Internal Server Error"})
+        mocker.get(get_datafile_url, text=error_response, status_code=500)
+
+    post_datafile_url = "/api/v1/mydata_dataset_file/"
+    mocker.post(post_datafile_url, status_code=201)
+
+
+def mock_exp_creation(mocker, settings, title, user_folder_name):
+    """Mock the creation of experiments and their ObjectACLs
+    """
+    get_exp_url = (
+        "%s/api/v1/mydata_experiment/?format=json"
+        "&title=%s"
+        "&folder_structure=%s&user_folder_name=%s"
+    ) % (
+        settings.general.mytardis_url,
+        quote(title),
+        quote(settings.advanced.folder_structure),
+        quote(user_folder_name),
+    )
+    mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
+    post_experiment_url = "%s/api/v1/mydata_experiment/" % settings.general.mytardis_url
+    mocker.post(post_experiment_url, text=CREATED_EXP_RESPONSE)
+    post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
+    mocker.post(post_objectacl_url, status_code=201)
