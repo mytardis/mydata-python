@@ -1,6 +1,8 @@
 """
 Test ability to validate settings.
 """
+import re
+
 import pytest
 import requests_mock
 
@@ -79,6 +81,13 @@ def test_validate_settings(set_exp_dataset_config):
         assert "Please enter a valid facility name" in str(excinfo.value)
         settings.general.facility_name = old_value
 
+        old_value = settings.general.facility_name
+        settings.general.facility_name = "Invalid"
+        with pytest.raises(InvalidSettings) as excinfo:
+            validate_settings()
+        assert 'Facility "Invalid" was not found in MyTardis.' in str(excinfo.value)
+        settings.general.facility_name = old_value
+
         old_value = settings.general.contact_name
         settings.general.contact_name = ""
         with pytest.raises(InvalidSettings) as excinfo:
@@ -99,6 +108,18 @@ def test_validate_settings(set_exp_dataset_config):
             validate_settings()
         assert "Please enter a valid contact email" in str(excinfo.value)
         settings.general.contact_email = old_value
+
+        old_value = settings.advanced.folder_structure
+        old_value2 = settings.advanced.validate_folder_structure
+        settings.advanced.folder_structure = "Email / Dataset"
+        settings.advanced.validate_folder_structure = True
+        with pytest.raises(InvalidSettings) as excinfo:
+            validate_settings()
+        assert re.match(
+            "Folder name .* is not a valid email address.", str(excinfo.value)
+        )
+        settings.advanced.folder_structure = old_value
+        settings.advanced.validate_folder_structure = old_value2
 
         old_value = settings.general.username
         settings.general.username = ""
