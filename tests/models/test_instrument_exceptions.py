@@ -8,8 +8,8 @@ from requests.exceptions import HTTPError
 
 from tests.fixtures import set_exp_dataset_config
 from tests.mocks import (
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_test_facility_response,
+    mock_test_instrument_response,
     EMPTY_LIST_RESPONSE,
 )
 
@@ -21,10 +21,7 @@ def test_instrument_exceptions(set_exp_dataset_config):
     from mydata.models.instrument import Instrument
 
     with requests_mock.Mocker() as mocker:
-        get_facility_url = (
-            "%s/api/v1/facility/?format=json"
-        ) % settings.general.mytardis_url
-        mocker.get(get_facility_url, text=MOCK_FACILITY_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
         facility = settings.general.facility
         assert facility
 
@@ -57,15 +54,8 @@ def test_instrument_exceptions(set_exp_dataset_config):
         assert excinfo.value.response.status_code == 500
 
     with requests_mock.Mocker() as mocker:
-        get_facility_url = (
-            "%s/api/v1/facility/?format=json"
-        ) % settings.general.mytardis_url
-        mocker.get(get_facility_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_url = (
-            "%s/api/v1/instrument/?format=json"
-            "&facility__id=1&name=Test%%20Instrument"
-        ) % settings.general.mytardis_url
-        mocker.get(get_instrument_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         instrument = settings.general.instrument
 
     with requests_mock.Mocker() as mocker:
@@ -76,15 +66,8 @@ def test_instrument_exceptions(set_exp_dataset_config):
         assert excinfo.value.response.status_code == 500
 
     with requests_mock.Mocker() as mocker:
-        get_facility_url = (
-            "%s/api/v1/facility/?format=json"
-        ) % settings.general.mytardis_url
-        mocker.get(get_facility_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_url = (
-            "%s/api/v1/instrument/?format=json"
-            "&facility__id=1&name=Test%%20Instrument"
-        ) % settings.general.mytardis_url
-        mocker.get(get_instrument_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         new_instrument_get_url = (
             "%s/api/v1/instrument/?format=json"
             "&facility__id=1&name=New%%20instrument%%20name"

@@ -250,6 +250,23 @@ def mock_testfacility_user_response(mocker, mytardis_url):
     mocker.get(get_user_url, text=MOCK_USER_RESPONSE)
 
 
+def mock_test_facility_response(mocker, mytardis_url):
+    """Mock the list response for looking up a "Test Facility" facility
+    """
+    get_facility_url = "%s/api/v1/facility/?format=json" % mytardis_url
+    mocker.get(get_facility_url, text=MOCK_FACILITY_RESPONSE)
+
+
+def mock_test_instrument_response(mocker, mytardis_url):
+    """Mock the list response for looking up "Test Instrument"
+    """
+    get_instrument_url = (
+        "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
+        % mytardis_url
+    )
+    mocker.get(get_instrument_url, text=MOCK_INSTRUMENT_RESPONSE)
+
+
 def mock_testuser_response(mocker, mytardis_url, folder_structure, username):
     """Mock the list response for looking up "testuser1" or "testuser2" or "testuser3"
 
@@ -280,3 +297,17 @@ def mock_testuser_response(mocker, mytardis_url, folder_structure, username):
     if username == "testuser3":
         mock_user_response = mock_user_response.replace("ser1", "ser3")
     mocker.get(get_user_url, text=mock_user_response)
+
+
+def mock_get_group(mocker, mytardis_url, group_name):
+    """Mock the list response for looking up "TestFacility-Group1" or "TestFacility-Group2"
+    """
+    if group_name not in ("TestFacility-Group1", "TestFacility-Group2"):
+        raise ValueError("Expecting 'TestFacility-Group1' or 'TestFacility-Group2'.")
+
+    get_group_url = "%s/api/v1/group/?format=json&name=%s" % (mytardis_url, group_name)
+    if group_name == "TestFacility-Group1":
+        mock_group_response = MOCK_GROUP_RESPONSE
+    else:
+        mock_group_response = MOCK_GROUP2_RESPONSE
+    mocker.get(get_group_url, text=mock_group_response)

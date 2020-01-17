@@ -11,10 +11,9 @@ from tests.fixtures import set_user_mytardis_exp_dataset_config
 
 from tests.mocks import (
     mock_testfacility_user_response,
-    MOCK_TESTUSER1_RESPONSE,
-    MOCK_TESTUSER2_RESPONSE,
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_test_facility_response,
+    mock_test_instrument_response,
+    mock_testuser_response,
 )
 
 
@@ -24,25 +23,15 @@ def test_scan_user_mytardis_exp_dataset(set_user_mytardis_exp_dataset_config):
 
     with requests_mock.Mocker() as mocker:
         mock_testfacility_user_response(mocker, settings.general.mytardis_url)
-        get_testuser1_url = (
-            "%s/api/v1/user/?format=json&username=testuser1"
-        ) % settings.general.mytardis_url
-        mocker.get(get_testuser1_url, text=MOCK_TESTUSER1_RESPONSE)
-        get_testuser2_url = get_testuser1_url.replace("testuser1", "testuser2")
-        mocker.get(get_testuser2_url, text=MOCK_TESTUSER2_RESPONSE)
-        get_testuser3_url = get_testuser1_url.replace("testuser1", "testuser3")
-        mocker.get(
-            get_testuser3_url, text=MOCK_TESTUSER2_RESPONSE.replace("ser2", "ser3")
-        )
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        for username in ("testuser1", "testuser2", "testuser3"):
+            mock_testuser_response(
+                mocker,
+                settings.general.mytardis_url,
+                settings.advanced.folder_structure,
+                username,
+            )
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
 
         runner = CliRunner()
         result = runner.invoke(scan_cmd, [])

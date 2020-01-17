@@ -13,9 +13,10 @@ from click.testing import CliRunner
 from tests.fixtures import set_email_dataset_config
 
 from tests.mocks import (
-    MOCK_USER_RESPONSE,
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_testfacility_user_response,
+    mock_test_facility_response,
+    mock_test_instrument_response,
+    mock_testuser_response,
     EMPTY_LIST_RESPONSE,
     CREATED_EXP_RESPONSE,
     CREATED_DATASET_RESPONSE,
@@ -31,35 +32,26 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
     from mydata.conf import settings
 
     with requests_mock.Mocker() as mocker:
-        get_user_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_user_url, text=MOCK_USER_RESPONSE)
-        get_facility_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_instrument_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
 
-        for user in ("testuser1", "testuser2"):
-            get_user_url = (
-                "%s/api/v1/user/?format=json&email__iexact=%s%%40example.com"
-                % (settings.general.mytardis_url, user)
+        for username in ("testuser1", "testuser2"):
+            mock_testuser_response(
+                mocker,
+                settings.general.mytardis_url,
+                settings.advanced.folder_structure,
+                username,
             )
-            mocker.get(get_user_url, text=MOCK_USER_RESPONSE)
 
         for user in ("testuser1", "testuser2"):
+            name = "Test%20User1" if user == "testuser1" else "Test%20User2"
             get_exp_url = (
                 "%s/api/v1/mydata_experiment/?format=json"
-                "&title=Test%%20Instrument%%20-%%20TestFacility%%20RoleAccount"
+                "&title=Test%%20Instrument%%20-%%20%s"
                 "&folder_structure=Email%%20/%%20Dataset"
                 "&user_folder_name=%s%%40example.com"
-                % (settings.general.mytardis_url, user)
+                % (settings.general.mytardis_url, name, user)
             )
             mocker.get(get_exp_url, text=EMPTY_LIST_RESPONSE)
         post_experiment_url = (

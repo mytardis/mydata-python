@@ -9,9 +9,8 @@ from tests.mocks import (
     build_list_response,
     mock_testfacility_user_response,
     EMPTY_LIST_RESPONSE,
-    MOCK_USER_RESPONSE,
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_test_facility_response,
+    mock_test_instrument_response,
     EXISTING_DATASET_RESPONSE,
 )
 
@@ -62,14 +61,8 @@ def test_dataset_exceptions(set_exp_dataset_config):
             "&description=Flowers&instrument__id=1"
         ) % settings.general.mytardis_url
         mocker.get(get_dataset_url, text=mock_dataset_response)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-        ) % settings.general.mytardis_url
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         dataset = Dataset.create_dataset_if_necessary(folder)
         assert dataset.description == dataset_folder_name
 
@@ -95,10 +88,7 @@ def test_dataset_exceptions(set_exp_dataset_config):
             "&description=Existing%%20Dataset&instrument__id=1"
         ) % settings.general.mytardis_url
         mocker.get(get_dataset_url, text=EXISTING_DATASET_RESPONSE)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
         FLAGS.test_run_running = True
         folder.data_view_fields["name"] = "Existing Dataset"
         dataset = Dataset.create_dataset_if_necessary(folder)

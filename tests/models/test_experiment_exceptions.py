@@ -10,8 +10,8 @@ from requests.exceptions import HTTPError
 
 from tests.mocks import (
     mock_testfacility_user_response,
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_test_facility_response,
+    mock_test_instrument_response,
     EXISTING_EXP_RESPONSE,
     EXP1_RESPONSE,
     EMPTY_LIST_RESPONSE,
@@ -282,15 +282,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
         mocker.post(post_exp_url, text=EXP1_RESPONSE, status_code=201)
         post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
         mocker.post(post_objectacl_url, status_code=201)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         experiment = Experiment.create_exp_for_folder(folder)
         assert experiment.title == exp_folder_name
 
@@ -330,15 +323,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     with requests_mock.Mocker() as mocker:
         post_exp_url = ("%s/api/v1/mydata_experiment/") % settings.general.mytardis_url
         mocker.post(post_exp_url, status_code=401)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         with pytest.raises(HTTPError) as excinfo:
             _ = Experiment.create_exp_for_folder(folder)
         assert excinfo.value.response.status_code == 401
@@ -360,15 +346,8 @@ def test_experiment_exceptions(set_exp_dataset_config):
     with requests_mock.Mocker() as mocker:
         post_exp_url = ("%s/api/v1/mydata_experiment/") % settings.general.mytardis_url
         mocker.post(post_exp_url, status_code=404)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         with pytest.raises(HTTPError) as excinfo:
             _ = Experiment.create_exp_for_folder(folder)
         assert excinfo.value.response.status_code == 404

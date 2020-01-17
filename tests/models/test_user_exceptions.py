@@ -7,7 +7,7 @@ import requests_mock
 from requests.exceptions import HTTPError
 
 from tests.fixtures import set_exp_dataset_config
-from tests.mocks import build_list_response, EMPTY_LIST_RESPONSE, MOCK_USER_RESPONSE
+from tests.mocks import EMPTY_LIST_RESPONSE, MOCK_USER_RESPONSE
 
 
 def test_user_exceptions(set_exp_dataset_config):

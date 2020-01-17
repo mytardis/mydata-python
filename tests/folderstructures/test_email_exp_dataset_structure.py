@@ -8,8 +8,8 @@ from tests.fixtures import set_email_exp_dataset_config
 from tests.mocks import (
     mock_testfacility_user_response,
     mock_testuser_response,
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_test_facility_response,
+    mock_test_instrument_response,
 )
 
 
@@ -43,15 +43,8 @@ def test_scan_email_exp_dataset_folders(set_email_exp_dataset_config):
                 settings.advanced.folder_structure,
                 username,
             )
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
 
         scan_folders(found_user, found_group, found_exp, found_dataset)
 

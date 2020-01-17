@@ -6,7 +6,10 @@ import requests_mock
 
 from requests.exceptions import HTTPError
 
-from tests.mocks import EMPTY_LIST_RESPONSE, MOCK_GROUP_RESPONSE
+from tests.mocks import (
+    mock_get_group,
+    EMPTY_LIST_RESPONSE,
+)
 from tests.fixtures import set_exp_dataset_config
 
 
@@ -19,10 +22,7 @@ def test_group_exceptions(set_exp_dataset_config):
     # Test retrieving a valid group record (using the Group model's
     # get_group_by_name method) and ensure that no exception is raised:
     with requests_mock.Mocker() as mocker:
-        get_group_url = (
-            "%s/api/v1/group/?format=json&name=TestFacility-Group1"
-        ) % settings.general.mytardis_url
-        mocker.get(get_group_url, text=MOCK_GROUP_RESPONSE)
+        mock_get_group(mocker, settings.general.mytardis_url, "TestFacility-Group1")
         group = Group.get_group_by_name("TestFacility-Group1")
         assert group.name == "TestFacility-Group1"
         assert group.get_value_for_key("name") == group.name

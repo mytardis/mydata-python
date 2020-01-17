@@ -7,8 +7,8 @@ import requests_mock
 from tests.fixtures import set_username_dataset_config, mock_key_pair
 
 from tests.mocks import (
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_test_facility_response,
+    mock_test_instrument_response,
     EMPTY_LIST_RESPONSE,
     MOCK_UPLOADER_RESPONSE,
     MOCK_EXISTING_UPLOADER_RESPONSE,
@@ -41,15 +41,8 @@ def test_uploader(set_username_dataset_config, mock_key_pair):
             "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
         ) % settings.general.mytardis_url
         mocker.get(get_uploader_url, text=EMPTY_LIST_RESPONSE)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json"
-        ) % settings.general.mytardis_url
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1"
-            "&name=Test%%20Instrument"
-        ) % settings.general.mytardis_url
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         post_uploader_url = (
             "%s/api/v1/mydata_uploader/"
         ) % settings.general.mytardis_url
@@ -69,15 +62,8 @@ def test_uploader(set_username_dataset_config, mock_key_pair):
             "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
         ) % settings.general.mytardis_url
         mocker.get(get_uploader_url, text=MOCK_EXISTING_UPLOADER_RESPONSE)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json"
-        ) % settings.general.mytardis_url
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1"
-            "&name=Test%%20Instrument"
-        ) % settings.general.mytardis_url
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
         put_uploader_url = (
             "%s/api/v1/mydata_uploader/1/"
         ) % settings.general.mytardis_url

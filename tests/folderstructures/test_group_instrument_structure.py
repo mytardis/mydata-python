@@ -7,10 +7,9 @@ from tests.fixtures import set_group_instrument_config
 
 from tests.mocks import (
     mock_testfacility_user_response,
-    MOCK_GROUP_RESPONSE,
-    MOCK_GROUP2_RESPONSE,
-    MOCK_FACILITY_RESPONSE,
-    MOCK_INSTRUMENT_RESPONSE,
+    mock_get_group,
+    mock_test_facility_response,
+    mock_test_instrument_response,
 )
 
 
@@ -35,22 +34,10 @@ def test_scan_group_instrument_folders(set_group_instrument_config):
 
     with requests_mock.Mocker() as mocker:
         mock_testfacility_user_response(mocker, settings.general.mytardis_url)
-        get_group1_url = (
-            "%s/api/v1/group/?format=json&name=TestFacility-Group1"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_group1_url, text=MOCK_GROUP_RESPONSE)
-        get_group2_url = get_group1_url.replace("Group1", "Group2")
-        mocker.get(get_group2_url, text=MOCK_GROUP2_RESPONSE)
-        get_facility_api_url = (
-            "%s/api/v1/facility/?format=json" % settings.general.mytardis_url
-        )
-        mocker.get(get_facility_api_url, text=MOCK_FACILITY_RESPONSE)
-        get_instrument_api_url = (
-            "%s/api/v1/instrument/?format=json&facility__id=1&name=Test%%20Instrument"
-            % settings.general.mytardis_url
-        )
-        mocker.get(get_instrument_api_url, text=MOCK_INSTRUMENT_RESPONSE)
+        for group_name in ("TestFacility-Group1", "TestFacility-Group2"):
+            mock_get_group(mocker, settings.general.mytardis_url, group_name)
+        mock_test_facility_response(mocker, settings.general.mytardis_url)
+        mock_test_instrument_response(mocker, settings.general.mytardis_url)
 
         scan_folders(found_user, found_group, found_exp, found_dataset)
 

@@ -9,7 +9,11 @@ import requests_mock
 from requests.exceptions import HTTPError
 
 from tests.fixtures import set_exp_dataset_config
-from tests.mocks import EXISTING_EXP_RESPONSE, MOCK_USER_RESPONSE, MOCK_GROUP_RESPONSE
+from tests.mocks import (
+    mock_testfacility_user_response,
+    mock_get_group,
+    EXISTING_EXP_RESPONSE,
+)
 
 
 def test_objectacl_exceptions(set_exp_dataset_config):
@@ -26,10 +30,7 @@ def test_objectacl_exceptions(set_exp_dataset_config):
     from mydata.models.group import Group
 
     with requests_mock.Mocker() as mocker:
-        get_user_url = (
-            "%s/api/v1/user/?format=json&username=testfacility"
-        ) % settings.general.mytardis_url
-        mocker.get(get_user_url, text=MOCK_USER_RESPONSE)
+        mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         owner = settings.general.default_owner
     dataset_folder_name = "Flowers"
     exp_folder_name = "Exp1"
@@ -60,10 +61,7 @@ def test_objectacl_exceptions(set_exp_dataset_config):
     # Test sharing experiment with group, and ensure that no exception
     # is raised:
     with requests_mock.Mocker() as mocker:
-        get_group_url = (
-            "%s/api/v1/group/?format=json&name=TestFacility-Group1"
-        ) % settings.general.mytardis_url
-        mocker.get(get_group_url, text=MOCK_GROUP_RESPONSE)
+        mock_get_group(mocker, settings.general.mytardis_url, "TestFacility-Group1")
         group = Group.get_group_by_name("TestFacility-Group1")
         post_acl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
         mocker.post(post_acl_url, status_code=201)
