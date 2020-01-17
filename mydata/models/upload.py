@@ -107,25 +107,6 @@ class Upload:
         # if necessary:
         self.verification_timer = None
 
-    def set_bytes_uploaded(self, bytes_uploaded):
-        """
-        Set the number of bytes uploaded and update
-        the elapsed time and upload speed.
-        """
-        self.bytes_uploaded = bytes_uploaded
-        if self.bytes_uploaded and self.latest_time:
-            elapsed_time = self.latest_time - self.start_time
-            if elapsed_time.total_seconds():
-                speed_mbs = (
-                    float(self.bytes_uploaded)
-                    / 1000000.0
-                    / elapsed_time.total_seconds()
-                )
-                if speed_mbs >= 1.0:
-                    self.speed = "%3.1f MB/s" % speed_mbs
-                else:
-                    self.speed = "%3.1f KB/s" % (speed_mbs * 1000.0)
-
     def set_latest_time(self, latest_time):
         """
         Set the latest time at which this upload is/was still progressing.
