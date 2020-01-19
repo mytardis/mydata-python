@@ -6,6 +6,8 @@ Mock MyTardis API responses which can be used in unit tests
 import copy
 import json
 
+from string import Template
+
 from urllib.parse import quote
 
 
@@ -144,7 +146,7 @@ MOCK_UPLOADER_WITH_SETTINGS = build_list_response(
                 {"key": "instrument_name", "value": "Updated Instrument Name"},
                 {"key": "facility_name", "value": "Updated Facility Name"},
                 {"key": "contact_name", "value": "Updated Contact Name"},
-                {"key": "contact_email", "value": "Updated.Contact.Email@example.com",},
+                {"key": "contact_email", "value": "Updated.Contact.Email@example.com"},
                 {"key": "ignore_new_files", "value": False},
                 {"key": "ignore_new_files_minutes", "value": 0},
                 {"key": "verification_delay", "value": 4.0},
@@ -403,3 +405,46 @@ def mock_exp_creation(mocker, settings, title, user_folder_name):
     mocker.post(post_experiment_url, text=CREATED_EXP_RESPONSE)
     post_objectacl_url = "%s/api/v1/objectacl/" % settings.general.mytardis_url
     mocker.post(post_objectacl_url, status_code=201)
+
+
+def mock_uploader_creation_response(mocker, settings):
+    """Mock the creation of MyData's Uploader record
+    """
+    get_uploader_url = (
+        "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
+    ) % settings.general.mytardis_url
+    mocker.get(get_uploader_url, text=EMPTY_LIST_RESPONSE)
+    post_uploader_url = ("%s/api/v1/mydata_uploader/") % settings.general.mytardis_url
+    mocker.post(post_uploader_url, text=MOCK_UPLOADER_RESPONSE)
+
+
+def mock_uploader_update_response(mocker, settings):
+    """Mock updating an Uploader record when MyData is run again
+    """
+    get_uploader_url = (
+        "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
+    ) % settings.general.mytardis_url
+    mocker.get(get_uploader_url, text=MOCK_EXISTING_UPLOADER_RESPONSE)
+    put_uploader_url = ("%s/api/v1/mydata_uploader/1/") % settings.general.mytardis_url
+    mocker.put(put_uploader_url, text=MOCK_UPLOADER_RESPONSE)
+
+
+def mock_get_urr(mocker, settings, key_fingerprint, scp_port):
+    """Mock getting an existing uploader registration request
+    """
+    get_urr_url = (
+        "%s/api/v1/mydata_uploaderregistrationrequest/?format=json"
+        "&uploader__uuid=00000000001&requester_key_fingerprint=%s"
+    ) % (settings.general.mytardis_url, key_fingerprint)
+    mocker.get(
+        get_urr_url, text=Template(MOCK_URR_RESPONSE).substitute(scp_port=scp_port)
+    )
+
+
+def mock_invalid_user_response(mocker, settings):
+    """Mock looking up an invalid user
+    """
+    get_invalid_user_url = (
+        "%s/api/v1/user/?format=json&username=INVALID_USER"
+    ) % settings.general.mytardis_url
+    mocker.get(get_invalid_user_url, text=EMPTY_LIST_RESPONSE)

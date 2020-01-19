@@ -10,8 +10,8 @@ from tests.mocks import (
     mock_test_facility_response,
     mock_test_instrument_response,
     EMPTY_LIST_RESPONSE,
-    MOCK_UPLOADER_RESPONSE,
-    MOCK_EXISTING_UPLOADER_RESPONSE,
+    mock_uploader_creation_response,
+    mock_uploader_update_response,
     CREATED_URR_RESPONSE,
     MOCK_URR_MISSING_SBOX_ATTRS,
 )
@@ -37,16 +37,9 @@ def test_uploader(set_username_dataset_config, mock_key_pair):
     # settings.general.instrument_name:
     settings.uploader = None
     with requests_mock.Mocker() as mocker:
-        get_uploader_url = (
-            "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
-        ) % settings.general.mytardis_url
-        mocker.get(get_uploader_url, text=EMPTY_LIST_RESPONSE)
         mock_test_facility_response(mocker, settings.general.mytardis_url)
         mock_test_instrument_response(mocker, settings.general.mytardis_url)
-        post_uploader_url = (
-            "%s/api/v1/mydata_uploader/"
-        ) % settings.general.mytardis_url
-        mocker.post(post_uploader_url, text=MOCK_UPLOADER_RESPONSE)
+        mock_uploader_creation_response(mocker, settings)
         settings.uploader.upload_uploader_info()
     assert settings.uploader.name == "Test Instrument"
 
@@ -58,16 +51,9 @@ def test_uploader(set_username_dataset_config, mock_key_pair):
     # settings.general.instrument_name:
     settings.uploader = None
     with requests_mock.Mocker() as mocker:
-        get_uploader_url = (
-            "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
-        ) % settings.general.mytardis_url
-        mocker.get(get_uploader_url, text=MOCK_EXISTING_UPLOADER_RESPONSE)
         mock_test_facility_response(mocker, settings.general.mytardis_url)
         mock_test_instrument_response(mocker, settings.general.mytardis_url)
-        put_uploader_url = (
-            "%s/api/v1/mydata_uploader/1/"
-        ) % settings.general.mytardis_url
-        mocker.put(put_uploader_url, text=MOCK_UPLOADER_RESPONSE)
+        mock_uploader_update_response(mocker, settings)
         settings.uploader.upload_uploader_info()
     assert settings.uploader.name == "Test Instrument"
 
@@ -76,14 +62,7 @@ def test_uploader(set_username_dataset_config, mock_key_pair):
     # Now let's test requesting staging access when we don't have an
     # existing UploaderRegistrationRequest:
     with requests_mock.Mocker() as mocker:
-        get_uploader_url = (
-            "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
-        ) % settings.general.mytardis_url
-        mocker.get(get_uploader_url, text=MOCK_EXISTING_UPLOADER_RESPONSE)
-        put_uploader_url = (
-            "%s/api/v1/mydata_uploader/1/"
-        ) % settings.general.mytardis_url
-        mocker.put(put_uploader_url, text=MOCK_UPLOADER_RESPONSE)
+        mock_uploader_update_response(mocker, settings)
         get_urr_url = (
             "%s/api/v1/mydata_uploaderregistrationrequest/?format=json"
             "&uploader__uuid=00000000001&requester_key_fingerprint=%s"
@@ -115,14 +94,7 @@ def test_uploader(set_username_dataset_config, mock_key_pair):
     # Now let's test requesting staging access when we have an
     # existing UploaderRegistrationRequest:
     with requests_mock.Mocker() as mocker:
-        get_uploader_url = (
-            "%s/api/v1/mydata_uploader/?format=json&uuid=00000000001"
-        ) % settings.general.mytardis_url
-        mocker.get(get_uploader_url, text=MOCK_EXISTING_UPLOADER_RESPONSE)
-        put_uploader_url = (
-            "%s/api/v1/mydata_uploader/1/"
-        ) % settings.general.mytardis_url
-        mocker.put(put_uploader_url, text=MOCK_UPLOADER_RESPONSE)
+        mock_uploader_update_response(mocker, settings)
         get_urr_url = (
             "%s/api/v1/mydata_uploaderregistrationrequest/?format=json"
             "&uploader__uuid=00000000001&requester_key_fingerprint=%s"
