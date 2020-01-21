@@ -181,7 +181,9 @@ def construct_datafile_post_body(folder, upload):
     md5sum = folder.calculate_md5_sum(upload.datafile_index, canceled_cb=None)
 
     upload.message = "Checking MIME type..."
-    mime_type = mimetypes.MimeTypes().guess_type(datafile_path)[0]
+    mime_type = mimetypes.guess_type(datafile_path)[0]
+    if not mime_type:
+        mime_type = "application/octet-stream"
 
     dataset_uri = folder.dataset.resource_uri
     created_time = folder.get_datafile_created_time(upload.datafile_index)
