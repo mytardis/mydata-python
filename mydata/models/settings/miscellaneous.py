@@ -11,29 +11,6 @@ import sys
 from .base import BaseSettings
 
 
-class LastSettingsUpdateTrigger:
-    """
-    Enumerated data type encapsulating the trigger for the last change to
-    the settings.
-
-    This is used to determine whether settings validation is required.
-
-    If the user opens the settings dialog, and clicks OK, validation is
-    performed automatically, so there is no need to validate settings
-    again at the beginning of a scan-folders-and-upload task commenced
-    shortly after closing the settings dialog.
-
-    However, if MyData finds a MyData.cfg on disk when it launches, and
-    then the user clicks the "Upload" button without opening the settings
-    dialog first, then we do need to validate settings.
-    """
-
-    # The last update to settings came from reading MyData.cfg from disk:
-    READ_FROM_DISK = 0
-    # The last update to settings came from the settings dialog:
-    UI_RESPONSE = 1
-
-
 class MiscellaneousSettings(BaseSettings):
     """
     Model class for the settings not displayed in the settings dialog,

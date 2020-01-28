@@ -18,7 +18,6 @@ from .general import GeneralSettings
 from .filters import FiltersSettings
 from .advanced import AdvancedSettings
 from .miscellaneous import MiscellaneousSettings
-from .miscellaneous import LastSettingsUpdateTrigger
 
 
 class Settings:
@@ -38,8 +37,6 @@ class Settings:
         self.verified_datafiles_cache = dict()
 
         self._uploader = None
-
-        self.last_settings_update_trigger = LastSettingsUpdateTrigger.READ_FROM_DISK
 
         self.models = dict(
             general=GeneralSettings(),
