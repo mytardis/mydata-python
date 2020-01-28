@@ -447,7 +447,7 @@ def wait_for_process_to_complete(process):
         poll = process.poll()
         if poll is not None:
             break
-        time.sleep(SLEEP_FACTOR * settings.advanced.max_upload_threads)
+        time.sleep(SLEEP_FACTOR)
 
 
 def create_remote_dir(remote_dir, username, private_key_path, host, port):

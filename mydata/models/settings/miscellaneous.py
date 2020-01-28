@@ -29,8 +29,6 @@ class MiscellaneousSettings(BaseSettings):
         self.fields = [
             "uuid",
             "verification_delay",
-            "max_verification_threads",
-            "fake_md5_sum",
             "cipher",
             "cache_datafile_lookups",
             "connection_timeout",
@@ -39,8 +37,6 @@ class MiscellaneousSettings(BaseSettings):
         self.default = dict(
             uuid=None,
             verification_delay=3.0,
-            max_verification_threads=5,
-            fake_md5_sum=False,
             cipher="aes128-ctr",
             cache_datafile_lookups=True,
             connection_timeout=10.0,
@@ -61,16 +57,6 @@ class MiscellaneousSettings(BaseSettings):
         self.mydata_config["uuid"] = uuid
 
     @property
-    def fake_md5_sum(self):
-        """
-        Whether to use a fake MD5 sum to save time.
-        It can be set later via the MyTardis API.
-        Until it is set properly, the file won't be
-        verified on MyTardis.
-        """
-        return self.mydata_config["fake_md5_sum"]
-
-    @property
     def verification_delay(self):
         """
         Upon a successful upload, MyData will request verification
@@ -80,28 +66,6 @@ class MiscellaneousSettings(BaseSettings):
         :rtype: float
         """
         return self.mydata_config["verification_delay"]
-
-    @property
-    def max_verification_threads(self):
-        """
-        Return the maximum number of concurrent DataFile lookups
-        """
-        return int(self.mydata_config["max_verification_threads"])
-
-    @max_verification_threads.setter
-    def max_verification_threads(self, max_verification_threads):
-        """
-        Set the maximum number of concurrent DataFile lookups
-        """
-        self.mydata_config["max_verification_threads"] = max_verification_threads
-
-    @staticmethod
-    def get_fake_md5sum():
-        """
-        The fake MD5 sum to use when self.FakeMd5Sum()
-        is True.
-        """
-        return "00000000000000000000000000000000"
 
     @property
     def cipher(self):

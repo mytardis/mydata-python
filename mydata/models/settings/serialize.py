@@ -134,7 +134,6 @@ def load_advanced_settings(config_parser):
     fields = [
         "folder_structure",
         "group_prefix",
-        "max_upload_threads",
         "max_upload_retries",
         "validate_folder_structure",
         "upload_invalid_user_or_group_folders",
@@ -156,7 +155,7 @@ def load_advanced_settings(config_parser):
         settings["upload_invalid_user_or_group_folders"] = config_parser.getboolean(
             config_file_section, "upload_invalid_user_folders"
         )
-    int_fields = ["max_upload_threads", "max_upload_retries"]
+    int_fields = ["max_upload_retries"]
     for field in int_fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.getint(config_file_section, field)
@@ -179,23 +178,17 @@ def load_miscellaneous_settings(config_parser):
     fields = [
         "uuid",
         "cipher",
-        "max_verification_threads",
         "verification_delay",
-        "fake_md5_sum",
         "cache_datafile_lookups",
         "connection_timeout",
     ]
     for field in fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.get(config_file_section, field)
-    boolean_fields = ["fake_md5_sum", "cache_datafile_lookups"]
+    boolean_fields = ["cache_datafile_lookups"]
     for field in boolean_fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.getboolean(config_file_section, field)
-    int_fields = ["max_verification_threads"]
-    for field in int_fields:
-        if config_parser.has_option(config_file_section, field):
-            settings[field] = config_parser.getint(config_file_section, field)
     float_fields = [
         "verification_delay",
         "connection_timeout",
@@ -250,11 +243,8 @@ def save_settings_to_disk(config_path=None):
             "ignore_new_files_minutes",
             "use_includes_file",
             "use_excludes_file",
-            "max_verification_threads",
-            "max_upload_threads",
             "max_upload_retries",
             "validate_folder_structure",
-            "fake_md5_sum",
             "cipher",
             "uuid",
             "verification_delay",

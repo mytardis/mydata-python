@@ -18,7 +18,6 @@ class AdvancedSettings:
             "folder_structure",
             "group_prefix",
             "validate_folder_structure",
-            "max_upload_threads",
             "max_upload_retries",
             "upload_invalid_user_or_group_folders",
         ]
@@ -99,20 +98,6 @@ class AdvancedSettings:
         self.mydata_config["group_prefix"] = group_prefix
 
     @property
-    def max_upload_threads(self):
-        """
-        Return the maximum number of concurrent uploads
-        """
-        return int(self.mydata_config["max_upload_threads"])
-
-    @max_upload_threads.setter
-    def max_upload_threads(self, max_upload_threads):
-        """
-        Set the maximum number of concurrent uploads
-        """
-        self.mydata_config["max_upload_threads"] = max_upload_threads
-
-    @property
     def max_upload_retries(self):
         """
         Get the maximum number of retries per upload
@@ -135,6 +120,5 @@ class AdvancedSettings:
         self.mydata_config["folder_structure"] = "Username / Dataset"
         self.mydata_config["group_prefix"] = ""
         self.mydata_config["validate_folder_structure"] = True
-        self.mydata_config["max_upload_threads"] = 5
         self.mydata_config["max_upload_retries"] = 1
         self.mydata_config["upload_invalid_user_or_group_folders"] = True
