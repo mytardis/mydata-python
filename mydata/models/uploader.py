@@ -79,7 +79,6 @@ import uuid
 
 import urllib.parse
 
-import dateutil.parser
 import psutil
 import requests
 import netifaces
@@ -89,7 +88,6 @@ from ..logs import logger
 from ..utils.connectivity import get_default_interface_type
 from ..utils.exceptions import (
     PrivateKeyDoesNotExist,
-    MissingMyDataAppOnMyTardisServer,
     NoApprovedStorageBox,
     StorageBoxOptionNotFound,
     StorageBoxAttributeNotFound,
@@ -111,7 +109,6 @@ class Uploader:
         # pylint: disable=too-many-branches
         self.uploader_id = None
         self.resource_uri = None
-        self.uploader_settings = None
         self.upload_to_staging_request = None
         self.settings_updated = None
         self.ssh_key_pair = None
@@ -189,16 +186,6 @@ class Uploader:
         num_existing_uploader_records = uploaders_dict["meta"]["total_count"]
         if num_existing_uploader_records > 0:
             self.uploader_id = uploaders_dict["objects"][0]["id"]
-            if "settings" in uploaders_dict["objects"][0]:
-                self.uploader_settings = uploaders_dict["objects"][0]["settings"]
-                settings_updated_string = uploaders_dict["objects"][0][
-                    "settings_updated"
-                ]
-                logger.info(settings_updated_string)
-                if settings_updated_string:
-                    self.settings_updated = dateutil.parser.parse(
-                        settings_updated_string
-                    )
 
         logger.debug("Uploading uploader info to MyTardis...")
 
@@ -381,94 +368,6 @@ class Uploader:
             except:
                 logger.error(traceback.format_exc())
                 raise
-
-    def update_settings(self, settings_list):
-        """
-        Used to save uploader settings to the mytardis-app-mydata's
-        UploaderSettings model on the MyTardis server.
-
-        :raises requests.exceptions.HTTPError:
-        """
-        from mydata.conf import settings
-
-        mytardis_url = settings.general.mytardis_url
-        headers = settings.default_headers
-
-        if not self.uploader_id:
-            url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" % (
-                mytardis_url,
-                urllib.parse.quote(settings.miscellaneous.uuid),
-            )
-            response = requests.get(headers=headers, url=url)
-            response.raise_for_status()
-            uploaders_dict = response.json()
-            num_existing_uploader_records = uploaders_dict["meta"]["total_count"]
-            if num_existing_uploader_records > 0:
-                self.uploader_id = uploaders_dict["objects"][0]["id"]
-            else:
-                logger.debug(
-                    "Uploader record doesn't exist yet, so "
-                    "we can't save settings to the server."
-                )
-                return
-
-        url = "%s/api/v1/mydata_uploader/%s/" % (mytardis_url, self.uploader_id)
-
-        patch_data = {"settings": settings_list, "uuid": settings.miscellaneous.uuid}
-        response = requests.patch(
-            headers=headers, url=url, data=json.dumps(patch_data).encode()
-        )
-        response.raise_for_status()
-
-    def get_settings(self):
-        """
-        Used to retrieve uploader settings from the mytardis-app-mydata's
-        UploaderSettings model on the MyTardis server.
-
-        :raises requests.exceptions.HTTPError:
-        """
-        from mydata.conf import settings
-
-        mytardis_url = settings.general.mytardis_url
-        headers = settings.default_headers
-        url = "%s/api/v1/mydata_uploader/?format=json&uuid=%s" % (
-            mytardis_url,
-            urllib.parse.quote(settings.miscellaneous.uuid),
-        )
-        try:
-            response = requests.get(
-                headers=headers,
-                url=url,
-                timeout=settings.miscellaneous.connection_timeout,
-            )
-        except Exception as err:
-            logger.error(str(err))
-            raise
-        if response.status_code == 404:
-            message = "The MyData app is missing from the MyTardis server."
-            logger.error(url)
-            logger.error(message)
-            raise MissingMyDataAppOnMyTardisServer(message)
-        response.raise_for_status()
-        uploaders_dict = response.json()
-        num_existing_uploader_records = uploaders_dict["meta"]["total_count"]
-        if num_existing_uploader_records > 0:
-            if "id" in uploaders_dict["objects"][0]:
-                self.uploader_id = uploaders_dict["objects"][0]["id"]
-            if "settings" in uploaders_dict["objects"][0]:
-                self.uploader_settings = uploaders_dict["objects"][0]["settings"]
-                settings_updated_string = uploaders_dict["objects"][0][
-                    "settings_updated"
-                ]
-                logger.debug("settings_updated: %s" % settings_updated_string)
-                if settings_updated_string:
-                    self.settings_updated = dateutil.parser.parse(
-                        settings_updated_string
-                    )
-            else:
-                self.uploader_settings = None
-
-        return self.uploader_settings
 
 
 class UploaderRegistrationRequest:
