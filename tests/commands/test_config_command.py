@@ -39,7 +39,6 @@ def test_config_list_command(set_exp_dataset_config):
         dataset_filter
         experiment_filter
         folder_structure
-        dataset_grouping
         group_prefix
         ignore_old_datasets
         ignore_interval_number

@@ -133,7 +133,6 @@ def load_advanced_settings(config_parser):
     config_file_section = "MyData"
     fields = [
         "folder_structure",
-        "dataset_grouping",
         "group_prefix",
         "max_upload_threads",
         "max_upload_retries",
@@ -243,7 +242,6 @@ def save_settings_to_disk(config_path=None):
             "includes_file",
             "excludes_file",
             "folder_structure",
-            "dataset_grouping",
             "group_prefix",
             "ignore_old_datasets",
             "ignore_interval_number",

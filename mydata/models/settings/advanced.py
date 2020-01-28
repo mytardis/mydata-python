@@ -16,7 +16,6 @@ class AdvancedSettings:
 
         self.fields = [
             "folder_structure",
-            "dataset_grouping",
             "group_prefix",
             "validate_folder_structure",
             "max_upload_threads",
@@ -103,20 +102,6 @@ class AdvancedSettings:
         ] = upload_invalid_user_or_group_folders
 
     @property
-    def dataset_grouping(self):
-        """
-        Return dataset grouping (how datasets are collected into experiments).
-        """
-        return self.mydata_config["dataset_grouping"]
-
-    @dataset_grouping.setter
-    def dataset_grouping(self, dataset_grouping):
-        """
-        Set dataset grouping (how datasets are collected into experiments).
-        """
-        self.mydata_config["dataset_grouping"] = dataset_grouping
-
-    @property
     def group_prefix(self):
         """
         Return prefix prepended to group folder name to match MyTardis group
@@ -165,9 +150,6 @@ class AdvancedSettings:
         Settings Dialog's Filter tab
         """
         self.mydata_config["folder_structure"] = "Username / Dataset"
-        self.mydata_config[
-            "dataset_grouping"
-        ] = "Instrument Name - Dataset Owner's Full Name"
         self.mydata_config["group_prefix"] = ""
         self.mydata_config["validate_folder_structure"] = True
         self.mydata_config["max_upload_threads"] = 5
