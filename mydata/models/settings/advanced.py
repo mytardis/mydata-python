@@ -20,7 +20,6 @@ class AdvancedSettings:
             "validate_folder_structure",
             "max_upload_threads",
             "max_upload_retries",
-            "start_automatically_on_login",
             "upload_invalid_user_or_group_folders",
         ]
 
@@ -62,22 +61,6 @@ class AdvancedSettings:
         Set this to True if folder structure should be validated
         """
         self.mydata_config["validate_folder_structure"] = validate_folder_structure
-
-    @property
-    def start_automatically_on_login(self):
-        """
-        Returns True if MyData should start automatically on login
-        """
-        return self.mydata_config["start_automatically_on_login"]
-
-    @start_automatically_on_login.setter
-    def start_automatically_on_login(self, start_automatically_on_login):
-        """
-        Set this to True if MyData should start automatically on login
-        """
-        self.mydata_config[
-            "start_automatically_on_login"
-        ] = start_automatically_on_login
 
     @property
     def upload_invalid_user_or_group_folders(self):
@@ -154,5 +137,4 @@ class AdvancedSettings:
         self.mydata_config["validate_folder_structure"] = True
         self.mydata_config["max_upload_threads"] = 5
         self.mydata_config["max_upload_retries"] = 1
-        self.mydata_config["start_automatically_on_login"] = True
         self.mydata_config["upload_invalid_user_or_group_folders"] = True

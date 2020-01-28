@@ -137,7 +137,6 @@ def load_advanced_settings(config_parser):
         "max_upload_threads",
         "max_upload_retries",
         "validate_folder_structure",
-        "start_automatically_on_login",
         "upload_invalid_user_or_group_folders",
     ]
     for field in fields:
@@ -145,7 +144,6 @@ def load_advanced_settings(config_parser):
             settings[field] = config_parser.get(config_file_section, field)
     boolean_fields = [
         "validate_folder_structure",
-        "start_automatically_on_login",
         "upload_invalid_user_or_group_folders",
     ]
     for field in boolean_fields:
@@ -262,7 +260,6 @@ def save_settings_to_disk(config_path=None):
             "locked",
             "uuid",
             "verification_delay",
-            "start_automatically_on_login",
             "cache_datafile_lookups",
             "upload_invalid_user_or_group_folders",
             "connection_timeout",
