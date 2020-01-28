@@ -170,14 +170,13 @@ def load_miscellaneous_settings(config_parser):
 
     Loads Miscellaneous settings from a ConfigParser object
 
-    These settings don't appear in the settings dialog, except for "locked",
-    which is visible in the settings dialog, but not within any one tab view.
+    These settings don't appear in the settings dialog in the GUI version of
+    MyData, i.e. they are only accessible in MyData.cfg
     """
     from ...conf import settings
 
     config_file_section = "MyData"
     fields = [
-        "locked",
         "uuid",
         "cipher",
         "max_verification_threads",
@@ -189,7 +188,7 @@ def load_miscellaneous_settings(config_parser):
     for field in fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.get(config_file_section, field)
-    boolean_fields = ["fake_md5_sum", "locked", "cache_datafile_lookups"]
+    boolean_fields = ["fake_md5_sum", "cache_datafile_lookups"]
     for field in boolean_fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.getboolean(config_file_section, field)
@@ -257,7 +256,6 @@ def save_settings_to_disk(config_path=None):
             "validate_folder_structure",
             "fake_md5_sum",
             "cipher",
-            "locked",
             "uuid",
             "verification_delay",
             "cache_datafile_lookups",

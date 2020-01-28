@@ -1,7 +1,8 @@
 """
-Model class for the settings not displayed in the settings dialog,
-but accessible in MyData.cfg, or in the case of "locked", visible in the
-settings dialog, but not specific to any one tab view.
+Model class for settings not displayed in the settings dialog of the
+MyData GUI but accessible in MyData.cfg.  The MyData CLI retains the
+MyData GUI code's separation of settings in General / Advanced / Miscellaneous etc.
+even though it doesn't have a Settings Dialog.
 
 Also includes miscellaneous functionality which needed to be moved out of
 the main settings model module (model.py) to prevent cyclic imports.
@@ -13,9 +14,10 @@ from .base import BaseSettings
 
 class MiscellaneousSettings(BaseSettings):
     """
-    Model class for the settings not displayed in the settings dialog,
-    but accessible in MyData.cfg, or in the case of "locked", visible in the
-    settings dialog, but not specific to any one tab view.
+    Model class for settings not displayed in the settings dialog of the
+    MyData GUI but accessible in MyData.cfg.  The MyData CLI retains the
+    MyData GUI code's separation of settings in General / Advanced / Miscellaneous etc.
+    even though it doesn't have a Settings Dialog.
     """
 
     def __init__(self):
@@ -25,7 +27,6 @@ class MiscellaneousSettings(BaseSettings):
         self.mydata_config = dict()
 
         self.fields = [
-            "locked",
             "uuid",
             "verification_delay",
             "max_verification_threads",
@@ -36,7 +37,6 @@ class MiscellaneousSettings(BaseSettings):
         ]
 
         self.default = dict(
-            locked=False,
             uuid=None,
             verification_delay=3.0,
             max_verification_threads=5,
@@ -45,29 +45,6 @@ class MiscellaneousSettings(BaseSettings):
             cache_datafile_lookups=True,
             connection_timeout=10.0,
         )
-
-        # Settings determined from command-line arguments of the
-        # MyData binary or the run.py entry point which are
-        # not saved in MyData.cfg:
-        self.autoexit = False
-
-    @property
-    def locked(self):
-        """
-        Settings Dialog's Lock/Unlock button
-
-        Return True if settings are locked
-        """
-        return self.mydata_config["locked"]
-
-    @locked.setter
-    def locked(self, locked):
-        """
-        Settings Dialog's Lock/Unlock button
-
-        Set this to True to lock settings
-        """
-        self.mydata_config["locked"] = locked
 
     @property
     def uuid(self):
