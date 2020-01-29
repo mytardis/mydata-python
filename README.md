@@ -72,6 +72,7 @@ Options:
 
 Commands:
   config   Query or update settings in MyData.cfg
+  index    Index data which is already in its permanent location.
   scan     Scan folders from structure described in MyData.cfg
   upload   Upload files from structure described in MyData.cfg
   version  Display version

@@ -1,0 +1,9 @@
+# dotenv.example: Copy to .env, and customize
+# For now, this is only used for indexing ("mydata index ...")
+MYTARDIS_USERNAME=username
+MYTARDIS_API_KEY=apikey
+MYTARDIS_URL=https://example.com
+MYTARDIS_EXP_ID=123
+MYTARDIS_STORAGE_BOX_NAME=my-archive-box1
+MYTARDIS_STORAGE_BOX_PATH=/path/to/permanent/file/store/
+MYTARDIS_SRC_PATH=/path/files/were/copied/from/
