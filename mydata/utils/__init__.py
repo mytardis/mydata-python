@@ -2,34 +2,13 @@
 """
 Miscellaneous utility functions.
 """
-# pylint: disable=bare-except
+# pylint: disable=broad-except
 import os
 import sys
-import subprocess
-import traceback
-import unicodedata
 
 import appdirs
-import psutil
 
 from ..constants import APPNAME, APPAUTHOR
-from ..logs import logger
-from ..threads.locks import LOCKS
-
-
-def pid_is_running(pid):
-    """
-    Check if a process with PID pid is running.
-    """
-    try:
-        proc = psutil.Process(int(pid))
-        if proc.status() == psutil.STATUS_DEAD:
-            return False
-        if proc.status() == psutil.STATUS_ZOMBIE:
-            return False
-        return True  # Assume other status are valid
-    except psutil.NoSuchProcess:
-        return False
 
 
 def human_readable_size_string(num):
@@ -85,5 +64,5 @@ def mydata_install_location():
         return os.path.dirname(sys.executable)
     try:
         return os.path.realpath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    except:
+    except Exception:
         return os.getcwd()
