@@ -28,8 +28,7 @@ HEADERS = {
 
 
 def lookup_or_create_dataset(dataset_folder_name):
-    """
-    Lookup or create dataset and return ID
+    """Lookup or create dataset and return Dataset ID.
 
     Actually for now, it assumes it can be looked up.
     If not, the assertion below will fail.
@@ -71,7 +70,59 @@ def lookup_or_create_dataset(dataset_folder_name):
     return dataset_id
 
 
+def lookup_datafile(dataset_id, filename, directory):
+    """Query MyTardis API for a matching DataFile record.
+    """
+    df_lookup_url = (
+        "%s/api/v1/dataset_file/?format=json&dataset__id=%s&filename=%s&directory=%s"
+        % (os.getenv("MYTARDIS_URL"), dataset_id, quote(filename), quote(directory),)
+    )
+    response = requests_retry_session().get(df_lookup_url, headers=HEADERS)
+    response.raise_for_status()
+    return response.json()
+
+
+def create_datafile(dataset_id, filename, directory, filepath, uri):
+    """Create DataFile record via MyTardis API.
+    """
+    size = os.path.getsize(filepath)
+    print("size: %s" % size)
+    mimetype = mimetypes.guess_type(filepath, strict=False)[0]
+    if not mimetype:
+        mimetype = "application/octet-stream"
+    print("mimetype: %s" % mimetype)
+    md5sum = calculate_md5sum(filepath)
+    print("md5sum: %s" % md5sum)
+    print()
+
+    datafile_post_data = {
+        "dataset": "/api/v1/dataset/%s/" % dataset_id,
+        "filename": filename,
+        "directory": directory,
+        "md5sum": md5sum,
+        "size": size,
+        "mimetype": mimetype,
+        "replicas": [
+            {
+                "url": uri,
+                "location": os.getenv("MYTARDIS_STORAGE_BOX_NAME"),
+                "protocol": "file",
+            }
+        ],
+    }
+
+    response = requests_retry_session().post(
+        "%s/api/v1/dataset_file/" % os.getenv("MYTARDIS_URL"),
+        data=json.dumps(datafile_post_data),
+        headers=HEADERS,
+    )
+    response.raise_for_status()
+    return response
+
+
 def scan_folder_and_upload(dataset_folder_name):
+    """Scan folder, create a Dataset record for it, and create DataFile records for its files.
+    """
     dataset_id = lookup_or_create_dataset(dataset_folder_name)
     dataset_root_dir = "%s/%s/" % (
         os.getenv("MYTARDIS_STORAGE_BOX_PATH"),
@@ -87,18 +138,7 @@ def scan_folder_and_upload(dataset_folder_name):
             if directory == ".":
                 directory = ""
 
-            df_lookup_url = (
-                "%s/api/v1/dataset_file/?format=json&dataset__id=%s&filename=%s&directory=%s"
-                % (
-                    os.getenv("MYTARDIS_URL"),
-                    dataset_id,
-                    quote(filename),
-                    quote(directory),
-                )
-            )
-            response = requests_retry_session().get(df_lookup_url, headers=HEADERS)
-            response.raise_for_status()
-            datafiles_dict = response.json()
+            datafiles_dict = lookup_datafile(dataset_id, filename, directory)
             if datafiles_dict["meta"]["total_count"]:
                 print(
                     "DataFile record was found, so we won't create another record for this file."
@@ -106,38 +146,7 @@ def scan_folder_and_upload(dataset_folder_name):
                 print()
                 continue
 
-            size = os.path.getsize(filepath)
-            print("size: %s" % size)
-            mimetype = mimetypes.guess_type(filepath, strict=False)[0]
-            if not mimetype:
-                mimetype = "application/octet-stream"
-            print("mimetype: %s" % mimetype)
-            md5sum = calculate_md5sum(filepath)
-            print("md5sum: %s" % md5sum)
-            print()
-
-            datafile_post_data = {
-                "dataset": "/api/v1/dataset/%s/" % dataset_id,
-                "filename": filename,
-                "directory": directory,
-                "md5sum": md5sum,
-                "size": size,
-                "mimetype": mimetype,
-                "replicas": [
-                    {
-                        "url": uri,
-                        "location": os.getenv("MYTARDIS_STORAGE_BOX_NAME"),
-                        "protocol": "file",
-                    }
-                ],
-            }
-
-            response = requests_retry_session().post(
-                "%s/api/v1/dataset_file/" % os.getenv("MYTARDIS_URL"),
-                data=json.dumps(datafile_post_data),
-                headers=HEADERS,
-            )
-            response.raise_for_status()
+            response = create_datafile(dataset_id, filename, directory, filepath, uri)
             print("Created DataFile record: %s" % response.headers["Location"])
             print()
             print()
