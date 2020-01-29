@@ -89,7 +89,7 @@ def test_indexing():
                 "%s\n"
                 % textwrap.dedent(
                     """
-                MYTARDIS_STORAGE_BOX_PATH: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-dataset
+                MYTARDIS_STORAGE_BOX_PATH: $cwd/tests/testdata/testdata-dataset
 
                 Validated MyTardis settings.
 
@@ -101,10 +101,11 @@ def test_indexing():
                 """
                 )
             )
-            expected_files_output = {
-                "Birds": textwrap.dedent(
-                    """\
-                    File path: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-dataset/Birds/1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg
+            expected_files_output_template = {
+                "Birds": Template(
+                    textwrap.dedent(
+                        """\
+                    File path: $cwd/tests/testdata/testdata-dataset/Birds/1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg
                     size: 116537
                     mimetype: image/jpeg
                     md5sum: 53c6ac03b64f61d5e0b596f70ed75a51
@@ -112,17 +113,19 @@ def test_indexing():
                     Created DataFile record: /api/v1/dataset_file/123456
 
 
-                    File path: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-dataset/Birds/Black-beaked-sea-bird-close-up.jpg
+                    File path: $cwd/tests/testdata/testdata-dataset/Birds/Black-beaked-sea-bird-close-up.jpg
                     size: 154687
                     mimetype: image/jpeg
                     md5sum: ea5317929bb7d8d3b52131688f9a5bb2
 
                     Created DataFile record: /api/v1/dataset_file/123456
                     """
+                    )
                 ),
-                "Flowers": textwrap.dedent(
-                    """\
-                    File path: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-dataset/Flowers/1024px-Colourful_flowers.JPG
+                "Flowers": Template(
+                    textwrap.dedent(
+                        """\
+                    File path: $cwd/tests/testdata/testdata-dataset/Flowers/1024px-Colourful_flowers.JPG
                     size: 165665
                     mimetype: image/jpeg
                     md5sum: 00ce87259617f7e413d57c6143e834c3
@@ -130,7 +133,7 @@ def test_indexing():
                     Created DataFile record: /api/v1/dataset_file/123456
 
 
-                    File path: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-dataset/Flowers/Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg
+                    File path: $cwd/tests/testdata/testdata-dataset/Flowers/Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg
                     size: 67803
                     mimetype: image/jpeg
                     md5sum: fa39e3dd2def1d4dbf52519a79b81e5e
@@ -138,17 +141,21 @@ def test_indexing():
                     Created DataFile record: /api/v1/dataset_file/123456
 
 
-                    File path: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-dataset/Flowers/Pond_Water_Hyacinth_Flowers.jpg
+                    File path: $cwd/tests/testdata/testdata-dataset/Flowers/Pond_Water_Hyacinth_Flowers.jpg
                     size: 341543
                     mimetype: image/jpeg
                     md5sum: 4eecf4d4b352c6a12100013a6ad2474a
 
                     Created DataFile record: /api/v1/dataset_file/123456
                     """
+                    )
                 ),
             }
+            expected_files_output = expected_files_output_template[
+                folder_name
+            ].substitute(cwd=os.getcwd())
             assert result.output == expected_output_template.substitute(
-                folder_name=folder_name, files=expected_files_output[folder_name]
+                folder_name=folder_name, files=expected_files_output, cwd=os.getcwd()
             )
 
 
