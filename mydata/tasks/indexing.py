@@ -192,6 +192,7 @@ def scan_folder_and_upload(
                 lookup_callback(lookup)
                 continue
             assert lookup.status == LookupStatus.NOT_FOUND
+            lookup_callback(lookup)
 
             datafile_creation = create_datafile(
                 dataset_id, filename, directory, filepath, uri

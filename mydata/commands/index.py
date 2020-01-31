@@ -38,24 +38,23 @@ def index_cmd(dirs):
     check_folder_locations(dirs)
 
     num_files = 0
-    lookups = dict(not_found=[], found_verified=[], unverified=[], failed=[])
-    datafile_creations = dict(completed=[], failed=[])
+    lookups = dict()
+    for status in (
+        LookupStatus.NOT_FOUND,
+        LookupStatus.FOUND_VERIFIED,
+        LookupStatus.FOUND_UNVERIFIED,
+        LookupStatus.FAILED,
+    ):
+        lookups[status] = []
+    datafile_creations = dict()
+    for status in (DataFileCreationStatus.COMPLETED, DataFileCreationStatus.FAILED):
+        datafile_creations[status] = []
 
     def lookup_callback(lookup):
-        if lookup.status == LookupStatus.NOT_FOUND:
-            lookups["not_found"].append(lookup)
-        elif lookup.status == LookupStatus.FOUND_VERIFIED:
-            lookups["found_verified"].append(lookup)
-        elif lookup.status == LookupStatus.FOUND_UNVERIFIED:
-            lookups["unverified"].append(lookup)
-        elif lookup.status == LookupStatus.FAILED:
-            lookups["failed"].append(lookup)
+        lookups[lookup.status].append(lookup)
 
     def datafile_creation_callback(datafile_creation):
-        if datafile_creation.status == DataFileCreationStatus.COMPLETED:
-            datafile_creations["completed"].append(datafile_creation)
-        elif datafile_creation.status == DataFileCreationStatus.FAILED:
-            datafile_creations["failed"].append(datafile_creation)
+        datafile_creations[datafile_creation.status].append(datafile_creation)
 
     for folder_path in dirs:
         folder = os.path.basename(folder_path)
@@ -64,21 +63,21 @@ def index_cmd(dirs):
         num_files += sum([len(files) for r, d, files in os.walk(folder_path)])
 
     num_files_indexed = (
-        len(lookups["found_verified"])
-        + len(lookups["unverified"])
-        + len(datafile_creations["completed"])
+        len(lookups[LookupStatus.FOUND_VERIFIED])
+        + len(lookups[LookupStatus.FOUND_UNVERIFIED])
+        + len(datafile_creations[DataFileCreationStatus.COMPLETED])
     )
     click.echo(
         "%s of %s files have been indexed by MyTardis." % (num_files_indexed, num_files)
     )
-    num_verified = len(lookups["found_verified"])
+    num_verified = len(lookups[LookupStatus.FOUND_VERIFIED])
     click.echo(
         "%s of %s files have been verified by MyTardis." % (num_verified, num_files)
     )
 
     click.echo(
         "%s of %s files were newly indexed in this session."
-        % (len(datafile_creations["completed"]), num_files)
+        % (len(datafile_creations[DataFileCreationStatus.COMPLETED]), num_files)
     )
     click.echo()
     click.echo()
