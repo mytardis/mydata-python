@@ -18,6 +18,8 @@ import sys
 from urllib.parse import quote
 
 from ..utils.retries import requests_retry_session
+from ..indexing.models.lookup import Lookup, LookupStatus
+from ..indexing.models.datafile import DataFileCreation, DataFileCreationStatus
 
 HEADERS = {
     "Accept": "application/json",
@@ -78,8 +80,22 @@ def lookup_datafile(dataset_id, filename, directory):
         % (os.getenv("MYTARDIS_URL"), dataset_id, quote(filename), quote(directory),)
     )
     response = requests_retry_session().get(df_lookup_url, headers=HEADERS)
-    response.raise_for_status()
-    return response.json()
+    if not response.ok:
+        return Lookup(dataset_id, directory, filename, LookupStatus.FAILED)
+    datafiles_dict = response.json()
+    # Expect 0 or 1 matches:
+    matches = datafiles_dict["meta"]["total_count"]
+    if not matches:
+        return Lookup(dataset_id, directory, filename, LookupStatus.NOT_FOUND)
+    dfos = datafiles_dict["objects"]["0"]["replicas"]
+    if not dfos:
+        return Lookup(
+            dataset_id, directory, filename, LookupStatus.FOUND_UNVERIFIED_NO_DFOS
+        )
+    verified = any(dfo["verified"] for dfo in dfos)
+    if verified:
+        return Lookup(dataset_id, directory, filename, LookupStatus.FOUND_VERIFIED)
+    return Lookup(dataset_id, directory, filename, LookupStatus.FOUND_UNVERIFIED)
 
 
 def create_datafile(dataset_id, filename, directory, filepath, uri):
@@ -116,12 +132,31 @@ def create_datafile(dataset_id, filename, directory, filepath, uri):
         data=json.dumps(datafile_post_data),
         headers=HEADERS,
     )
-    response.raise_for_status()
-    return response
+    resource_uri = None
+    if response.ok:
+        resource_uri = response.headers["Location"]
+        return DataFileCreation(
+            dataset_id,
+            directory,
+            filename,
+            resource_uri,
+            DataFileCreationStatus.COMPLETED,
+        )
+    return DataFileCreation(
+        dataset_id, directory, filename, resource_uri, DataFileCreationStatus.FAILED
+    )
 
 
-def scan_folder_and_upload(dataset_folder_name):
+def scan_folder_and_upload(
+    dataset_folder_name, lookup_callback, datafile_creation_callback
+):
     """Scan folder, create a Dataset record for it, and create DataFile records for its files.
+
+    lookup_callback should be a function which will be called after each
+    DataFile lookup.
+
+    datafile_creation_callback should be a function which will be called after each
+    DataFile creation.
     """
     dataset_id = lookup_or_create_dataset(dataset_folder_name)
     dataset_root_dir = "%s/%s/" % (
@@ -138,18 +173,39 @@ def scan_folder_and_upload(dataset_folder_name):
             if directory == ".":
                 directory = ""
 
-            datafiles_dict = lookup_datafile(dataset_id, filename, directory)
-            if datafiles_dict["meta"]["total_count"]:
+            lookup = lookup_datafile(dataset_id, filename, directory)
+            if lookup.status == LookupStatus.FAILED:
+                print(
+                    "Failed to check for existing DataFile record on MyTardis.  Skipping for now."
+                )
+                print()
+                lookup_callback(lookup)
+                continue
+            if lookup.status in (
+                LookupStatus.FOUND_VERIFIED,
+                LookupStatus.FOUND_UNVERIFIED,
+            ):
                 print(
                     "DataFile record was found, so we won't create another record for this file."
                 )
                 print()
+                lookup_callback(lookup)
+                continue
+            assert lookup.status == LookupStatus.NOT_FOUND
+
+            datafile_creation = create_datafile(
+                dataset_id, filename, directory, filepath, uri
+            )
+            if datafile_creation.status == DataFileCreationStatus.FAILED:
+                print("Failed to create DataFile record.  Skipping for now.")
+                print()
+                datafile_creation_callback(datafile_creation)
                 continue
 
-            response = create_datafile(dataset_id, filename, directory, filepath, uri)
-            print("Created DataFile record: %s" % response.headers["Location"])
+            print("Created DataFile record: %s" % datafile_creation.resource_uri)
             print()
             print()
+            datafile_creation_callback(datafile_creation)
 
 
 def calculate_md5sum(filepath):

@@ -119,6 +119,11 @@ def test_indexing():
                     md5sum: ea5317929bb7d8d3b52131688f9a5bb2
 
                     Created DataFile record: /api/v1/dataset_file/123456
+
+
+                    2 of 2 files have been indexed by MyTardis.
+                    0 of 2 files have been verified by MyTardis.
+                    2 of 2 files were newly indexed in this session.
                     """
                     )
                 ),
@@ -147,6 +152,11 @@ def test_indexing():
                     md5sum: 4eecf4d4b352c6a12100013a6ad2474a
 
                     Created DataFile record: /api/v1/dataset_file/123456
+
+
+                    3 of 3 files have been indexed by MyTardis.
+                    0 of 3 files have been verified by MyTardis.
+                    3 of 3 files were newly indexed in this session.
                     """
                     )
                 ),
