@@ -22,4 +22,4 @@ class DataFileCreation:
         self.directory = directory
         self.filename = filename
         self.resource_uri = resource_uri
-        self.status = DataFileCreationStatus.COMPLETED
+        self.status = status

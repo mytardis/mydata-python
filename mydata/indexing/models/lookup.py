@@ -35,4 +35,4 @@ class Lookup:
         self.dataset_id = dataset_id
         self.directory = directory
         self.filename = filename
-        self.status = LookupStatus.NOT_FOUND
+        self.status = status

@@ -87,7 +87,7 @@ def lookup_datafile(dataset_id, filename, directory):
     matches = datafiles_dict["meta"]["total_count"]
     if not matches:
         return Lookup(dataset_id, directory, filename, LookupStatus.NOT_FOUND)
-    dfos = datafiles_dict["objects"]["0"]["replicas"]
+    dfos = datafiles_dict["objects"][0]["replicas"]
     if not dfos:
         return Lookup(
             dataset_id, directory, filename, LookupStatus.FOUND_UNVERIFIED_NO_DFOS
