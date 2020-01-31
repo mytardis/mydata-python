@@ -1,9 +1,9 @@
 """
 Model class for MyTardis API v1's UserResource.
 """
-import requests
+from urllib.parse import quote
 
-from six.moves import urllib
+import requests
 
 from ..conf import settings
 from ..logs import logger
@@ -154,7 +154,7 @@ class User:
         user_folder_name = user_folder_name or email
         url = "%s/api/v1/user/?format=json&email__iexact=%s" % (
             settings.general.mytardis_url,
-            urllib.parse.quote(email.encode("utf-8")),
+            quote(email.encode("utf-8")),
         )
         response = requests.get(url=url, headers=settings.default_headers)
         response.raise_for_status()

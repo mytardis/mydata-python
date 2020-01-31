@@ -2,8 +2,10 @@
 Model class for MyTardis API v1's DatasetResource.
 """
 import json
+
+from urllib.parse import quote
+
 import requests
-from six.moves import urllib
 
 from ..conf import settings
 from ..threads.flags import FLAGS
@@ -118,7 +120,7 @@ class Dataset:
         if not folder.experiment:
             # folder.experiment could be None in testRun
             return None
-        description = urllib.parse.quote(folder.name.encode("utf-8"))
+        description = quote(folder.name.encode("utf-8"))
         url = "%s/api/v1/dataset/?format=json&experiments__id=%s" "&description=%s" % (
             settings.general.mytardis_url,
             folder.experiment.exp_id,

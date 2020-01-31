@@ -17,7 +17,6 @@ from io import StringIO
 
 import requests
 from requests.exceptions import RequestException
-import six
 
 
 class MyDataFormatter(logging.Formatter):

@@ -1,11 +1,12 @@
 """
 Model class for MyTardis API v1's ExperimentResource.
 """
-# pylint: disable=bare-except
+# pylint: disable=broad-except
 import json
-import requests
 
-from six.moves import urllib
+from urllib.parse import quote
+
+import requests
 
 from ..conf import settings
 from ..threads.flags import FLAGS
@@ -54,10 +55,8 @@ class Experiment:
         """
         See also get_or_create_exp_for_folder
         """
-        exp_title_encoded = urllib.parse.quote(folder.experiment_title.encode("utf-8"))
-        folder_structure_encoded = urllib.parse.quote(
-            settings.advanced.folder_structure
-        )
+        exp_title_encoded = quote(folder.experiment_title.encode("utf-8"))
+        folder_structure_encoded = quote(settings.advanced.folder_structure)
         url = (
             "%s/api/v1/mydata_experiment/?format=json"
             "&title=%s&folder_structure=%s"
@@ -68,11 +67,11 @@ class Experiment:
             )
         )
         if folder.user_folder_name:
-            url += "&user_folder_name=%s" % urllib.parse.quote(
+            url += "&user_folder_name=%s" % quote(
                 folder.user_folder_name.encode("utf-8")
             )
         if folder.group_folder_name:
-            url += "&group_folder_name=%s" % urllib.parse.quote(
+            url += "&group_folder_name=%s" % quote(
                 folder.group_folder_name.encode("utf-8")
             )
 
@@ -100,7 +99,7 @@ class Experiment:
         group_folder_name = folder.group_folder_name
         try:
             owner_user_id = folder.owner.id
-        except:
+        except Exception:
             owner_user_id = None
 
         instrument_name = settings.general.instrument.name

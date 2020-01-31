@@ -13,7 +13,6 @@ import time
 import struct
 
 import psutil
-import six
 
 from ..conf import settings
 from ..logs import logger
@@ -195,9 +194,7 @@ class KeyPair:
             if len(ssh_keygen_out_components) > 3:
                 key_type = ssh_keygen_out_components[-1].strip().strip(b"(").strip(b")")
 
-        if six.PY3:
-            return fingerprint.decode(), key_type.decode()
-        return fingerprint, key_type
+        return fingerprint.decode(), key_type.decode()
 
     @property
     def fingerprint(self):
