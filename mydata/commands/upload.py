@@ -81,12 +81,12 @@ def display_verbose_upload_summary(lookups, uploads, verbosity):
 
     if uploads["failed"]:
         click.echo("\nFailed uploads:")
-        for upload in uploads["failed"]:
+        for upload in sorted(uploads["failed"], key=lambda upload: upload.filename):
             click.echo("%s [%s]" % (upload.filename, upload.message))
 
     if uploads["completed"]:
         click.echo("\nFiles uploaded:")
-        for upload in uploads["completed"]:
+        for upload in sorted(uploads["completed"], key=lambda upload: upload.filename):
             click.echo("%s [%s]" % (upload.filename, UPLOAD_STATUS[upload.status]))
 
     click.echo("")

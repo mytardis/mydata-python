@@ -48,21 +48,9 @@ def test_upload_dataset_structure(set_dataset_config):
         if result.exception:
             raise result.exception
         assert result.exit_code == 0
-        assert result.output.startswith(
-            textwrap.dedent(
-                """
-            Using MyData configuration in: %s
-
-            Scanning tests/testdata/testdata-dataset/ using the "Dataset" folder structure...
-
-            Found 2 dataset folders in tests/testdata/testdata-dataset/
-            """
-                % settings.config_path
-            )
-        )
         assert result.output == textwrap.dedent(
             """
-                Using MyData configuration in: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-dataset.cfg
+                Using MyData configuration in: %s
 
                 Scanning tests/testdata/testdata-dataset/ using the "Dataset" folder structure...
 
@@ -87,8 +75,9 @@ def test_upload_dataset_structure(set_dataset_config):
                 1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg
 
                 Files uploaded:
-                Pond_Water_Hyacinth_Flowers.jpg [Completed]
                 1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg [Completed]
+                Pond_Water_Hyacinth_Flowers.jpg [Completed]
 
                 """
+            % settings.config_path
         )

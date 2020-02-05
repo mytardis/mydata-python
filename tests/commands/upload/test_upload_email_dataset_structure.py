@@ -50,28 +50,9 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
         if result.exception:
             raise result.exception
         assert result.exit_code == 0
-        assert result.output.startswith(
-            textwrap.dedent(
-                """
-            Using MyData configuration in: %s
-
-            Scanning tests/testdata/testdata-email-dataset/ using the "Email / Dataset" folder structure...
-            """
-                % settings.config_path
-            )
-        )
-
-        assert "Found user folder: testuser1@example.com" in result.output
-        assert "Found user folder: testuser2@example.com" in result.output
-
-        assert (
-            "Found 2 dataset folders in tests/testdata/testdata-email-dataset/"
-            in result.output
-        )
-
         assert result.output == textwrap.dedent(
             """
-                Using MyData configuration in: /Users/wettenhj/Desktop/git/mydata-python/tests/testdata/testdata-email-dataset.cfg
+                Using MyData configuration in: %s
 
                 Scanning tests/testdata/testdata-email-dataset/ using the "Email / Dataset" folder structure...
 
@@ -103,4 +84,5 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
                 Pond_Water_Hyacinth_Flowers.jpg [Completed]
 
             """
+            % settings.config_path
         )
