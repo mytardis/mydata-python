@@ -7,6 +7,7 @@ import requests.exceptions
 
 from ..models.datafile import DataFile
 from ..models.lookup import Lookup, LookupStatus
+from ..models.upload import UploadMethod
 from ..conf import settings
 from ..threads.locks import LOCKS
 
@@ -16,9 +17,10 @@ class Lookups:
     Methods for looking up files on a MyTardis server
     """
 
-    def __init__(self, folder, lookup_done_cb):
+    def __init__(self, folder, lookup_done_cb, upload_method):
         self.folder = folder
         self.lookup_done_cb = lookup_done_cb
+        self.upload_method = upload_method
 
     def lookup_datafiles(self):
         """Look up a folder's file on MyTardis
@@ -94,26 +96,40 @@ class Lookups:
         """
         lookup.message = "Found unverified datafile record on MyTardis."
 
-        # For now, assume we are uploading via POST:
-        self.handle_unverified_unstaged_upload(lookup, existing_datafile)
+        if self.upload_method == UploadMethod.SCP:
+            self.handle_unverified_file_on_staging(lookup, existing_datafile)
+        else:
+            self.handle_unverified_unstaged_upload(lookup, existing_datafile)
+
+    def handle_unverified_file_on_staging(self, lookup, existing_datafile):
+        """
+        Re-upload file (resuming partial uploads is not supported).
+        """
+        lookup.message = "Found unverified file while using upload-via-staging."
+        if existing_datafile.replicas:
+            self.folder.set_datafile_uploaded(lookup.datafile_index, False)
+            lookup.status = LookupStatus.FOUND_UNVERIFIED_ON_STAGING
+        else:
+            self.folder.set_datafile_uploaded(lookup.datafile_index, False)
+            lookup.status = LookupStatus.FOUND_UNVERIFIED_NO_DFOS
+        self.lookup_done_cb(lookup)
 
     def handle_unverified_unstaged_upload(self, lookup, existing_datafile):
         """
-        We found an unverified datafile on the server for which
-        there is no point in checking for a resumable partial
-        upload.
-
-        This is usually because we are uploading using the POST upload method.
-        Or we could be using the STAGING method but failed to find any
-        DataFileObjects on the server for the datafile.
+        We found an unverified datafile on the server but because
+        we are using POST to create and upload the DataFile at the same time,
+        we can't try re-uploading the file, like we can when using the
+        SCP via Staging upload method.
         """
         lookup.message = "Found unverified datafile record."
         # If there's an existing DFO, we probably just need to wait until
         # MyTardis verifies the file, but if there are no DFOs, MyData
-        # shouldn't mark this file as uploaded:
+        # should not mark this file as uploaded:
         if existing_datafile.replicas:
             self.folder.set_datafile_uploaded(lookup.datafile_index, True)
+            lookup.status = LookupStatus.FOUND_UNVERIFIED_UNSTAGED
+            DataFile.verify(existing_datafile.id)
         else:
             self.folder.set_datafile_uploaded(lookup.datafile_index, False)
-        lookup.status = LookupStatus.FOUND_UNVERIFIED_UNSTAGED
-        DataFile.verify(existing_datafile.datafile_id)
+            lookup.status = LookupStatus.FOUND_UNVERIFIED_NO_DFOS
+        self.lookup_done_cb(lookup)

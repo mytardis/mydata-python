@@ -12,6 +12,7 @@ from requests_toolbelt.multipart import encoder
 from ..conf import settings
 from ..logs import logger
 from ..utils.exceptions import MultipleObjectsReturned
+from ..utils.retries import requests_retry_session
 from .replica import Replica
 
 
@@ -60,7 +61,9 @@ class DataFile:
             + "&directory="
             + urllib.parse.quote(directory.encode("utf-8"))
         )
-        response = requests.get(url=url, headers=settings.default_headers)
+        response = requests_retry_session().get(
+            url=url, headers=settings.default_headers
+        )
         response.raise_for_status()
         datafiles_dict = response.json()
         num_datafiles_found = datafiles_dict["meta"]["total_count"]
@@ -86,7 +89,9 @@ class DataFile:
             mytardis_url,
             datafile_id,
         )
-        response = requests.get(url=url, headers=settings.default_headers)
+        response = requests_retry_session().get(
+            url=url, headers=settings.default_headers
+        )
         response.raise_for_status()
         datafile_dict = response.json()
         return DataFile(dataset=None, datafile_dict=datafile_dict)
@@ -98,7 +103,9 @@ class DataFile:
         """
         mytardis_url = settings.general.mytardis_url
         url = mytardis_url + "/api/v1/dataset_file/%s/verify/" % datafile_id
-        response = requests.get(url=url, headers=settings.default_headers)
+        response = requests_retry_session().get(
+            url=url, headers=settings.default_headers
+        )
         if response.status_code < 200 or response.status_code >= 300:
             logger.warning('Failed to verify datafile id "%s" ' % datafile_id)
             logger.warning(response.text)

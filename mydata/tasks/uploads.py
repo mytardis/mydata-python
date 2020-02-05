@@ -38,7 +38,7 @@ def upload_folder(
 
     upload_method (if specified) should be a value from the
     mydata.models.upload.UploadMethod enumerated data type.
-    If not specified, the SCP
+    If not specified, the SCP upload method is used.
     """
     folder.experiment = Experiment.get_or_create_exp_for_folder(folder)
     folder.dataset = Dataset.create_dataset_if_necessary(folder)
@@ -48,10 +48,13 @@ def upload_folder(
 
     def lookup_cb(lookup):
         lookup_callback(lookup)
-        if lookup.status == LookupStatus.NOT_FOUND:
+        if lookup.status in (
+            LookupStatus.NOT_FOUND,
+            LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
+        ):
             upload_file(folder, lookup, upload_callback, upload_method)
 
-    Lookups(folder, lookup_cb).lookup_datafiles()
+    Lookups(folder, lookup_cb, upload_method).lookup_datafiles()
 
 
 def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP):

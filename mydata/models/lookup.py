@@ -22,19 +22,16 @@ class LookupStatus:
     # uploads, so we can't retry without triggering a Duplicate Key error:
     FOUND_UNVERIFIED_UNSTAGED = 4
 
-    # Finished uploading to staging, waiting
-    # for MyTardis to verify (don't re-upload):
-    FOUND_UNVERIFIED_FULL_SIZE = 5
-
-    # Partially uploaded to staging, need to resume upload or re-upload:
-    FOUND_UNVERIFIED_NOT_FULL_SIZE = 6
+    # A previous run created a DataFile record and promised to upload the
+    # file (by SCP), but it hasn't been successfully verified by the server,
+    # so we should try re-uploading it:
+    FOUND_UNVERIFIED_ON_STAGING = 5
 
     # Missing datafile objects (replicas) on server:
-    FOUND_UNVERIFIED_NO_DFOS = 7
+    FOUND_UNVERIFIED_NO_DFOS = 6
 
-    # Lookup failed - should upload file, unless the failure
-    # was so serious (e.g. no network) that we need to abort everything.
-    FAILED = 8
+    # Lookup failed after retrying, so don't upload in case it has already been uploaded:
+    FAILED = 7
 
 
 class Lookup:
@@ -44,6 +41,7 @@ class Lookup:
 
     def __init__(self, folder, datafile_index):
         self.folder_name = folder.name
+        self.dataset_id = folder.dataset.id if folder.dataset else None
         self.subdirectory = folder.get_datafile_directory(datafile_index)
         self.datafile_index = datafile_index
         self.filename = folder.get_datafile_name(datafile_index)

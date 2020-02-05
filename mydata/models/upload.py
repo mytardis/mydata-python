@@ -91,11 +91,6 @@ class Upload:
 
         # Only used with UploadMethod.VIA_STAGING:
         self.scp_upload_process_pid = None
-        # The DataFileObject ID, also known as the replica ID:
-        self.dfo_id = None
-        # Number of bytes previously uploaded, or None if the file is not yet
-        # on the staging area:
-        self.bytes_uploaded_previously = None
 
         self.start_time = None
         # The latest time at which upload progress has been measured:

@@ -14,6 +14,7 @@ from click.testing import CliRunner
 
 from tests.mocks import (
     mock_testfacility_user_response,
+    mock_birds_flowers_datafile_lookups,
     CREATED_DATASET_RESPONSE,
     EMPTY_LIST_RESPONSE,
 )
@@ -43,6 +44,7 @@ def test_indexing():
 
     with requests_mock.Mocker() as mocker:
         mock_testfacility_user_response(mocker, env["MYTARDIS_URL"])
+        mock_birds_flowers_datafile_lookups(mocker)
         for folder_name in ("Birds", "Flowers"):
             folder_path = os.path.join(env["MYTARDIS_STORAGE_BOX_PATH"], folder_name)
 
@@ -56,22 +58,6 @@ def test_indexing():
                 "Created Dataset", folder_name
             )
             mocker.post(post_dataset_url, text=mock_dataset_response)
-
-            get_df_url_template = Template(
-                (
-                    "%s/api/v1/dataset_file/?format=json&dataset__id=1&filename=$filename&directory="
-                )
-                % env["MYTARDIS_URL"]
-            )
-            for filename in (
-                "1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg",
-                "Black-beaked-sea-bird-close-up.jpg",
-                "1024px-Colourful_flowers.JPG",
-                "Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg",
-                "Pond_Water_Hyacinth_Flowers.jpg",
-            ):
-                get_df_url = get_df_url_template.substitute(filename=quote(filename))
-                mocker.get(get_df_url, text=EMPTY_LIST_RESPONSE)
 
             post_datafile_url = "%s/api/v1/dataset_file/" % env["MYTARDIS_URL"]
             mocker.post(
@@ -114,16 +100,11 @@ def test_indexing():
 
 
                     File path: $cwd/tests/testdata/testdata-dataset/Birds/Black-beaked-sea-bird-close-up.jpg
-                    size: 154687
-                    mimetype: image/jpeg
-                    md5sum: ea5317929bb7d8d3b52131688f9a5bb2
+                    Failed to check for existing DataFile record on MyTardis.  Skipping for now.
 
-                    Created DataFile record: /api/v1/dataset_file/123456
-
-
-                    2 of 2 files have been indexed by MyTardis.
+                    1 of 2 files have been indexed by MyTardis.
                     0 of 2 files have been verified by MyTardis.
-                    2 of 2 files were newly indexed in this session.
+                    1 of 2 files were newly indexed in this session.
                     """
                     )
                 ),
@@ -131,20 +112,10 @@ def test_indexing():
                     textwrap.dedent(
                         """\
                     File path: $cwd/tests/testdata/testdata-dataset/Flowers/1024px-Colourful_flowers.JPG
-                    size: 165665
-                    mimetype: image/jpeg
-                    md5sum: 00ce87259617f7e413d57c6143e834c3
-
-                    Created DataFile record: /api/v1/dataset_file/123456
-
+                    DataFile record was found, so we won't create another record for this file.
 
                     File path: $cwd/tests/testdata/testdata-dataset/Flowers/Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg
-                    size: 67803
-                    mimetype: image/jpeg
-                    md5sum: fa39e3dd2def1d4dbf52519a79b81e5e
-
-                    Created DataFile record: /api/v1/dataset_file/123456
-
+                    DataFile record was found, so we won't create another record for this file.
 
                     File path: $cwd/tests/testdata/testdata-dataset/Flowers/Pond_Water_Hyacinth_Flowers.jpg
                     size: 341543
@@ -155,8 +126,11 @@ def test_indexing():
 
 
                     3 of 3 files have been indexed by MyTardis.
-                    0 of 3 files have been verified by MyTardis.
-                    3 of 3 files were newly indexed in this session.
+                    2 of 3 files have been verified by MyTardis.
+                    1 of 3 files were newly indexed in this session.
+
+                    File records on server without any DataFileObjects:
+                    Dataset ID: 1, Filename: Pond_Water_Hyacinth_Flowers.jpg
                     """
                     )
                 ),

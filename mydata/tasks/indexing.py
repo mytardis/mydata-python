@@ -31,9 +31,6 @@ HEADERS = {
 
 def lookup_or_create_dataset(dataset_folder_name):
     """Lookup or create dataset and return Dataset ID.
-
-    Actually for now, it assumes it can be looked up.
-    If not, the assertion below will fail.
     """
     ds_lookup_url = (
         "%s/api/v1/dataset/?format=json&experiments__id=%s&description=%s"
@@ -191,7 +188,10 @@ def scan_folder_and_upload(
                 print()
                 lookup_callback(lookup)
                 continue
-            assert lookup.status == LookupStatus.NOT_FOUND
+            assert lookup.status in (
+                LookupStatus.NOT_FOUND,
+                LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
+            )
             lookup_callback(lookup)
 
             datafile_creation = create_datafile(

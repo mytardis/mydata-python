@@ -43,6 +43,7 @@ def index_cmd(dirs):
         LookupStatus.NOT_FOUND,
         LookupStatus.FOUND_VERIFIED,
         LookupStatus.FOUND_UNVERIFIED,
+        LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
         LookupStatus.FAILED,
     ):
         lookups[status] = []
@@ -79,5 +80,11 @@ def index_cmd(dirs):
         "%s of %s files were newly indexed in this session."
         % (len(datafile_creations[DataFileCreationStatus.COMPLETED]), num_files)
     )
+    if lookups[LookupStatus.FOUND_UNVERIFIED_NO_DFOS]:
+        click.echo("\nFile records on server without any DataFileObjects:")
+        for lookup in lookups[LookupStatus.FOUND_UNVERIFIED_NO_DFOS]:
+            click.echo(
+                "Dataset ID: %s, Filename: %s" % (lookup.dataset_id, lookup.filename)
+            )
     click.echo()
     click.echo()

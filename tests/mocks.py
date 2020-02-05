@@ -247,6 +247,30 @@ VERIFIED_DATAFILE_RESPONSE = build_list_response(
     ]
 )
 
+UNVERIFIED_DATAFILE_NO_DFOS_RESPONSE = build_list_response(
+    [
+        {
+            "id": 290387,
+            "created_time": "2015-06-25T00:26:21",
+            "datafile": None,
+            "dataset": "/api/v1/dataset/1/",
+            "deleted": False,
+            "deleted_time": None,
+            "directory": "",
+            "filename": "Unverified File",
+            "md5sum": "0d2a8fb0a57bf4a9aabce5f7e69b36e9",
+            "mimetype": "image/jpeg",
+            "modification_time": None,
+            "parameter_sets": [],
+            "replicas": [],
+            "resource_uri": "/api/v1/mydata_dataset_file/290387/",
+            "sha512sum": "",
+            "size": "23",
+            "version": 1,
+        }
+    ]
+)
+
 
 def mock_testfacility_user_response(mocker, mytardis_url):
     """Mock the list response for looking up a "testfacility" user
@@ -350,35 +374,43 @@ def mock_birds_flowers_dataset_creation(mocker, settings):
     mocker.post(post_dataset_url, text=CREATED_DATASET_RESPONSE)
 
 
-def mock_birds_flowers_datafile_lookups(mocker):
+def mock_birds_flowers_datafile_lookups(mocker, api_prefix=""):
     """Mock the lookups of the Birds and Flowers datafiles used in tests
     """
     # A partial query-string match can be used for mocking:
     for filename in (
         "1024px-Colourful_flowers.JPG",
         "Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg",
-        "Pond_Water_Hyacinth_Flowers.jpg",
     ):
         get_datafile_url = (
-            "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
-            % filename
+            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
+            % (api_prefix, quote(filename))
         )
         mocker.get(
             get_datafile_url,
             text=VERIFIED_DATAFILE_RESPONSE.replace("Verified File", filename),
         )
-    for filename in (
-        "1024px-Australian_Birds_%40_Jurong_Bird_Park_%284374195521%29.jpg",
-    ):
+    for filename in ("Pond_Water_Hyacinth_Flowers.jpg",):
         get_datafile_url = (
-            "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
-            % filename
+            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
+            % (api_prefix, quote(filename))
+        )
+        mocker.get(
+            get_datafile_url,
+            text=UNVERIFIED_DATAFILE_NO_DFOS_RESPONSE.replace(
+                "Unverified File", filename
+            ),
+        )
+    for filename in ("1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg",):
+        get_datafile_url = (
+            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
+            % (api_prefix, quote(filename))
         )
         mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
     for filename in ("Black-beaked-sea-bird-close-up.jpg",):
         get_datafile_url = (
-            "/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=%s"
-            % filename
+            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
+            % (api_prefix, quote(filename))
         )
         error_response = json.dumps({"error_message": "Internal Server Error"})
         mocker.get(get_datafile_url, text=error_response, status_code=500)

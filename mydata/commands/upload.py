@@ -1,6 +1,8 @@
 """
 Commands for uploading data
 """
+import sys
+
 import click
 
 from mydata.commands.scan import scan, display_scan_summary
@@ -8,6 +10,53 @@ from mydata.tasks.uploads import upload_folder
 from mydata.conf import settings
 from mydata.models.lookup import LookupStatus
 from mydata.models.upload import UploadMethod, UploadStatus, UPLOAD_STATUS
+
+
+def display_default_upload_summary(folders, lookups, uploads):
+    """Display default summary, displayed irrespective of verbosity
+    """
+    num_files = sum([folder.num_files for folder in folders])
+    num_files_uploaded = sum([folder.num_files_uploaded for folder in folders])
+
+    click.echo(
+        "%s of %s files have been uploaded to MyTardis."
+        % (num_files_uploaded, num_files)
+    )
+    num_verified = len(lookups["found_verified"])
+    click.echo(
+        "%s of %s files have been verified by MyTardis." % (num_verified, num_files)
+    )
+
+    num_unverified_no_dfos = len(lookups["unverified_no_dfos"])
+    if num_unverified_no_dfos:
+        click.echo(
+            "%s of %s files were found unverified without any DataFileObjects! "
+            "Contact server admins!" % (num_unverified_no_dfos, num_files)
+        )
+
+    click.echo(
+        "%s of %s files were newly uploaded in this session."
+        % (len(uploads["completed"]), num_files)
+    )
+
+    if uploads["failed"]:
+        click.echo(
+            "%s of %s files encountered upload errors."
+            % (len(uploads["failed"]), num_files)
+        )
+
+    num_cache_hits = sum([folder.num_cache_hits for folder in folders])
+    click.echo(
+        "%s of %s file lookups were found in the local cache."
+        % (num_cache_hits, num_files)
+    )
+
+    if lookups["unverified_no_dfos"]:
+        click.echo("\nFile records on server without any DataFileObjects:")
+        for lookup in lookups["unverified_no_dfos"]:
+            click.echo(
+                "Dataset ID: %s, Filename: %s" % (lookup.dataset_id, lookup.filename)
+            )
 
 
 def display_verbose_upload_summary(lookups, uploads, verbosity):
@@ -68,7 +117,9 @@ def upload_cmd(verbose):
 
     num_files = sum([folder.num_files for folder in folders])
 
-    lookups = dict(not_found=[], found_verified=[], unverified=[], failed=[])
+    lookups = dict(
+        not_found=[], found_verified=[], unverified=[], unverified_no_dfos=[], failed=[]
+    )
 
     uploads = dict(completed=[], failed=[])
 
@@ -77,19 +128,25 @@ def upload_cmd(verbose):
             lookups["not_found"].append(lookup)
         elif lookup.status == LookupStatus.FOUND_VERIFIED:
             lookups["found_verified"].append(lookup)
-        elif lookup.status == LookupStatus.FOUND_UNVERIFIED_UNSTAGED:
-            # For now, only consider POST uploads, none of which are staged
+        elif lookup.status in (
+            LookupStatus.FOUND_UNVERIFIED_UNSTAGED,
+            LookupStatus.FOUND_UNVERIFIED_ON_STAGING,
+            LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
+        ):
             lookups["unverified"].append(lookup)
+            if lookup.status == LookupStatus.FOUND_UNVERIFIED_NO_DFOS:
+                lookups["unverified_no_dfos"].append(lookup)
         elif lookup.status == LookupStatus.FAILED:
             lookups["failed"].append(lookup)
 
         total_lookups = sum([len(lookups[lookup_status]) for lookup_status in lookups])
 
-        print(
-            "Looked up %s of %s files..." % (total_lookups, num_files),
-            end="\r",
-            flush=True,
-        )
+        if sys.stdout.isatty():
+            print(
+                "Looked up %s of %s files..." % (total_lookups, num_files),
+                end="\r",
+                flush=True,
+            )
 
     def upload_callback(upload):
         if upload.status == UploadStatus.COMPLETED:
@@ -98,7 +155,7 @@ def upload_cmd(verbose):
             uploads["failed"].append(upload)
 
         # Only display upload progress after lookups have completed:
-        if len(lookups) == num_files:
+        if len(lookups) == num_files and sys.stdout.isatty():
             print(
                 "Uploaded %s files..." % len(uploads["completed"]), end="\r", flush=True
             )
@@ -111,27 +168,7 @@ def upload_cmd(verbose):
     if settings.miscellaneous.cache_datafile_lookups:
         settings.save_verified_datafiles_cache()
 
-    num_files_uploaded = sum([folder.num_files_uploaded for folder in folders])
-
-    click.echo(
-        "%s of %s files have been uploaded to MyTardis."
-        % (num_files_uploaded, num_files)
-    )
-    num_verified = len(lookups["found_verified"])
-    click.echo(
-        "%s of %s files have been verified by MyTardis." % (num_verified, num_files)
-    )
-
-    click.echo(
-        "%s of %s files were newly uploaded in this session."
-        % (len(uploads["completed"]), num_files)
-    )
-
-    num_cache_hits = sum([folder.num_cache_hits for folder in folders])
-    click.echo(
-        "%s of %s file lookups were found in the local cache."
-        % (num_cache_hits, num_files)
-    )
+    display_default_upload_summary(folders, lookups, uploads)
 
     if verbose >= 1:
         display_verbose_upload_summary(lookups, uploads, verbose)
