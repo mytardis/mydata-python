@@ -211,7 +211,13 @@ def mock_responses_for_upload_folders(
 
     mock_uploader_update_response(mocker, settings)
     _, scp_port = mock_scp_server.server_address
-    mock_get_urr(mocker, settings, settings.uploader.ssh_key_pair.fingerprint, scp_port)
+    mock_get_urr(
+        mocker,
+        settings,
+        settings.uploader.ssh_key_pair.fingerprint,
+        approved=True,
+        scp_port=scp_port,
+    )
 
     for folder in folders:
         mock_datafiles_creation(mocker, folder, settings, mock_staging_path)

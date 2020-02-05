@@ -9,7 +9,10 @@ import requests_mock
 
 from click.testing import CliRunner
 
-from tests.fixtures import set_email_dataset_config
+from tests.fixtures import (
+    set_email_dataset_config,
+    mock_key_pair,
+)
 
 from tests.mocks import (
     mock_testfacility_user_response,
@@ -19,16 +22,21 @@ from tests.mocks import (
     mock_birds_flowers_dataset_creation,
     mock_birds_flowers_datafile_lookups,
     mock_exp_creation,
+    mock_uploader_creation_response,
+    mock_get_urr,
 )
 
 
-def test_upload_email_dataset_structure(set_email_dataset_config):
+def test_upload_email_dataset_structure(set_email_dataset_config, mock_key_pair):
     """Test uploading files from within the "Email / Dataset" folder structure
     """
     from mydata.commands.upload import upload_cmd
     from mydata.conf import settings
 
     with requests_mock.Mocker() as mocker:
+        mock_uploader_creation_response(mocker, settings)
+        settings.uploader.ssh_key_pair = mock_key_pair
+        mock_get_urr(mocker, settings, mock_key_pair.fingerprint, approved=False)
         mock_testfacility_user_response(mocker, settings.general.mytardis_url)
         mock_test_facility_response(mocker, settings.general.mytardis_url)
         mock_test_instrument_response(mocker, settings.general.mytardis_url)
@@ -56,6 +64,10 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
 
                 Scanning tests/testdata/testdata-email-dataset/ using the "Email / Dataset" folder structure...
 
+                Checking for approved upload method...
+
+                Using Multipart POST upload method.
+
                 Found user folder: testuser1@example.com
                 Found user folder: testuser2@example.com
 
@@ -71,7 +83,7 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
                 Dataset ID: 1, Filename: Pond_Water_Hyacinth_Flowers.jpg
 
                 Failed lookups:
-                Black-beaked-sea-bird-close-up.jpg
+                Black-beaked-sea-bird-close-up.jpg [500 Server Error: None for url: %s/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=Black-beaked-sea-bird-close-up.jpg&directory=]
 
                 Unverified lookups:
                 Pond_Water_Hyacinth_Flowers.jpg
@@ -84,5 +96,5 @@ def test_upload_email_dataset_structure(set_email_dataset_config):
                 Pond_Water_Hyacinth_Flowers.jpg [Completed]
 
             """
-            % settings.config_path
+            % (settings.config_path, settings.mytardis_url)
         )

@@ -56,9 +56,12 @@ class Lookups:
                 else:
                     self.handle_non_existent_datafile(lookup)
             except requests.exceptions.RequestException as err:
-                lookup.message = str(err)
-                lookup.status = LookupStatus.FAILED
-                self.lookup_done_cb(lookup)
+                if err.request.method == "GET":
+                    lookup.message = str(err)
+                    lookup.status = LookupStatus.FAILED
+                    self.lookup_done_cb(lookup)
+                else:
+                    raise
 
     def handle_non_existent_datafile(self, lookup):
         """Handle lookup which found no matching file on MyTardis server

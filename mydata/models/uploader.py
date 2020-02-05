@@ -68,13 +68,11 @@ user will have a default group of "mytardis" (inherited from the "receiving"
 directory), instead of having a default group of "mydata".
 """
 # pylint: disable=import-outside-toplevel
-# pylint: disable=bare-except
 import json
 import sys
 import platform
 import getpass
 import re
-import traceback
 import uuid
 
 import urllib.parse
@@ -94,7 +92,6 @@ from ..utils.exceptions import (
 )
 from ..utils import bytes_to_human
 from ..utils import mydata_install_location
-from ..threads.locks import LOCKS
 from .storage import StorageBox
 
 
@@ -177,9 +174,10 @@ class Uploader:
             + "&uuid="
             + urllib.parse.quote(settings.miscellaneous.uuid)
         )
-        headers = settings.default_headers
         response = requests.get(
-            headers=headers, url=url, timeout=settings.miscellaneous.connection_timeout
+            headers=settings.default_headers,
+            url=url,
+            timeout=settings.miscellaneous.connection_timeout,
         )
         response.raise_for_status()
         uploaders_dict = response.json()
@@ -226,17 +224,16 @@ class Uploader:
 
         data = json.dumps(uploader_dict, indent=4)
         logger.debug(data)
-        headers = settings.default_headers
         if num_existing_uploader_records > 0:
             response = requests.put(
-                headers=headers,
+                headers=settings.default_headers,
                 url=url,
                 data=data.encode(),
                 timeout=settings.miscellaneous.connection_timeout,
             )
         else:
             response = requests.post(
-                headers=headers,
+                headers=settings.default_headers,
                 url=url,
                 data=data.encode(),
                 timeout=settings.miscellaneous.connection_timeout,
@@ -330,44 +327,33 @@ class Uploader:
 
     def request_staging_access(self):
         """
-        This could be called from multiple threads simultaneously,
-        so it requires locking.
+        Check if uploads via staging are approved, and if not request approval
         """
-        with LOCKS.request_staging_access:  # pylint: disable=no-member
+        self.upload_uploader_info()
+        self.upload_to_staging_request = self.existing_upload_to_staging_request()
+        if not self.upload_to_staging_request:
             try:
-                try:
-                    self.upload_uploader_info()
-                except:
-                    logger.error(traceback.format_exc())
-                    raise
                 self.upload_to_staging_request = (
-                    self.existing_upload_to_staging_request()
+                    self.request_upload_to_staging_approval()
                 )
-                if not self.upload_to_staging_request:
-                    try:
-                        self.upload_to_staging_request = (
-                            self.request_upload_to_staging_approval()
-                        )
-                        logger.debug("Uploader registration request created.")
-                    except PrivateKeyDoesNotExist:
-                        logger.debug(
-                            "Generating new uploader registration request, "
-                            "because private key was moved or deleted."
-                        )
-                        self.upload_to_staging_request = (
-                            self.request_upload_to_staging_approval()
-                        )
-                        logger.debug(
-                            "Generated new uploader registration request,"
-                            " because private key was moved or deleted."
-                        )
-                if self.upload_to_staging_request.approved:
-                    logger.debug("Uploads to staging have been approved!")
-                else:
-                    logger.debug("Uploads to staging haven't been approved yet.")
-            except:
-                logger.error(traceback.format_exc())
-                raise
+                logger.debug("Uploader registration request created.")
+            except PrivateKeyDoesNotExist:
+                logger.debug(
+                    "Generating new uploader registration request, "
+                    "because private key was moved or deleted."
+                )
+                self.upload_to_staging_request = (
+                    self.request_upload_to_staging_approval()
+                )
+                logger.debug(
+                    "Generated new uploader registration request,"
+                    " because private key was moved or deleted."
+                )
+        if self.upload_to_staging_request.approved:
+            logger.debug("Uploads to staging have been approved!")
+        else:
+            logger.debug("Uploads to staging haven't been approved yet.")
+        return self.upload_to_staging_request
 
 
 class UploaderRegistrationRequest:

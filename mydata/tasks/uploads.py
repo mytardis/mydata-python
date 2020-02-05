@@ -103,7 +103,19 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
             df_post_response = DataFile.create_datafile_for_staging_upload(
                 datafile_dict
             )
-            df_post_response.raise_for_status()
+            if not df_post_response.ok:
+                err = (
+                    "Creating DataFile record failed with status: %s"
+                    % df_post_response.status_code
+                )
+                finalize_upload(
+                    folder,
+                    upload,
+                    success=False,
+                    message=str(err),
+                    upload_callback=upload_callback,
+                )
+                return
         host, port, location, username = get_sbox_attrs(upload)
         remote_file_path = get_remote_file_path(location, lookup, df_post_response)
         upload.datafile_id = get_datafile_id(lookup, df_post_response)

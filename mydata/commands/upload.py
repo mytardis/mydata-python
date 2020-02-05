@@ -4,6 +4,7 @@ Commands for uploading data
 import sys
 
 import click
+import requests
 
 from mydata.commands.scan import scan, display_scan_summary
 from mydata.tasks.uploads import upload_folder
@@ -65,7 +66,7 @@ def display_verbose_upload_summary(lookups, uploads, verbosity):
     if lookups["failed"]:
         click.echo("\nFailed lookups:")
         for lookup in lookups["failed"]:
-            click.echo(lookup.filename)
+            click.echo("%s [%s]" % (lookup.filename, lookup.message))
 
     if lookups["unverified"]:
         click.echo("\nUnverified lookups:")
@@ -92,6 +93,38 @@ def display_verbose_upload_summary(lookups, uploads, verbosity):
     click.echo("")
 
 
+def get_approved_upload_method(verbose):
+    """Check which upload method has been approved for this mydata instance
+    """
+    click.echo("Checking for approved upload method...\n")
+    try:
+        upload_via_staging_request = settings.uploader.request_staging_access()
+    except requests.ConnectionError as err:
+        click.echo(
+            "Connection Error:  Make sure you are connected to Internet.\n", err=True
+        )
+        click.echo(str(err), err=True)
+        sys.exit(1)
+    except requests.Timeout as err:
+        click.echo("Timeout Error", err=True)
+        click.echo(str(err), err=True)
+        sys.exit(1)
+    except requests.RequestException as err:
+        click.echo("General Error", err=True)
+        click.echo(str(err), err=True)
+        sys.exit(1)
+
+    if upload_via_staging_request.approved:
+        upload_method = UploadMethod.SCP
+        if verbose:
+            click.echo("Using SCP upload method.\n")
+    else:
+        upload_method = UploadMethod.MULTIPART_POST
+        if verbose:
+            click.echo("Using Multipart POST upload method.\n")
+    return upload_method
+
+
 @click.command(name="upload")
 @click.option("-v", "--verbose", count=True)
 def upload_cmd(verbose):
@@ -110,6 +143,8 @@ def upload_cmd(verbose):
 
     if settings.miscellaneous.cache_datafile_lookups:
         settings.initialize_verified_datafiles_cache()
+
+    upload_method = get_approved_upload_method(verbose)
 
     users, groups, exps, folders = scan()
 
@@ -161,9 +196,7 @@ def upload_cmd(verbose):
             )
 
     for folder in folders:
-        upload_folder(
-            folder, lookup_callback, upload_callback, UploadMethod.MULTIPART_POST
-        )
+        upload_folder(folder, lookup_callback, upload_callback, upload_method)
 
     if settings.miscellaneous.cache_datafile_lookups:
         settings.save_verified_datafiles_cache()
