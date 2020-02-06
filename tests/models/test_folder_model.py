@@ -82,13 +82,13 @@ def test_folder_model(set_username_dataset_config):
     if sys.platform.startswith("win"):
         expected_files.insert(0, "1024px-Colourful_flowers.JPG")
     folder = Folder(name, location, user_folder_name, group_folder_name, testuser1)
-    actual_files = sorted([os.path.basename(f) for f in folder.datafile_paths["files"]])
+    actual_files = sorted([localfile.filename for localfile in folder.local_files])
     assert actual_files == expected_files
 
     settings.filters.use_includes_file = True
     settings.filters.use_excludes_file = False
     folder = Folder(name, location, user_folder_name, group_folder_name, testuser1)
-    actual_files = sorted([os.path.basename(f) for f in folder.datafile_paths["files"]])
+    actual_files = sorted([localfile.filename for localfile in folder.local_files])
     assert actual_files == expected_files
 
     settings.filters.use_includes_file = False
@@ -104,7 +104,7 @@ def test_folder_model(set_username_dataset_config):
             "Pond_Water_Hyacinth_Flowers.jpg",
         ]
     folder = Folder(name, location, user_folder_name, group_folder_name, testuser1)
-    actual_files = sorted([os.path.basename(f) for f in folder.datafile_paths["files"]])
+    actual_files = sorted([localfile.filename for localfile in folder.local_files])
     assert actual_files == expected_files
 
     if os.path.exists(includes_file_path):

@@ -13,6 +13,8 @@ from fnmatch import fnmatch
 from ..conf import settings
 from ..logs import logger
 
+from .localfile import LocalFile
+
 
 class Folder:
     """
@@ -47,8 +49,8 @@ class Folder:
         # collect these files:
         self.is_exp_files_folder = is_exp_files_folder
 
-        self.datafile_paths = dict(files=[], directories=[], uploaded=[])
-        self.populate_datafile_paths()
+        self.local_files = []
+        self.populate_local_files()
 
         self.user_folder_name = user_folder_name
         self.group_folder_name = group_folder_name
@@ -59,7 +61,7 @@ class Folder:
         self.num_files_uploaded = 0
         self.num_cache_hits = 0
 
-    def populate_datafile_paths(self):
+    def populate_local_files(self):
         """
         Populate data file paths within folder object
         """
@@ -96,11 +98,13 @@ class Folder:
                             "and not matching includes." % filename
                         )
                         continue
-                self.datafile_paths["files"].append(os.path.join(dirname, filename))
-                self.datafile_paths["directories"].append(
-                    os.path.relpath(dirname, absolute_folder_path)
+                self.local_files.append(
+                    LocalFile(
+                        filepath=os.path.join(dirname, filename),
+                        directory=os.path.relpath(dirname, absolute_folder_path),
+                        uploaded=False,
+                    )
                 )
-                self.datafile_paths["uploaded"].append(False)
             if self.is_exp_files_folder:
                 break
         self.convert_subdirs_to_mytardis_format()
@@ -113,12 +117,10 @@ class Folder:
         empty string (rather than ".") to indicate that the file is in
         the dataset's top-level directory
         """
-        for i in range(0, len(self.datafile_paths["directories"])):
-            if self.datafile_paths["directories"][i] == ".":
-                self.datafile_paths["directories"][i] = ""
-            self.datafile_paths["directories"][i] = self.datafile_paths["directories"][
-                i
-            ].replace("\\", "/")
+        for local_file in self.local_files:
+            if local_file.directory == ".":
+                local_file.directory = ""
+            local_file.directory = local_file.directory.replace("\\", "/")
 
     def set_datafile_uploaded(self, datafile_index, uploaded):
         """
@@ -127,8 +129,10 @@ class Folder:
         Used to update the number of files uploaded per folder
         displayed in the Status column of the Folders view.
         """
-        self.datafile_paths["uploaded"][datafile_index] = uploaded
-        self.num_files_uploaded = sum(self.datafile_paths["uploaded"])
+        self.local_files[datafile_index].uploaded = uploaded
+        self.num_files_uploaded = sum(
+            [local_file.uploaded for local_file in self.local_files]
+        )
         self.data_view_fields["status"] = "%d of %d files uploaded" % (
             self.num_files_uploaded,
             self.num_files,
@@ -139,7 +143,7 @@ class Folder:
         Get the absolute path to a file within this folder's root directory
         which is os.path.join(self.location, self.name)
         """
-        return self.datafile_paths["files"][datafile_index]
+        return self.local_files[datafile_index].filepath
 
     def get_datafile_rel_path(self, datafile_index):
         """
@@ -156,13 +160,13 @@ class Folder:
         folder's root directory which is
         os.path.join(self.location, self.name)
         """
-        return self.datafile_paths["directories"][datafile_index]
+        return self.local_files[datafile_index].directory
 
     def get_datafile_name(self, datafile_index):
         """
         Return a file's filename
         """
-        return os.path.basename(self.datafile_paths["files"][datafile_index])
+        return self.local_files[datafile_index].filename
 
     def get_datafile_size(self, datafile_index):
         """
@@ -217,7 +221,7 @@ class Folder:
         """
         Return total number of files in this folder
         """
-        return len(self.datafile_paths["files"])
+        return len(self.local_files)
 
     def set_created_date(self):
         """
@@ -329,9 +333,8 @@ class Folder:
         """
         Reset counts of uploaded files etc.
         """
-        self.datafile_paths["uploaded"] = []
-        for _ in range(0, self.num_files):
-            self.datafile_paths["uploaded"].append(False)
+        for local_file in self.local_files:
+            local_file.uploaded = False
 
     @property
     def name(self):

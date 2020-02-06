@@ -28,7 +28,7 @@ def set_exp_dataset_config(request):
 @pytest.fixture
 def set_username_dataset_config(request):
     os.environ["MYDATA_CONFIG_PATH"] = os.path.abspath(
-        os.path.join(".", "tests", "testdata", "testdata-username-dataset-post.cfg")
+        os.path.join(".", "tests", "testdata", "testdata-username-dataset.cfg")
     )
     assert "mydata.settings" not in sys.modules
 

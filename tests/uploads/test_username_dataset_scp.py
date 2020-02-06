@@ -7,8 +7,6 @@ preceded by a series of helper functions.
 """
 # pylint: disable=unused-import
 
-import os
-
 from string import Template
 from urllib.parse import quote
 
@@ -117,7 +115,7 @@ def mock_exp_lookups(mocker, settings):
     for username, name in [
         ("testuser1", quote("Test User1")),
         ("testuser2", quote("Test User2")),
-        ("INVALID_USER", "INVALID_USER%20%28USER%20NOT%20FOUND%20IN%20MYTARDIS%29"),
+        ("INVALID_USER", quote("INVALID_USER (USER NOT FOUND IN MYTARDIS)")),
     ]:
         mocker.get(
             get_exp_url_template.substitute(username=username, name=name),
@@ -152,9 +150,8 @@ def mock_datafiles_creation(mocker, folder, settings, mock_staging_path):
     mocker.get(verify_url)
 
     for dfi in range(0, folder.num_files):
-        datafile_path = folder.get_datafile_path(dfi)
-        datafile_dir = folder.get_datafile_directory(dfi)
-        datafile_name = os.path.basename(datafile_path)
+        datafile_dir = folder.local_files[dfi].directory
+        datafile_name = folder.local_files[dfi].filename
         get_datafile_url = get_df_url_template.substitute(filename=quote(datafile_name))
         mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
         post_datafile_url = (

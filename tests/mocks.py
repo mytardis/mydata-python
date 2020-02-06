@@ -450,6 +450,21 @@ def mock_exp_creation(mocker, settings, title, user_folder_name):
     mocker.post(post_objectacl_url, status_code=201)
 
 
+def mock_dataset_creation(mocker, settings, exp_id, instrument_id, folder_name):
+    """Mock the creation of a dataset for a folder with name folder_name
+    """
+    get_dataset_url = (
+        "%s/api/v1/dataset/?format=json&experiments__id=%s"
+        "&description=%s&instrument__id=%s"
+    ) % (settings.general.mytardis_url, exp_id, quote(folder_name), instrument_id)
+    mocker.get(get_dataset_url, text=EMPTY_LIST_RESPONSE)
+    post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
+    mock_dataset_response = CREATED_DATASET_RESPONSE.replace(
+        "Created Dataset", folder_name
+    )
+    mocker.post(post_dataset_url, text=mock_dataset_response)
+
+
 def mock_uploader_creation_response(mocker, settings):
     """Mock the creation of MyData's Uploader record
     """
@@ -458,7 +473,6 @@ def mock_uploader_creation_response(mocker, settings):
         settings.miscellaneous.uuid,
     )
     mocker.get(get_uploader_url, text=EMPTY_LIST_RESPONSE)
-    print("Mocked: %s" % get_uploader_url)  # FIXME
     post_uploader_url = ("%s/api/v1/mydata_uploader/") % settings.general.mytardis_url
     mocker.post(post_uploader_url, text=MOCK_UPLOADER_RESPONSE)
 
