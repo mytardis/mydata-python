@@ -77,7 +77,9 @@ def display_verbose_upload_summary(lookups, uploads, verbosity):
 
         if lookups["not_found"]:
             click.echo("\nNot found on MyTardis server:")
-            for lookup in lookups["not_found"]:
+            for lookup in sorted(
+                lookups["not_found"], key=lambda lookup: lookup.filename
+            ):
                 click.echo(lookup.filename)
 
     if uploads["failed"]:

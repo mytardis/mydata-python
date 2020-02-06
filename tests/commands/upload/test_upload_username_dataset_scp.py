@@ -109,18 +109,18 @@ def test_upload_username_dataset_scp(
             0 of 12 file lookups were found in the local cache.
 
             Not found on MyTardis server:
+            1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg
             1024px-Colourful_flowers.JPG
+            Black-beaked-sea-bird-close-up.jpg
             Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg
+            InvalidUserFile1.txt
             Pond_Water_Hyacinth_Flowers.jpg
             existing_unverified_full_size_file.txt
             existing_unverified_incomplete_file.txt
             existing_verified_file.txt
+            hello.txt
             missing_mydata_replica_api_endpoint.txt
             zero_sized_file.txt
-            hello.txt
-            1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg
-            Black-beaked-sea-bird-close-up.jpg
-            InvalidUserFile1.txt
 
             Files uploaded:
             1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg [Completed]
