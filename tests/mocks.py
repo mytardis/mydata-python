@@ -516,3 +516,10 @@ def mock_invalid_user_response(mocker, settings):
         "%s/api/v1/user/?format=json&username=INVALID_USER"
     ) % settings.general.mytardis_url
     mocker.get(get_invalid_user_url, text=EMPTY_LIST_RESPONSE)
+
+
+def mock_api_endpoints_response(mocker, mytardis_url):
+    """Mock looking up MyTardis API endpoints
+    """
+    list_api_endpoints_url = "%s/api/v1/?format=json" % mytardis_url
+    mocker.get(list_api_endpoints_url, text=MOCK_API_ENDPOINTS_RESPONSE)

@@ -1,5 +1,4 @@
-"""
-Generate a MyData.cfg from command-line input
+""" Generate a MyData.cfg from command-line input
 """
 import os
 import uuid
@@ -23,8 +22,7 @@ from .validation import (
 
 
 def generate_config():
-    """
-    Generate a MyData.cfg from command-line input
+    """Generate a MyData.cfg from command-line input
     """
     if os.path.exists(settings.config_path):
         click.echo("A config file already exists at %s" % settings.config_path)
