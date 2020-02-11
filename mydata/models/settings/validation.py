@@ -40,6 +40,7 @@ def validate_settings(set_status_message=None):
     try:
         raise_exception_if_user_aborted(set_status_message)
         check_for_missing_required_fields()
+        check_data_directory()
         log_if_test_run("Folder structure: %s" % settings.advanced.folder_structure)
         warn_if_ignoring_invalid_user_folders()
         check_filters(set_status_message)
@@ -74,9 +75,20 @@ def validate_settings(set_status_message=None):
         raise InvalidSettings(message, "")
 
 
-def check_for_missing_required_fields():
+def check_data_directory():
+    """Check if data directory exists
     """
-    Check if a required field is missing
+    from ...conf import settings
+
+    if not os.path.exists(settings.general.data_directory):
+        message = (
+            'The data directory: "%s" doesn\'t exist!' % settings.general.data_directory
+        )
+        raise InvalidSettings(message, "data_directory")
+
+
+def check_for_missing_required_fields():
+    """Check if a required field is missing
     """
     from ...conf import settings
 
@@ -120,11 +132,6 @@ def check_for_missing_required_fields():
             % settings.general.username.strip()
         )
         raise InvalidSettings(message, "api_key")
-    if not os.path.exists(settings.general.data_directory):
-        message = (
-            'The data directory: "%s" doesn\'t exist!' % settings.general.data_directory
-        )
-        raise InvalidSettings(message, "data_directory")
 
 
 def warn_if_ignoring_invalid_user_folders():
@@ -155,8 +162,7 @@ def warn_if_ignoring_invalid_user_folders():
 
 
 def check_filters(set_status_message):
-    """
-    Check filter-related fields
+    """Check filter-related fields
     """
     from ...conf import settings
 
@@ -225,8 +231,7 @@ def check_filters(set_status_message):
 
 
 def check_datafile_glob_files(set_status_message):
-    """
-    Check includes and excludes files
+    """Check includes and excludes files
     """
     from ...conf import settings
 
@@ -251,9 +256,8 @@ def check_datafile_glob_files(set_status_message):
         )
 
 
-def check_mytardis_url(set_status_message):
-    """
-    Check MyTardis URL
+def check_mytardis_url(set_status_message=None):
+    """Check MyTardis URL
     """
     from ...conf import settings
 
@@ -356,9 +360,8 @@ def check_mytardis_url(set_status_message):
         raise InvalidSettings(message, "mytardis_url")
 
 
-def check_mytardis_credentials(set_status_message):
-    """
-    Check MyTardis credentials
+def check_mytardis_credentials(set_status_message=None):
+    """Check MyTardis credentials
 
     Here we run an arbitrary query, to test whether
     our MyTardis credentials work OK with the API.
@@ -383,9 +386,8 @@ def check_mytardis_credentials(set_status_message):
         raise InvalidSettings(message, "username")
 
 
-def check_facility(set_status_message):
-    """
-    Check facility
+def check_facility(set_status_message=None):
+    """Check facility
     """
     from ...conf import settings
 
@@ -432,9 +434,8 @@ def check_facility(set_status_message):
         raise InvalidSettings(message, "facility_name", suggestion)
 
 
-def check_instrument(set_status_message):
-    """
-    Check instrument
+def check_instrument(set_status_message=None):
+    """Check instrument
     """
     from ...conf import settings
 
@@ -451,8 +452,7 @@ def check_instrument(set_status_message):
 
 
 def check_contact_email_and_email_folders(set_status_message):
-    """
-    Check contact email and email folders
+    """Check contact email and email folders
     """
     from ...conf import settings
 

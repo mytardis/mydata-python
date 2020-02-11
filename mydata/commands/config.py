@@ -63,3 +63,13 @@ def set_command(key, value):
     parser[SECTION][key] = value
     with open(settings.config_path, "w") as configfile:
         parser.write(configfile)
+
+
+@config_cmd.command(name="generate")
+def generate_cmd():
+    """
+    Generate a MyData.cfg from command-line input
+    """
+    from mydata.models.settings.generate import generate_config
+
+    generate_config()
