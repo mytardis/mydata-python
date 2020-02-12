@@ -161,8 +161,8 @@ The `mydata-python` library and Command-Line Interface support all three methods
 method does not use the `MyData.cfg` settings file used by the MyData GUI.
 
 The first two upload methods are available from the command-line interface, using the
-`mydata upload` command.  The `Via staging location` upload method is preferred over the
-`Via multipart form POST` method, because the multipart POST method can lead to high
+`mydata upload` command.  The *Via staging location* upload method is preferred over the
+*Via multipart form POST* method, because the multipart POST method can lead to high
 server memory usage if large file uploads are permitted.  Just like uploading with the
 MyData GUI, running `mydata upload` will automatically choose the best upload method,
 depending on whether your MyData instance (identified by an Uploader UUID) has been
@@ -193,7 +193,7 @@ Wrote settings to: /home/james/.local/share/MyData/MyData.cfg
 
 ### Indexing Already-Uploaded Files
 
-The third way of adding a file to MyTardis (`Via shared permanent storage location`)
+The third way of adding a file to MyTardis - *Via shared permanent storage location* -
 is available from the command-line interface, using the `mydata index` command.
 This is intended to be used by advanced users who have already transferred the files
 to the permanent storage location, e.g. using Rsync.
