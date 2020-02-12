@@ -12,9 +12,11 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 
 REQUIRED = [
     "appdirs>=1.4",
+    "click>=7.0",
     "netifaces>=0.10",
     "psutil>=5.6",
     "python-dateutil>=2.8",
+    "python-dotenv>=0.11.0",
     "requests>=2.22",
     "requests-toolbelt>=0.9",
 ]
