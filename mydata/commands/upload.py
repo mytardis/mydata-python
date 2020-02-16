@@ -176,7 +176,7 @@ def upload_cmd(verbose):
 
         total_lookups = sum([len(lookups[lookup_status]) for lookup_status in lookups])
 
-        if sys.stdout.isatty():
+        if not uploads["completed"] and sys.stdout.isatty():
             print(
                 "Looked up %s of %s files..." % (total_lookups, num_files),
                 end="\r",
@@ -190,7 +190,7 @@ def upload_cmd(verbose):
             uploads["failed"].append(upload)
 
         # Only display upload progress after lookups have completed:
-        if len(lookups) == num_files and sys.stdout.isatty():
+        if (uploads["completed"] or len(lookups) == num_files) and sys.stdout.isatty():
             print(
                 "Uploaded %s files..." % len(uploads["completed"]), end="\r", flush=True
             )
