@@ -109,6 +109,7 @@ class Lookups:
         Re-upload file (resuming partial uploads is not supported).
         """
         lookup.message = "Found unverified file while using upload-via-staging."
+        lookup.existing_unverified_datafile = existing_datafile
         if existing_datafile.replicas:
             self.folder.set_datafile_uploaded(lookup.datafile_index, False)
             lookup.status = LookupStatus.FOUND_UNVERIFIED_ON_STAGING

@@ -51,6 +51,7 @@ def upload_folder(
         if lookup.status in (
             LookupStatus.NOT_FOUND,
             LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
+            LookupStatus.FOUND_UNVERIFIED_ON_STAGING,
         ):
             upload_file(folder, lookup, upload_callback, upload_method)
 
