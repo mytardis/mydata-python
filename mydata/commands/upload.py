@@ -95,7 +95,7 @@ def display_verbose_upload_summary(lookups, uploads, verbosity):
     click.echo("")
 
 
-def get_approved_upload_method(verbose):
+def get_approved_upload_method():
     """Check which upload method has been approved for this mydata instance
     """
     click.echo("Checking for approved upload method...\n")
@@ -118,12 +118,10 @@ def get_approved_upload_method(verbose):
 
     if upload_via_staging_request.approved:
         upload_method = UploadMethod.SCP
-        if verbose:
-            click.echo("Using SCP upload method.\n")
+        click.echo("Using SCP upload method.\n")
     else:
         upload_method = UploadMethod.MULTIPART_POST
-        if verbose:
-            click.echo("Using Multipart POST upload method.\n")
+        click.echo("Using Multipart POST upload method.\n")
     return upload_method
 
 
@@ -146,7 +144,7 @@ def upload_cmd(verbose):
     if settings.miscellaneous.cache_datafile_lookups:
         settings.initialize_verified_datafiles_cache()
 
-    upload_method = get_approved_upload_method(verbose)
+    upload_method = get_approved_upload_method()
 
     users, groups, exps, folders = scan()
 
