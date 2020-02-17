@@ -146,6 +146,13 @@ def upload_cmd(verbose):
 
     upload_method = get_approved_upload_method()
 
+    if upload_method == UploadMethod.MULTIPART_POST:
+        if not click.confirm(
+            "Uploads via staging haven't yet been approved. " "Do you want to continue?"
+        ):
+            sys.exit(1)
+        click.echo()
+
     users, groups, exps, folders = scan()
 
     display_scan_summary(users, groups, exps, folders)

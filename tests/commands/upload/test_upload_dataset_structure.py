@@ -52,7 +52,7 @@ def test_upload_dataset_structure(set_dataset_config, mock_key_pair):
         mock_birds_flowers_datafile_lookups(mocker, api_prefix="mydata_")
 
         runner = CliRunner()
-        result = runner.invoke(upload_cmd, ["-vv"])
+        result = runner.invoke(upload_cmd, ["-vv"], input="y\n")
         if result.exception:
             raise result.exception
         assert result.exit_code == 0
@@ -65,6 +65,8 @@ def test_upload_dataset_structure(set_dataset_config, mock_key_pair):
                 Checking for approved upload method...
 
                 Using Multipart POST upload method.
+
+                Uploads via staging haven't yet been approved. Do you want to continue? [y/N]: y
 
                 Found 2 dataset folders in tests/testdata/testdata-dataset/
 
