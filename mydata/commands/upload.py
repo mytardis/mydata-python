@@ -13,11 +13,20 @@ from mydata.models.lookup import LookupStatus
 from mydata.models.upload import UploadMethod, UploadStatus, UPLOAD_STATUS
 
 
-def display_default_upload_summary(folders, lookups, uploads):
+def display_default_upload_summary(folders, datasets, lookups, uploads):
     """Display default summary, displayed irrespective of verbosity
     """
     num_files = sum([folder.num_files for folder in folders])
     num_files_uploaded = sum([folder.num_files_uploaded for folder in folders])
+
+    for folder_name in sorted(datasets):
+        dataset_id = datasets[folder_name]
+        click.echo(
+            "Data in %s/ is being archived to %s/dataset/%s"
+            % (folder_name, settings.mytardis_url, dataset_id)
+        )
+    if datasets:
+        click.echo()
 
     click.echo(
         "%s of %s files have been uploaded to MyTardis."
@@ -165,7 +174,11 @@ def upload_cmd(verbose):
 
     uploads = dict(completed=[], failed=[])
 
+    datasets = dict()
+
     def lookup_callback(lookup):
+        if lookup.dataset_id:
+            datasets[lookup.folder_name] = lookup.dataset_id
         if lookup.status == LookupStatus.NOT_FOUND:
             lookups["not_found"].append(lookup)
         elif lookup.status == LookupStatus.FOUND_VERIFIED:
@@ -199,7 +212,10 @@ def upload_cmd(verbose):
         # Only display upload progress after lookups have completed:
         if (uploads["completed"] or len(lookups) == num_files) and sys.stdout.isatty():
             print(
-                "Uploaded %s files..." % len(uploads["completed"]), end="\r", flush=True
+                "Uploaded %s of %s files...        "
+                % (len(uploads["completed"]), num_files),
+                end="\r",
+                flush=True,
             )
 
     for folder in folders:
@@ -208,7 +224,7 @@ def upload_cmd(verbose):
     if settings.miscellaneous.cache_datafile_lookups:
         settings.save_verified_datafiles_cache()
 
-    display_default_upload_summary(folders, lookups, uploads)
+    display_default_upload_summary(folders, datasets, lookups, uploads)
 
     if verbose >= 1:
         display_verbose_upload_summary(lookups, uploads, verbose)

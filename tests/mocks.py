@@ -34,6 +34,9 @@ def build_list_response(objects):
     return json.dumps(response_dict)
 
 
+FLOWERS_DATASET_ID = 1001
+BIRDS_DATASET_ID = 1002
+
 MOCK_API_ENDPOINTS_RESPONSE = json.dumps(
     {
         "dataset": {
@@ -123,13 +126,24 @@ EXP1_RESPONSE = json.dumps(
     {"id": 1, "title": "Exp1", "resource_uri": "/api/v1/experiment/1/"}
 )
 
-EXISTING_DATASET_RESPONSE = build_list_response(
-    [{"id": 1, "description": "Existing Dataset"}]
-)
 
-CREATED_DATASET_RESPONSE = json.dumps(
-    {"id": 1, "description": "Created Dataset", "resource_uri": "/api/v1/dataset/1/"}
-)
+def existing_dataset_response(dataset_id=1, description="Existing Dataset"):
+    """Return a mocked response for an existing dataset
+    """
+    return build_list_response([{"id": dataset_id, "description": description}])
+
+
+def created_dataset_response(dataset_id=1, description="Created Dataset"):
+    """Return a mocked response for a created dataset
+    """
+    return json.dumps(
+        {
+            "id": dataset_id,
+            "description": description,
+            "resource_uri": "/api/v1/dataset/%s/" % dataset_id,
+        }
+    )
+
 
 MOCK_UPLOADER_RESPONSE = json.dumps(
     {"id": 1, "name": "Test Instrument", "resource_uri": "/api/v1/mydata_uploader/1/"}
@@ -376,13 +390,35 @@ def mock_birds_flowers_dataset_creation(mocker, settings):
     )
     mocker.get(
         get_flowers_dataset_url,
-        text=EXISTING_DATASET_RESPONSE.replace("Existing Dataset", "Flowers"),
+        text=existing_dataset_response(
+            dataset_id=FLOWERS_DATASET_ID, description="Flowers"
+        ),
     )
 
     post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
-    # Response really should be different for each dataset,
-    # but that would complicate mocking:
-    mocker.post(post_dataset_url, text=CREATED_DATASET_RESPONSE)
+
+    def match_flowers_dataset(request):
+        """Return True if request body contains "Flowers"
+        """
+        # request.text may be None, or '' prevents a TypeError.
+        return "Flowers" in (request.text or "")
+
+    def match_birds_dataset(request):
+        """Return True if request body contains "Birds"
+        """
+        # request.text may be None, or '' prevents a TypeError.
+        return "Birds" in (request.text or "")
+
+    mocker.post(
+        post_dataset_url,
+        text=created_dataset_response(FLOWERS_DATASET_ID, "Flowers"),
+        additional_matcher=match_flowers_dataset,
+    )
+    mocker.post(
+        post_dataset_url,
+        text=created_dataset_response(BIRDS_DATASET_ID, "Birds"),
+        additional_matcher=match_birds_dataset,
+    )
 
 
 def mock_birds_flowers_datafile_lookups(mocker, api_prefix=""):
@@ -394,8 +430,8 @@ def mock_birds_flowers_datafile_lookups(mocker, api_prefix=""):
         "Flowers_growing_on_the_campus_of_Cebu_City_National_Science_High_School.jpg",
     ):
         get_datafile_url = (
-            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
-            % (api_prefix, quote(filename))
+            "/api/v1/%sdataset_file/?format=json&dataset__id=%s&filename=%s"
+            % (api_prefix, FLOWERS_DATASET_ID, quote(filename))
         )
         mocker.get(
             get_datafile_url,
@@ -403,8 +439,8 @@ def mock_birds_flowers_datafile_lookups(mocker, api_prefix=""):
         )
     for filename in ("Pond_Water_Hyacinth_Flowers.jpg",):
         get_datafile_url = (
-            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
-            % (api_prefix, quote(filename))
+            "/api/v1/%sdataset_file/?format=json&dataset__id=%s&filename=%s"
+            % (api_prefix, FLOWERS_DATASET_ID, quote(filename))
         )
         mocker.get(
             get_datafile_url,
@@ -414,14 +450,14 @@ def mock_birds_flowers_datafile_lookups(mocker, api_prefix=""):
         )
     for filename in ("1024px-Australian_Birds_@_Jurong_Bird_Park_(4374195521).jpg",):
         get_datafile_url = (
-            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
-            % (api_prefix, quote(filename))
+            "/api/v1/%sdataset_file/?format=json&dataset__id=%s&filename=%s"
+            % (api_prefix, BIRDS_DATASET_ID, quote(filename))
         )
         mocker.get(get_datafile_url, text=EMPTY_LIST_RESPONSE)
     for filename in ("Black-beaked-sea-bird-close-up.jpg",):
         get_datafile_url = (
-            "/api/v1/%sdataset_file/?format=json&dataset__id=1&filename=%s"
-            % (api_prefix, quote(filename))
+            "/api/v1/%sdataset_file/?format=json&dataset__id=%s&filename=%s"
+            % (api_prefix, BIRDS_DATASET_ID, quote(filename))
         )
         error_response = json.dumps({"error_message": "Internal Server Error"})
         mocker.get(get_datafile_url, text=error_response, status_code=500)
@@ -459,9 +495,7 @@ def mock_dataset_creation(mocker, settings, exp_id, instrument_id, folder_name):
     ) % (settings.general.mytardis_url, exp_id, quote(folder_name), instrument_id)
     mocker.get(get_dataset_url, text=EMPTY_LIST_RESPONSE)
     post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
-    mock_dataset_response = CREATED_DATASET_RESPONSE.replace(
-        "Created Dataset", folder_name
-    )
+    mock_dataset_response = created_dataset_response(1, folder_name)
     mocker.post(post_dataset_url, text=mock_dataset_response)
 
 

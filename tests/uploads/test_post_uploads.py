@@ -18,7 +18,7 @@ from tests.mocks import (
     mock_test_instrument_response,
     mock_exp_creation,
     EMPTY_LIST_RESPONSE,
-    CREATED_DATASET_RESPONSE,
+    created_dataset_response,
 )
 
 
@@ -127,9 +127,7 @@ def test_post_uploads(set_username_dataset_config):
             uploads.append(upload)
 
         for folder in folders:
-            mock_dataset_response = CREATED_DATASET_RESPONSE.replace(
-                "Created Dataset", folder.name
-            )
+            mock_dataset_response = created_dataset_response(1, folder.name)
             mocker.post(post_dataset_url, text=mock_dataset_response)
             upload_folder(
                 folder, lookup_callback, upload_callback, UploadMethod.MULTIPART_POST

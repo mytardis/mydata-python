@@ -30,9 +30,9 @@ from tests.mocks import (
     mock_uploader_update_response,
     mock_get_urr,
     EMPTY_LIST_RESPONSE,
-    CREATED_DATASET_RESPONSE,
+    created_dataset_response,
     EXISTING_EXP_RESPONSE,
-    EXISTING_DATASET_RESPONSE,
+    existing_dataset_response,
 )
 
 
@@ -94,9 +94,7 @@ def create_exp_and_dataset(folder, settings):
         ) % (settings.general.mytardis_url, quote(folder.name))
         mocker.get(get_dataset_url, text=EMPTY_LIST_RESPONSE)
         post_dataset_url = "%s/api/v1/dataset/" % settings.general.mytardis_url
-        mock_dataset_response = CREATED_DATASET_RESPONSE.replace(
-            "Created Dataset", folder.name
-        )
+        mock_dataset_response = created_dataset_response(1, folder.name)
         mocker.post(post_dataset_url, text=mock_dataset_response)
         folder.experiment = Experiment.get_or_create_exp_for_folder(folder)
         folder.dataset = Dataset.create_dataset_if_necessary(folder)
@@ -132,8 +130,7 @@ def mock_datafiles_creation(mocker, folder, settings, mock_staging_path):
         "&description=%s&instrument__id=1"
     ) % (settings.general.mytardis_url, quote(folder.name))
     mocker.get(
-        get_dataset_url,
-        text=EXISTING_DATASET_RESPONSE.replace("Existing Dataset", folder.name),
+        get_dataset_url, text=existing_dataset_response(1, folder.name),
     )
 
     get_df_url_template = Template(

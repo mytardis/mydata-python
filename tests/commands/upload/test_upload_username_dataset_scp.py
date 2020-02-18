@@ -103,6 +103,11 @@ def test_upload_username_dataset_scp(
 
             Found 4 dataset folders in tests/testdata/testdata-username-dataset/
 
+            Data in Birds/ is being archived to http://127.0.0.1:9000/dataset/1
+            Data in Dataset with spaces/ is being archived to http://127.0.0.1:9000/dataset/1
+            Data in Flowers/ is being archived to http://127.0.0.1:9000/dataset/1
+            Data in InvalidUserDataset1/ is being archived to http://127.0.0.1:9000/dataset/1
+
             12 of 12 files have been uploaded to MyTardis.
             0 of 12 files have been verified by MyTardis.
             12 of 12 files were newly uploaded in this session.

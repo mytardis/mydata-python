@@ -68,6 +68,9 @@ def test_upload_exp_dataset_structure(set_exp_dataset_config, mock_key_pair):
 
                 Datasets will be collected into 2 experiments.
 
+                Data in Birds/ is being archived to https://mytardis.example.com/dataset/1002
+                Data in Flowers/ is being archived to https://mytardis.example.com/dataset/1001
+
                 4 of 5 files have been uploaded to MyTardis.
                 2 of 5 files have been verified by MyTardis.
                 1 of 5 files were found unverified without any DataFileObjects! Contact server admins!
@@ -75,10 +78,10 @@ def test_upload_exp_dataset_structure(set_exp_dataset_config, mock_key_pair):
                 0 of 5 file lookups were found in the local cache.
 
                 File records on server without any DataFileObjects:
-                Dataset ID: 1, Filename: Pond_Water_Hyacinth_Flowers.jpg
+                Dataset ID: 1001, Filename: Pond_Water_Hyacinth_Flowers.jpg
 
                 Failed lookups:
-                Black-beaked-sea-bird-close-up.jpg [500 Server Error: None for url: %s/api/v1/mydata_dataset_file/?format=json&dataset__id=1&filename=Black-beaked-sea-bird-close-up.jpg&directory=]
+                Black-beaked-sea-bird-close-up.jpg [500 Server Error: None for url: %s/api/v1/mydata_dataset_file/?format=json&dataset__id=1002&filename=Black-beaked-sea-bird-close-up.jpg&directory=]
 
                 Unverified lookups:
                 Pond_Water_Hyacinth_Flowers.jpg

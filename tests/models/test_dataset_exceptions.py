@@ -11,7 +11,7 @@ from tests.mocks import (
     EMPTY_LIST_RESPONSE,
     mock_test_facility_response,
     mock_test_instrument_response,
-    EXISTING_DATASET_RESPONSE,
+    existing_dataset_response,
 )
 
 from tests.fixtures import set_exp_dataset_config
@@ -87,7 +87,9 @@ def test_dataset_exceptions(set_exp_dataset_config):
             "%s/api/v1/dataset/?format=json&experiments__id=1"
             "&description=Existing%%20Dataset&instrument__id=1"
         ) % settings.general.mytardis_url
-        mocker.get(get_dataset_url, text=EXISTING_DATASET_RESPONSE)
+        mocker.get(
+            get_dataset_url, text=existing_dataset_response(1, "Existing Dataset")
+        )
         mock_test_facility_response(mocker, settings.general.mytardis_url)
         FLAGS.test_run_running = True
         folder.data_view_fields["name"] = "Existing Dataset"

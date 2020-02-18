@@ -15,8 +15,10 @@ from click.testing import CliRunner
 from tests.mocks import (
     mock_testfacility_user_response,
     mock_birds_flowers_datafile_lookups,
-    CREATED_DATASET_RESPONSE,
+    created_dataset_response,
     EMPTY_LIST_RESPONSE,
+    FLOWERS_DATASET_ID,
+    BIRDS_DATASET_ID,
 )
 
 
@@ -42,6 +44,8 @@ def test_indexing():
 
     runner = CliRunner()
 
+    dataset_ids = dict(Birds=BIRDS_DATASET_ID, Flowers=FLOWERS_DATASET_ID)
+
     with requests_mock.Mocker() as mocker:
         mock_testfacility_user_response(mocker, env["MYTARDIS_URL"])
         mock_birds_flowers_datafile_lookups(mocker)
@@ -54,8 +58,8 @@ def test_indexing():
             mocker.get(get_dataset_url, text=EMPTY_LIST_RESPONSE)
 
             post_dataset_url = "%s/api/v1/dataset/" % env["MYTARDIS_URL"]
-            mock_dataset_response = CREATED_DATASET_RESPONSE.replace(
-                "Created Dataset", folder_name
+            mock_dataset_response = created_dataset_response(
+                dataset_ids[folder_name], folder_name
             )
             mocker.post(post_dataset_url, text=mock_dataset_response)
 
@@ -81,7 +85,7 @@ def test_indexing():
 
                 Indexing folder: $folder_name
 
-                Created Dataset record for '$folder_name' with ID: 1
+                Created Dataset record for '$folder_name' with ID: $dataset_id
 
                 $files
                 """
@@ -130,7 +134,7 @@ def test_indexing():
                     1 of 3 files were newly indexed in this session.
 
                     File records on server without any DataFileObjects:
-                    Dataset ID: 1, Filename: Pond_Water_Hyacinth_Flowers.jpg
+                    Dataset ID: 1001, Filename: Pond_Water_Hyacinth_Flowers.jpg
                     """
                     )
                 ),
@@ -139,7 +143,10 @@ def test_indexing():
                 folder_name
             ].substitute(cwd=os.getcwd())
             assert result.output == expected_output_template.substitute(
-                folder_name=folder_name, files=expected_files_output, cwd=os.getcwd()
+                folder_name=folder_name,
+                dataset_id=dataset_ids[folder_name],
+                files=expected_files_output,
+                cwd=os.getcwd(),
             )
 
 
