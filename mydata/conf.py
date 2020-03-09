@@ -10,6 +10,9 @@ import os
 
 from mydata.models.settings import Settings
 from mydata.models.settings.serialize import load_settings
+from mydata.utils.queues import init_lookup_threads
 
 settings = Settings(config_path=os.environ.get("MYDATA_CONFIG_PATH"))
 load_settings()
+if settings.advanced.max_lookup_threads > 1:
+    init_lookup_threads()

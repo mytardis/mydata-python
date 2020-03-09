@@ -43,6 +43,7 @@ def test_config_list_command(set_exp_dataset_config):
         ignore_old_datasets
         ignore_interval_number
         ignore_interval_unit
+        max_lookup_threads
         max_upload_retries
         validate_folder_structure
         cache_datafile_lookups

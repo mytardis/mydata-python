@@ -2,6 +2,7 @@
 Commands for uploading data
 """
 import sys
+import time
 
 import click
 import requests
@@ -140,6 +141,7 @@ def upload_cmd(verbose):
     """
     Upload files from structure described in MyData.cfg
     """
+    # pylint: disable=too-many-locals
     data_directory = "%s/" % settings.data_directory.rstrip("/")
 
     if verbose:
@@ -218,8 +220,28 @@ def upload_cmd(verbose):
                 flush=True,
             )
 
+    def check_lookup_completion():
+        """When running in multi-threaded mode, we need to check if we have finished
+        """
+        total_lookups = sum([len(lookups[lookup_status]) for lookup_status in lookups])
+        return total_lookups == num_files
+
+    def check_upload_completion():
+        """When running in multi-threaded mode, we need to check if we have finished
+        """
+        uploads_expected = (
+            len(lookups[LookupStatus.NOT_FOUND])
+            + len(lookups[LookupStatus.FOUND_UNVERIFIED_ON_STAGING])
+            + len(lookups[LookupStatus.FOUND_UNVERIFIED_NO_DFOS])
+        )
+        return uploads_expected == len(uploads["completed"]) + len(uploads["failed"])
+
     for folder in folders:
         upload_folder(folder, lookup_callback, upload_callback, upload_method)
+
+    if settings.advanced.max_lookup_threads > 1:
+        while not check_lookup_completion() or not check_upload_completion():
+            time.sleep(0.1)
 
     if settings.miscellaneous.cache_datafile_lookups:
         settings.save_verified_datafiles_cache()

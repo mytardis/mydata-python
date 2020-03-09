@@ -11,7 +11,7 @@ from http.client import responses
 from ..models.dataset import Dataset
 from ..models.experiment import Experiment
 from ..models.lookup import LookupStatus
-from .lookups import Lookups
+from .lookups import FolderLookup
 from ..models.datafile import DataFile
 from ..models.upload import Upload, UploadStatus, UploadMethod
 from ..models.upload import add_uploader_info
@@ -55,7 +55,7 @@ def upload_folder(
         ):
             upload_file(folder, lookup, upload_callback, upload_method)
 
-    Lookups(folder, lookup_cb, upload_method).lookup_datafiles()
+    FolderLookup(folder, lookup_cb, upload_method).lookup_datafiles()
 
 
 def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP):

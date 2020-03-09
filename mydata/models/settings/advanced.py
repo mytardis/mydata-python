@@ -18,6 +18,7 @@ class AdvancedSettings:
             "folder_structure",
             "group_prefix",
             "validate_folder_structure",
+            "max_lookup_threads",
             "max_upload_retries",
             "upload_invalid_user_or_group_folders",
         ]
@@ -35,17 +36,6 @@ class AdvancedSettings:
         Set folder structure
         """
         self.mydata_config["folder_structure"] = folder_structure
-
-    @property
-    def user_or_group_string(self):
-        """
-        Used when reporting progress on user/group folder scanning.
-        """
-        if "Group" in self.mydata_config["folder_structure"]:
-            user_or_group_string = "user group"
-        else:
-            user_or_group_string = "user"
-        return user_or_group_string
 
     @property
     def validate_folder_structure(self):
@@ -90,12 +80,12 @@ class AdvancedSettings:
         """
         return self.mydata_config["group_prefix"]
 
-    @group_prefix.setter
-    def group_prefix(self, group_prefix):
+    @property
+    def max_lookup_threads(self):
         """
-        Set prefix prepended to group folder name to match MyTardis group
+        Get the maximum number of lookup threads
         """
-        self.mydata_config["group_prefix"] = group_prefix
+        return int(self.mydata_config["max_lookup_threads"])
 
     @property
     def max_upload_retries(self):
@@ -103,13 +93,6 @@ class AdvancedSettings:
         Get the maximum number of retries per upload
         """
         return int(self.mydata_config["max_upload_retries"])
-
-    @max_upload_retries.setter
-    def max_upload_retries(self, max_upload_retries):
-        """
-        Set the maximum number of retries per upload
-        """
-        self.mydata_config["max_upload_retries"] = max_upload_retries
 
     def set_defaults(self):
         """
@@ -120,5 +103,6 @@ class AdvancedSettings:
         self.mydata_config["folder_structure"] = "Username / Dataset"
         self.mydata_config["group_prefix"] = ""
         self.mydata_config["validate_folder_structure"] = True
+        self.mydata_config["max_lookup_threads"] = 1
         self.mydata_config["max_upload_retries"] = 1
         self.mydata_config["upload_invalid_user_or_group_folders"] = True
