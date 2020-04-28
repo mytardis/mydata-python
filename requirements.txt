@@ -1,7 +1,7 @@
 # requirements.txt
 
 appdirs==1.4.3
-click==7.0
+click==7.1.2
 configparser==4.0.2
 netifaces==0.10.9
 paramiko==2.7.1 # Unit tests only
