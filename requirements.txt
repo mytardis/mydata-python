@@ -7,6 +7,6 @@ netifaces==0.10.9
 paramiko==2.7.1 # Unit tests only
 psutil==5.7.0
 python-dateutil==2.8.1
-python-dotenv==0.13.0
+python-dotenv==0.14.0
 requests==2.23.0
 requests-toolbelt==0.9.1
