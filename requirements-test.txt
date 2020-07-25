@@ -1,6 +1,6 @@
 # requirements-test.txt
   
-coverage==5.1
+coverage==5.2.1
 pylint==2.5.2
 pytest==5.4.2
 pytest-cov==2.9.0
