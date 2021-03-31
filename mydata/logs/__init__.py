@@ -52,7 +52,8 @@ class Logger:
         self.logger_output = None
         self.stream_handler = None
         self.file_handler = None
-        self.level = logging.INFO
+        self.level = logging.getLevelName(
+            os.environ.get("MYDATA_DEBUG_LOG_LEVEL", "INFO").upper())
         self.configure_logger()
         if not hasattr(sys, "frozen"):
             self.app_root_dir = os.path.realpath(
