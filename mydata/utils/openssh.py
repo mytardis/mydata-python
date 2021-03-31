@@ -53,7 +53,7 @@ class OpenSSH:
         if "HOME" not in os.environ:
             os.environ["HOME"] = os.path.expanduser("~")
         if sixty_four_bit_operating_system:
-            win_openssh_dir = r"win64\openssh-7.3p1-cygwin-2.6.0"
+            win_openssh_dir = r"win64\openssh-8.5p1-cygwin-3.2.0"
         else:
             win_openssh_dir = r"win32\openssh-7.3p1-cygwin-2.8.0"
         if hasattr(sys, "frozen"):
