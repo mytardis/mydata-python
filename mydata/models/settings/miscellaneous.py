@@ -21,7 +21,7 @@ class MiscellaneousSettings(BaseSettings):
     """
 
     def __init__(self):
-        super(MiscellaneousSettings, self).__init__()
+        super().__init__()
 
         # Saved in MyData.cfg:
         self.mydata_config = dict()

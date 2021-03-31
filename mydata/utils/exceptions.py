@@ -21,7 +21,7 @@ class SshException(Exception):
     """
 
     def __init__(self, message, returncode=None):
-        super(SshException, self).__init__(message)
+        super().__init__(message)
         self.returncode = returncode
 
 
@@ -31,7 +31,7 @@ class ScpException(SshException):
     """
 
     def __init__(self, message, command=None, returncode=None):
-        super(ScpException, self).__init__(message)
+        super().__init__(message)
         self.command = command
         self.returncode = returncode
 
@@ -89,7 +89,7 @@ class StorageBoxAttributeNotFound(Exception):
             storageBox.name,
         )
         self.key = key
-        super(StorageBoxAttributeNotFound, self).__init__(message)
+        super().__init__(message)
 
 
 class StorageBoxOptionNotFound(Exception):
@@ -102,7 +102,7 @@ class StorageBoxOptionNotFound(Exception):
             key,
             storageBox.name,
         )
-        super(StorageBoxOptionNotFound, self).__init__(message)
+        super().__init__(message)
 
 
 class UserAborted(Exception):
@@ -121,4 +121,4 @@ class InvalidSettings(Exception):
     def __init__(self, message, field="", suggestion=None):
         self.field = field
         self.suggestion = suggestion
-        super(InvalidSettings, self).__init__(message)
+        super().__init__(message)

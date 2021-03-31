@@ -27,7 +27,7 @@ class Settings:
     """
 
     def __init__(self, config_path):
-        super(Settings, self).__init__()
+        super().__init__()
 
         # The location on disk of MyData.cfg
         # e.g. "C:\\ProgramData\\Monash University\\MyData\\MyData.cfg" or

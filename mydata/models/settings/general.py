@@ -15,7 +15,7 @@ class GeneralSettings(BaseSettings):
 
     # pylint: disable=too-many-instance-attributes
     def __init__(self):
-        super(GeneralSettings, self).__init__()
+        super().__init__()
 
         # Saved in MyData.cfg:
         self.mydata_config = dict()

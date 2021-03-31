@@ -19,7 +19,7 @@ class FiltersSettings(BaseSettings):
 
     # pylint: disable=too-many-instance-attributes
     def __init__(self):
-        super(FiltersSettings, self).__init__()
+        super().__init__()
 
         # Saved in MyData.cfg:
         self.mydata_config = dict()

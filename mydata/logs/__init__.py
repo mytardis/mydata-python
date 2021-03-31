@@ -35,7 +35,7 @@ class MyDataFormatter(logging.Formatter):
             record.function_name = ""
         if not hasattr(record, "line_number"):
             record.line_number = 0
-        return super(MyDataFormatter, self).format(record)
+        return super().format(record)
 
 
 class Logger:
