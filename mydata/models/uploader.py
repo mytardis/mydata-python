@@ -292,7 +292,7 @@ class Uploader:
             approval_dict = uploaders_dict["objects"][0]
             logger.debug("A request already exists for this uploader.")
             return UploaderRegistrationRequest(urr_dict=approval_dict)
-        message = "This uploader hasn't requested uploading " "via staging yet."
+        message = "This uploader hasn't requested uploading via staging yet."
         logger.debug(message)
         return None
 

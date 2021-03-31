@@ -248,7 +248,7 @@ def check_if_all_bytes_uploaded(upload):
 
 
 def upload_via_scp_with_retries(
-    datafile_path, username, host, port, remote_file_path, upload, upload_callback
+    datafile_path, username, host, port, remote_file_path, upload, upload_callback  # pylint: disable=unused-argument
 ):
     """Upload via SCP with retries
     """
@@ -286,7 +286,7 @@ def check_if_file_is_missing(upload, datafile_path):
     if not os.path.exists(datafile_path):
         missing = True
         message = (
-            "Not uploading file, because it has been " "moved, renamed or deleted."
+            "Not uploading file, because it has been moved, renamed or deleted."
         )
         upload.message = message
         upload.status = UploadStatus.FAILED
@@ -299,7 +299,7 @@ def check_if_file_is_too_new(folder, upload):
     too_new = False
     if folder.file_is_too_new_to_upload(upload.datafile_index):
         too_new = True
-        message = "Not uploading file, " "in case it is still being modified."
+        message = "Not uploading file, in case it is still being modified."
         upload.message = message
         upload.status = UploadStatus.FAILED
     return too_new

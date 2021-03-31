@@ -72,7 +72,7 @@ def validate_settings(set_status_message=None):
         message = str(err)
         logger.exception(message)
         log_if_test_run("ERROR: %s" % message)
-        raise InvalidSettings(message, "")
+        raise InvalidSettings(message, "") from err
 
 
 def check_data_directory():
@@ -333,14 +333,14 @@ def check_mytardis_url(set_status_message=None):
             )
             log_if_test_run("ERROR: %s" % message)
             raise InvalidSettings(message, "mytardis_url")
-    except requests.exceptions.Timeout:
+    except requests.exceptions.Timeout as err:
         message = "Attempt to connect to %s timed out after " "%s seconds." % (
             settings.general.mytardis_api_url,
             settings.miscellaneous.connection_timeout,
         )
         log_if_test_run("ERROR: %s" % message)
         logger.exception(message)
-        raise InvalidSettings(message, "mytardis_url")
+        raise InvalidSettings(message, "mytardis_url") from err
     except requests.exceptions.InvalidSchema as err:
         message = (
             "Please enter a valid MyTardis URL, "
@@ -352,12 +352,12 @@ def check_mytardis_url(set_status_message=None):
             suggestion = "http://" + settings.general.mytardis_url
         else:
             suggestion = None
-        raise InvalidSettings(message, "mytardis_url", suggestion)
+        raise InvalidSettings(message, "mytardis_url", suggestion) from err
     except requests.exceptions.RequestException as err:
         logger.exception(str(err))
         message = "Please enter a valid MyTardis URL.\n\n" "%s" % str(err)
         log_if_test_run("ERROR: %s" % message)
-        raise InvalidSettings(message, "mytardis_url")
+        raise InvalidSettings(message, "mytardis_url") from err
 
 
 def check_mytardis_credentials(set_status_message=None):
@@ -407,7 +407,7 @@ def check_facility(set_status_message=None):
             if isinstance(err, InvalidSettings):
                 raise
             logger.exception("Failed to look up accessible facilities")
-            raise InvalidSettings(message, "facility_name")
+            raise InvalidSettings(message, "facility_name") from err
     if settings.general.facility is None:
         facilities = Facility.get_my_facilities()
         message = (
@@ -448,7 +448,7 @@ def check_instrument(set_status_message=None):
         _ = settings.general.instrument
     except HTTPError as err:
         message = str(err)
-        raise InvalidSettings(message, "instrument_name")
+        raise InvalidSettings(message, "instrument_name") from err
 
 
 def check_contact_email_and_email_folders(set_status_message):
@@ -463,9 +463,9 @@ def check_contact_email_and_email_folders(set_status_message):
 
     try:
         assert re.match("[^@]+@[^@]+", settings.general.contact_email)
-    except AssertionError:
+    except AssertionError as err:
         message = "Please enter a valid contact email."
-        raise InvalidSettings(message, "contact_email")
+        raise InvalidSettings(message, "contact_email") from err
 
     if (
         settings.advanced.folder_structure.startswith("Email")
@@ -508,9 +508,9 @@ def perform_globs_file_validation(file_path, upper, lower, field):
                 # Other non-blank lines are expected to be globs,
                 # e.g. *.txt
                 _ = line.strip()
-            except UnicodeDecodeError:
+            except UnicodeDecodeError as err:
                 message = "%s file is not a valid plain text " "(UTF-8) file." % upper
-                raise InvalidSettings(message, field)
+                raise InvalidSettings(message, field) from err
 
 
 def check_structure_and_count_datasets(set_status_message=None):

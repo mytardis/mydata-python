@@ -48,7 +48,7 @@ class OpenSSH:
         """
         sixty_four_bit_python = struct.calcsize("P") * 8 == 64
         sixty_four_bit_operating_system = sixty_four_bit_python or (
-            sys.platform.startswith("win") and win32process.IsWow64Process()
+            sys.platform.startswith("win") and win32process.IsWow64Process()  # pylint: disable=c-extension-no-member
         )
         if "HOME" not in os.environ:
             os.environ["HOME"] = os.path.expanduser("~")
@@ -387,7 +387,7 @@ def scp_upload(upload, scp_command_list):
                 stdout.decode(), scp_command_string, scp_upload_process.returncode
             )
     except (IOError, OSError) as err:
-        raise ScpException(err, scp_command_string, returncode=255)
+        raise ScpException(err, scp_command_string, returncode=255) from err
 
 
 def set_remote_file_permissions(

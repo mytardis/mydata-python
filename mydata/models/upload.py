@@ -161,7 +161,7 @@ class Upload:
                 if sys.platform.startswith("win"):
                     os.kill(self.scp_upload_process_pid, signal.SIGABRT)
                 else:
-                    os.kill(self.scp_upload_process_pid, signal.SIGKILL)
+                    os.kill(self.scp_upload_process_pid, signal.SIGKILL)  # pylint: disable=no-member
         except Exception:
             logger.warning(traceback.format_exc())
 
