@@ -18,6 +18,7 @@ from ..models.upload import add_uploader_info
 from ..conf import settings
 from ..utils.exceptions import StorageBoxAttributeNotFound, SshException
 from ..utils.openssh import upload_with_scp
+from ..utils.upload import UploadFileSsh
 from ..logs import logger
 
 
@@ -252,20 +253,28 @@ def check_if_all_bytes_uploaded(upload):
 def upload_via_scp_with_retries(
     datafile_path, username, host, port, remote_file_path, upload, upload_callback  # pylint: disable=unused-argument
 ):
-    """Upload via SCP with retries
+    """
+    Upload via SCP with retries
     """
     while True:
         # Upload retries loop:
         try:
-            upload_with_scp(
-                datafile_path,
-                username,
-                settings.uploader.ssh_key_pair.private_key_path,
-                host,
-                port,
-                remote_file_path,
-                upload,
-            )
+            if True:
+                UploadFileSsh(
+                    (host, int(port)),
+                    [username, settings.uploader.ssh_key_pair.private_key_path],
+                    datafile_path,
+                    remote_file_path,
+                    upload)
+            else:
+                upload_with_scp(
+                    datafile_path,
+                    username,
+                    settings.uploader.ssh_key_pair.private_key_path,
+                    host,
+                    port,
+                    remote_file_path,
+                    upload)
             # Break out of upload retries loop.
             break
         except SshException as err:
