@@ -136,6 +136,7 @@ def load_advanced_settings(config_parser):
         "group_prefix",
         "max_lookup_threads",
         "max_upload_retries",
+        "upload_method",
         "validate_folder_structure",
         "upload_invalid_user_or_group_folders",
     ]
@@ -246,6 +247,7 @@ def save_settings_to_disk(config_path=None):
             "use_excludes_file",
             "max_lookup_threads",
             "max_upload_retries",
+            "upload_method",
             "validate_folder_structure",
             "cipher",
             "uuid",
