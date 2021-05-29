@@ -9,3 +9,4 @@ python-dotenv==0.17.1
 requests==2.25.1
 requests-toolbelt==0.9.1
 tqdm==4.61.0
+ssh2-python==0.26.0
