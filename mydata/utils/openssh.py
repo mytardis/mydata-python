@@ -330,7 +330,7 @@ def upload_with_scp(
     chunking files, so with SCP, we will always upload the whole
     file.
     """
-    filename = file_path
+    filename = os.path.relpath(file_path, settings.general.data_directory)
 
     if sys.platform.startswith("win"):
         file_path = get_cygwin_path(file_path)
