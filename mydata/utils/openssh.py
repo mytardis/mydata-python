@@ -13,6 +13,7 @@ import time
 import struct
 
 import psutil
+from tqdm import tqdm
 
 from ..conf import settings
 from ..logs import logger
@@ -329,6 +330,8 @@ def upload_with_scp(
     chunking files, so with SCP, we will always upload the whole
     file.
     """
+    filename = file_path
+
     if sys.platform.startswith("win"):
         file_path = get_cygwin_path(file_path)
         private_key_path = get_cygwin_path(private_key_path)
@@ -354,7 +357,7 @@ def upload_with_scp(
         settings.miscellaneous.connection_timeout
     )
 
-    scp_upload(upload, scp_command_list)
+    ssh2_upload(upload, filename)
 
     set_remote_file_permissions(
         remote_file_path, username, private_key_path, host, port
@@ -388,6 +391,21 @@ def scp_upload(upload, scp_command_list):
             )
     except (IOError, OSError) as err:
         raise ScpException(err, scp_command_string, returncode=255) from err
+
+
+def ssh2_upload(upload, filename):
+    chunk_size = 1024
+    chunks = 10
+    pbar = tqdm(
+        total=chunks*chunk_size,
+        desc=filename,
+        unit="B",
+        unit_scale=True,
+        unit_divisor=1024)
+    for chunk in range(chunks):
+        pbar.update(chunk_size)
+        time.sleep(1)
+    pbar.close()
 
 
 def set_remote_file_permissions(

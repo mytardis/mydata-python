@@ -97,6 +97,7 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
             upload_callback=upload_callback,
         )
         return
+
     if upload_method == UploadMethod.SCP:
         datafile_dict = add_uploader_info(datafile_dict)
         df_post_response = None
@@ -160,6 +161,7 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
                 upload_callback=upload_callback,
             )
         return
+
     raise NotImplementedError("upload_file received unimplemented upload method")
 
 

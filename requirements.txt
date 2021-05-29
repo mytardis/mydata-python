@@ -8,3 +8,4 @@ python-dateutil==2.8.1
 python-dotenv==0.17.1
 requests==2.25.1
 requests-toolbelt==0.9.1
+tqdm==4.61.0
