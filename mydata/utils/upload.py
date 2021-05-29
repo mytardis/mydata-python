@@ -10,18 +10,18 @@ from ssh2 import session, sftp
 from ..conf import settings
 
 
-def ReadFileChunks(fileObject, chunkSize):
+def read_file_chunks(file_object, chunk_size):
     """
     Read data file chunk
     """
     while True:
-        data = fileObject.read(chunkSize)
+        data = file_object.read(chunk_size)
         if not data:
             break
         yield data
 
 
-def GetFileMode():
+def get_file_mode():
     """
     Remote file attributes
     """
@@ -31,11 +31,11 @@ def GetFileMode():
            sftp.LIBSSH2_SFTP_S_IROTH
 
 
-def ExecuteCommandOverSsh(sshSession, command):
+def execute_command_over_ssh(ssh_session, command):
     """
     Execute command over existing SSH session
     """
-    channel = sshSession.open_session()
+    channel = ssh_session.open_session()
     channel.execute(command)
     message = []
     while True:
@@ -50,67 +50,67 @@ def ExecuteCommandOverSsh(sshSession, command):
         raise Exception(" ".join(message))
 
 
-def GetSshSession(server, auth):
+def get_ssh_session(server, auth):
     """
     Open connection and return SSH session
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(server)
 
-    sshSession = session.Session()
-    sshSession.handshake(sock)
+    ssh_session = session.Session()
+    ssh_session.handshake(sock)
 
     try:
-        sshSession.userauth_publickey_fromfile(auth[0], auth[1])
-    except:
-        raise Exception("Can't open SSH key file.")
+        ssh_session.userauth_publickey_fromfile(auth[0], auth[1])
+    except Exception as err:
+        raise Exception("Can't open SSH key file.") from err
 
-    return sshSession
+    return ssh_session
 
 
-def UploadFileSsh(server, auth, filePath, remoteFilePath, uploadModel):
+def upload_file_ssh(server, auth, file_path, remote_file_path, upload):
     """
     Upload file using SSH, update progress status, cancel upload if requested
     """
-    sess = GetSshSession(server, auth)
+    sess = get_ssh_session(server, auth)
 
     try:
-        ExecuteCommandOverSsh(
+        execute_command_over_ssh(
             sess,
-            "mkdir -m 2770 -p %s" % os.path.dirname(remoteFilePath)
+            "mkdir -m 2770 -p %s" % os.path.dirname(remote_file_path)
         )
     except Exception as err:
-        raise Exception("Can't create remote folder. %s" % str(err))
+        raise Exception("Can't create remote folder. %s" % str(err)) from err
 
-    fileInfo = os.stat(filePath)
-    channel = sess.scp_send64(remoteFilePath, GetFileMode(),
-                              fileInfo.st_size, fileInfo.st_mtime,
-                              fileInfo.st_atime)
+    file_info = os.stat(file_path)
+    channel = sess.scp_send64(remote_file_path, get_file_mode(),
+                              file_info.st_size, file_info.st_mtime,
+                              file_info.st_atime)
 
-    filename = os.path.relpath(filePath, settings.general.data_directory)
+    filename = os.path.relpath(file_path, settings.general.data_directory)
 
-    progressBar = tqdm(
-        total=fileInfo.st_size,
+    progress_bar = tqdm(
+        total=file_info.st_size,
         desc=filename,
         unit="B",
         unit_scale=True,
         unit_divisor=1024
     )
 
-    uploadModel.start_time = datetime.now()
+    upload.start_time = datetime.now()
 
-    with open(filePath, "rb") as localFile:
-        for data in ReadFileChunks(localFile, 32*1024*1024):
-            _, bytesWritten = channel.write(data)
-            progressBar.update(bytesWritten)
-            if uploadModel.canceled:
-                progressBar.close()
+    with open(file_path, "rb") as local_file:
+        for data in read_file_chunks(local_file, 32*1024*1024):
+            _, bytes_written = channel.write(data)
+            progress_bar.update(bytes_written)
+            if upload.canceled:
+                progress_bar.close()
                 break
 
-    uploadModel.set_latest_time(datetime.now())
-    uploadModel.bytes_uploaded = fileInfo.st_size
+    upload.set_latest_time(datetime.now())
+    upload.bytes_uploaded = file_info.st_size
 
-    progressBar.close()
+    progress_bar.close()
 
     channel.send_eof()
     channel.wait_eof()
@@ -119,8 +119,9 @@ def UploadFileSsh(server, auth, filePath, remoteFilePath, uploadModel):
     channel.wait_closed()
 
     try:
-        ExecuteCommandOverSsh(sess, "chmod 660 %s" % remoteFilePath)
+        execute_command_over_ssh(sess, "chmod 660 %s" % remote_file_path)
     except Exception as err:
-        raise Exception("Can't set remote file permissions. %s" % str(err))
+        raise Exception("Can't set remote file permissions. %s" % str(err)) \
+            from err
 
     sess.disconnect()

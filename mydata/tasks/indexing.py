@@ -216,8 +216,8 @@ def calculate_md5sum(filepath):
     md5sum_binary = ["md5sum"]
     if sys.platform == "darwin":
         md5sum_binary = ["md5", "-r"]
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         [*md5sum_binary, filepath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    stdout, _ = proc.communicate()
+    ) as proc:
+        stdout, _ = proc.communicate()
     return re.match(r"\w+", stdout.decode()).group(0)

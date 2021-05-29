@@ -12,8 +12,8 @@ install:
   - pip install codecov
 
 script:
+  - pylint --rcfile=.pylintrc mydata
   - pytest --cov=mydata
-  - pylint mydata
 
 after_success:
   - codecov
