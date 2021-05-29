@@ -41,6 +41,7 @@ class UploadMethod:
     MULTIPART_POST = 0
     SCP = 1
     SFTP = 2
+    SSH2 = 3
     LOCAL_COPY = 3  # includes copying to mounted file share
 
 

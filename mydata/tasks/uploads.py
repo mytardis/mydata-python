@@ -18,7 +18,7 @@ from ..models.upload import add_uploader_info
 from ..conf import settings
 from ..utils.exceptions import StorageBoxAttributeNotFound, SshException
 from ..utils.openssh import upload_with_scp
-from ..utils.upload import UploadFileSsh
+from ..utils.upload import upload_file_ssh
 from ..logs import logger
 
 
@@ -259,8 +259,8 @@ def upload_via_scp_with_retries(
     while True:
         # Upload retries loop:
         try:
-            if True:
-                UploadFileSsh(
+            if settings.advanced.upload_method == UploadMethod.SSH2:
+                upload_file_ssh(
                     (host, int(port)),
                     [username, settings.uploader.ssh_key_pair.private_key_path],
                     datafile_path,

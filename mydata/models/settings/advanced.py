@@ -21,6 +21,7 @@ class AdvancedSettings:
             "max_lookup_threads",
             "max_upload_retries",
             "upload_invalid_user_or_group_folders",
+            "upload_method"
         ]
 
     @property
@@ -106,3 +107,10 @@ class AdvancedSettings:
         self.mydata_config["max_lookup_threads"] = 1
         self.mydata_config["max_upload_retries"] = 1
         self.mydata_config["upload_invalid_user_or_group_folders"] = True
+
+    @property
+    def upload_method(self):
+        """
+        Return upload method
+        """
+        return self.mydata_config["upload_method"]
