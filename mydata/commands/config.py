@@ -32,7 +32,7 @@ def list_command():
     """
     parser = ConfigParser()
     parser.read(settings.config_path)
-    for key in parser[SECTION]:
+    for key in sorted(parser[SECTION]):
         print(key)
 
 
