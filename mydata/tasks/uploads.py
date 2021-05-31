@@ -259,7 +259,7 @@ def upload_via_scp_with_retries(
     while True:
         # Upload retries loop:
         try:
-            if settings.advanced.upload_method == "ParallelSSH":
+            if settings.advanced.upload_method == "SSH2":
                 upload_file_ssh(
                     (host, int(port)),
                     [username, settings.uploader.ssh_key_pair.private_key_path],
