@@ -68,7 +68,7 @@ def get_ssh_session(server, auth):
     return ssh_session
 
 
-def upload_file_ssh(server, auth, file_path, remote_file_path, upload):
+def upload_file_ssh(server, auth, file_path, remote_file_path, upload, progress):
     """
     Upload file using SSH, update progress status, cancel upload if requested
     """
@@ -89,28 +89,32 @@ def upload_file_ssh(server, auth, file_path, remote_file_path, upload):
 
     filename = os.path.relpath(file_path, settings.general.data_directory)
 
-    progress_bar = tqdm(
-        total=file_info.st_size,
-        desc=filename,
-        unit="B",
-        unit_scale=True,
-        unit_divisor=1024
-    )
+    if progress:
+        progress_bar = tqdm(
+            total=file_info.st_size,
+            desc=filename,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024
+        )
 
     upload.start_time = datetime.now()
 
     with open(file_path, "rb") as local_file:
         for data in read_file_chunks(local_file, 32*1024*1024):
             _, bytes_written = channel.write(data)
-            progress_bar.update(bytes_written)
+            if progress:
+                progress_bar.update(bytes_written)
             if upload.canceled:
-                progress_bar.close()
+                if progress:
+                    progress_bar.close()
                 break
 
     upload.set_latest_time(datetime.now())
     upload.bytes_uploaded = file_info.st_size
 
-    progress_bar.close()
+    if progress:
+        progress_bar.close()
 
     channel.send_eof()
     channel.wait_eof()

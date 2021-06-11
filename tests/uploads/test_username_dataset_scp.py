@@ -336,7 +336,8 @@ def assert_upload_folders_success(
 
         for folder in folders:
             upload_folder(
-                folder, lookup_callback, upload_callback, upload_method=UploadMethod.SCP
+                folder, lookup_callback, upload_callback,
+                progress=False, upload_method=UploadMethod.SCP
             )
 
         assert_expected_datafile_lookups(lookups)
