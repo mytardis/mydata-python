@@ -72,6 +72,7 @@ def upload_file_ssh(server, auth, file_path, remote_file_path, upload, progress)
     """
     Upload file using SSH, update progress status, cancel upload if requested
     """
+    # pylint: disable=too-many-locals, too-many-statements
     sess = get_ssh_session(server, auth)
 
     try:
