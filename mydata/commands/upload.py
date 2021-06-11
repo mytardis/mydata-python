@@ -142,7 +142,7 @@ def upload_cmd(progress, verbose):
     """
     Upload files from structure described in MyData.cfg
     """
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals, too-many-statements
     data_directory = "%s/" % settings.data_directory.rstrip("/")
 
     if progress and settings.advanced.upload_method != "SSH2":
