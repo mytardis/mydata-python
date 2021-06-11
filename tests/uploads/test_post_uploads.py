@@ -130,7 +130,8 @@ def test_post_uploads(set_username_dataset_config):
             mock_dataset_response = created_dataset_response(1, folder.name)
             mocker.post(post_dataset_url, text=mock_dataset_response)
             upload_folder(
-                folder, lookup_callback, upload_callback, UploadMethod.MULTIPART_POST
+                folder, lookup_callback, upload_callback,
+                progress=False, upload_method=UploadMethod.MULTIPART_POST
             )
 
         # Ensure that all 12 files were looked up:

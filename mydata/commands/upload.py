@@ -136,8 +136,9 @@ def get_approved_upload_method():
 
 
 @click.command(name="upload")
+@click.option("-p", "--progress", is_flag=True)
 @click.option("-v", "--verbose", count=True)
-def upload_cmd(verbose):
+def upload_cmd(progress, verbose):
     """
     Upload files from structure described in MyData.cfg
     """
@@ -237,7 +238,8 @@ def upload_cmd(verbose):
         return uploads_expected == len(uploads["completed"]) + len(uploads["failed"])
 
     for folder in folders:
-        upload_folder(folder, lookup_callback, upload_callback, upload_method)
+        upload_folder(folder, lookup_callback, upload_callback,
+                      progress, upload_method)
 
     if settings.advanced.max_lookup_threads > 1:
         while not check_lookup_completion() or not check_upload_completion():

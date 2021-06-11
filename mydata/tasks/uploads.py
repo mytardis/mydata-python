@@ -23,7 +23,8 @@ from ..logs import logger
 
 
 def upload_folder(
-    folder, lookup_callback, upload_callback, upload_method=UploadMethod.SCP
+    folder, lookup_callback, upload_callback,
+    progress=False, upload_method=UploadMethod.SCP
 ):
     """
     Create required MyTardis records and upload
@@ -54,12 +55,13 @@ def upload_folder(
             LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
             LookupStatus.FOUND_UNVERIFIED_ON_STAGING,
         ):
-            upload_file(folder, lookup, upload_callback, upload_method)
+            upload_file(folder, lookup, upload_callback, upload_method, progress)
 
     FolderLookup(folder, lookup_cb, upload_method).lookup_datafiles()
 
 
-def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP):
+def upload_file(folder, lookup, upload_callback,
+                upload_method=UploadMethod.SCP, progress=False):
     """
     Upload file
     """
@@ -132,6 +134,7 @@ def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP)
                 remote_file_path,
                 upload,
                 upload_callback,
+                progress
             )
         except SshException as err:
             logger.error(traceback.format_exc())
@@ -251,7 +254,8 @@ def check_if_all_bytes_uploaded(upload):
 
 
 def upload_via_scp_with_retries(
-    datafile_path, username, host, port, remote_file_path, upload, upload_callback  # pylint: disable=unused-argument
+    datafile_path, username, host, port, remote_file_path, upload,
+    upload_callback, progress  # pylint: disable=unused-argument
 ):
     """
     Upload via SCP with retries
@@ -265,7 +269,8 @@ def upload_via_scp_with_retries(
                     [username, settings.uploader.ssh_key_pair.private_key_path],
                     datafile_path,
                     remote_file_path,
-                    upload)
+                    upload,
+                    progress)
             else:
                 upload_with_scp(
                     datafile_path,
