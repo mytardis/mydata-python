@@ -145,6 +145,11 @@ def upload_cmd(progress, verbose):
     # pylint: disable=too-many-locals
     data_directory = "%s/" % settings.data_directory.rstrip("/")
 
+    if progress and settings.advanced.upload_method != "SSH2":
+        click.echo("\nTo be able to see progress bar you have to change "
+                   "upload_method in config to SSH2")
+        return
+
     if verbose:
         click.echo("\nUsing MyData configuration in: %s" % settings.config_path)
 
