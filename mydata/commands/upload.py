@@ -6,6 +6,7 @@ import time
 
 import click
 import requests
+import asyncio
 
 from mydata.commands.scan import scan, display_scan_summary
 from mydata.tasks.uploads import upload_folder
@@ -171,10 +172,17 @@ def upload_cmd(verbose):
     num_files = sum([folder.num_files for folder in folders])
 
     lookups = dict(
-        not_found=[], found_verified=[], unverified=[], unverified_no_dfos=[], failed=[]
+        not_found=[],
+        found_verified=[],
+        unverified=[],
+        unverified_no_dfos=[],
+        failed=[]
     )
 
-    uploads = dict(completed=[], failed=[])
+    uploads = dict(
+        completed=[],
+        failed=[]
+    )
 
     datasets = dict()
 
@@ -237,11 +245,10 @@ def upload_cmd(verbose):
         return uploads_expected == len(uploads["completed"]) + len(uploads["failed"])
 
     for folder in folders:
-        upload_folder(folder, lookup_callback, upload_callback, upload_method)
-
-    if settings.advanced.max_lookup_threads > 1:
-        while not check_lookup_completion() or not check_upload_completion():
-            time.sleep(0.1)
+        asyncio.run(
+            upload_folder(folder, lookup_callback, upload_callback,
+                          upload_method)
+        )
 
     if settings.miscellaneous.cache_datafile_lookups:
         settings.save_verified_datafiles_cache()

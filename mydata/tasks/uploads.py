@@ -4,6 +4,10 @@ mydata/tasks/uploads.py
 import mimetypes
 import os
 import traceback
+import click
+import asyncio
+import functools
+import inflect
 
 from datetime import datetime
 from http.client import responses
@@ -21,9 +25,8 @@ from ..utils.openssh import upload_with_scp
 from ..logs import logger
 
 
-def upload_folder(
-    folder, lookup_callback, upload_callback, upload_method=UploadMethod.SCP
-):
+async def upload_folder(folder, lookup_callback, upload_callback,
+                        upload_method=UploadMethod.SCP):
     """
     Create required MyTardis records and upload
     any files not already uploaded.
@@ -53,12 +56,61 @@ def upload_folder(
             LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
             LookupStatus.FOUND_UNVERIFIED_ON_STAGING,
         ):
-            upload_file(folder, lookup, upload_callback, upload_method)
+            queue.put_nowait((folder, lookup, upload_callback, upload_method))
 
+    num_threads = settings.advanced.max_upload_threads
+
+    # Create a queue
+    queue = asyncio.Queue()
+
+    # Create workers
+    workers = []
+    for i in range(num_threads):
+        workers.append(
+            asyncio.create_task(
+                upload_file_worker(f"worker-{i}", queue)
+            )
+        )
+
+    # Start lookup and upload
     FolderLookup(folder, lookup_cb, upload_method).lookup_datafiles()
 
+    click.echo("\n\nUploading in %s %s..." % (
+        num_threads,
+        inflect.engine().plural("thread", num_threads)))
 
-def upload_file(folder, lookup, upload_callback, upload_method=UploadMethod.SCP):
+    # Wait for queue to complete
+    await queue.join()
+
+    # Shutdown workers
+    for worker in workers:
+        worker.cancel()
+
+    # Wait for workers shutdown
+    await asyncio.gather(*workers, return_exceptions=True)
+
+
+def run_in_executor(f):
+    @functools.wraps(f)
+    def runner(*args, **kwargs):
+        loop = asyncio.get_running_loop()
+        return loop.run_in_executor(None, lambda: f(*args, **kwargs))
+    return runner
+
+
+async def upload_file_worker(name, queue):
+    while True:
+        folder, lookup, upload_callback, upload_method = await queue.get()
+        upload = Upload(folder, lookup.datafile_index)
+        datafile_path = folder.get_datafile_path(upload.datafile_index)
+        click.echo(f"{name}: {datafile_path}")
+        await upload_file(folder, lookup, upload_callback, upload_method)
+        queue.task_done()
+
+
+@run_in_executor
+def upload_file(folder, lookup, upload_callback,
+                upload_method=UploadMethod.SCP):
     """
     Upload file
     """
