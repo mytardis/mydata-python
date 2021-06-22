@@ -18,7 +18,7 @@ class AdvancedSettings:
             "folder_structure",
             "group_prefix",
             "validate_folder_structure",
-            "max_lookup_threads",
+            "max_upload_threads",
             "max_upload_retries",
             "upload_invalid_user_or_group_folders",
         ]
@@ -81,11 +81,11 @@ class AdvancedSettings:
         return self.mydata_config["group_prefix"]
 
     @property
-    def max_lookup_threads(self):
+    def max_upload_threads(self):
         """
-        Get the maximum number of lookup threads
+        Get the maximum number of upload threads
         """
-        return int(self.mydata_config["max_lookup_threads"])
+        return int(self.mydata_config["max_upload_threads"])
 
     @property
     def max_upload_retries(self):
@@ -103,6 +103,6 @@ class AdvancedSettings:
         self.mydata_config["folder_structure"] = "Username / Dataset"
         self.mydata_config["group_prefix"] = ""
         self.mydata_config["validate_folder_structure"] = True
-        self.mydata_config["max_lookup_threads"] = 1
+        self.mydata_config["max_upload_threads"] = 1
         self.mydata_config["max_upload_retries"] = 1
         self.mydata_config["upload_invalid_user_or_group_folders"] = True

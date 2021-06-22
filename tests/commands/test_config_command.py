@@ -43,7 +43,7 @@ def test_config_list_command(set_exp_dataset_config):
         ignore_old_datasets
         ignore_interval_number
         ignore_interval_unit
-        max_lookup_threads
+        max_upload_threads
         max_upload_retries
         validate_folder_structure
         cache_datafile_lookups
@@ -64,11 +64,6 @@ def test_config_get_command(set_exp_dataset_config):
     assert result.exit_code == 0
     assert result.output == "tests/testdata/testdata-exp-dataset\n"
 
-
-def test_config_get_command(set_exp_dataset_config):
-    from mydata.commands.config import config_cmd
-
-    runner = CliRunner()
     result = runner.invoke(config_cmd, ["get", "contact_name"])
     assert result.exit_code == 0
     assert result.output == "MyData Tester\n"
