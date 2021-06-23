@@ -77,9 +77,10 @@ async def upload_folder(folder, lookup_callback, upload_callback,
     # Start lookup and upload
     FolderLookup(folder, lookup_cb, upload_method).lookup_datafiles()
 
-    click.echo("\n\nUploading in %s %s..." % (
-        num_threads,
-        inflect.engine().plural("thread", num_threads)))
+    if num_threads > 1:
+        click.echo("\n\nUploading in %s %s..." % (
+            num_threads,
+            inflect.engine().plural("thread", num_threads)))
 
     # Wait for queue to complete
     await queue.join()
@@ -108,12 +109,14 @@ async def upload_file_worker(name, queue):
     """
     File upload worker
     """
+    num_threads = settings.advanced.max_upload_threads
     while True:
         (folder, lookup, upload_callback,
          progress, upload_method) = await queue.get()
         upload = Upload(folder, lookup.datafile_index)
         datafile_path = folder.get_datafile_path(upload.datafile_index)
-        click.echo(f"{name}: {datafile_path}")
+        if num_threads > 1:
+            click.echo(f"{name}: {datafile_path}")
         await upload_file(folder, lookup, upload_callback,
                           progress, upload_method)
         queue.task_done()
