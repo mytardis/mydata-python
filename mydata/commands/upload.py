@@ -2,11 +2,9 @@
 Commands for uploading data
 """
 import sys
-import time
-
+import asyncio
 import click
 import requests
-import asyncio
 
 from mydata.commands.scan import scan, display_scan_summary
 from mydata.tasks.uploads import upload_folder
@@ -233,22 +231,6 @@ def upload_cmd(progress, verbose):
                 end="\r",
                 flush=True,
             )
-
-    def check_lookup_completion():
-        """When running in multi-threaded mode, we need to check if we have finished
-        """
-        total_lookups = sum([len(lookups[lookup_status]) for lookup_status in lookups])
-        return total_lookups == num_files
-
-    def check_upload_completion():
-        """When running in multi-threaded mode, we need to check if we have finished
-        """
-        uploads_expected = (
-            len(lookups[LookupStatus.NOT_FOUND])
-            + len(lookups[LookupStatus.FOUND_UNVERIFIED_ON_STAGING])
-            + len(lookups[LookupStatus.FOUND_UNVERIFIED_NO_DFOS])
-        )
-        return uploads_expected == len(uploads["completed"]) + len(uploads["failed"])
 
     for folder in folders:
         # pylint: disable=no-member

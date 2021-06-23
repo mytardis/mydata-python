@@ -4,13 +4,12 @@ mydata/tasks/uploads.py
 import mimetypes
 import os
 import traceback
-import click
 import asyncio
 import functools
-import inflect
-
 from datetime import datetime
 from http.client import responses
+import click
+import inflect
 
 from ..models.dataset import Dataset
 from ..models.experiment import Experiment
@@ -57,7 +56,8 @@ async def upload_folder(folder, lookup_callback, upload_callback,
             LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
             LookupStatus.FOUND_UNVERIFIED_ON_STAGING,
         ):
-            queue.put_nowait((folder, lookup, upload_callback, upload_method))
+            queue.put_nowait((folder, lookup, upload_callback,
+                              progress, upload_method))
 
     num_threads = settings.advanced.max_upload_threads
 
@@ -91,21 +91,29 @@ async def upload_folder(folder, lookup_callback, upload_callback,
     await asyncio.gather(*workers, return_exceptions=True)
 
 
-def run_in_executor(f):
-    @functools.wraps(f)
+def run_in_executor(func):
+    """
+    Run function in async wrapper
+    """
+    @functools.wraps(func)
     def runner(*args, **kwargs):
         loop = asyncio.get_running_loop()
-        return loop.run_in_executor(None, lambda: f(*args, **kwargs))
+        return loop.run_in_executor(None, lambda: func(*args, **kwargs))
     return runner
 
 
 async def upload_file_worker(name, queue):
+    """
+    File upload worker
+    """
     while True:
-        folder, lookup, upload_callback, upload_method = await queue.get()
+        (folder, lookup, upload_callback,
+         progress, upload_method) = await queue.get()
         upload = Upload(folder, lookup.datafile_index)
         datafile_path = folder.get_datafile_path(upload.datafile_index)
         click.echo(f"{name}: {datafile_path}")
-        await upload_file(folder, lookup, upload_callback, upload_method)
+        await upload_file(folder, lookup, upload_callback,
+                          progress, upload_method)
         queue.task_done()
 
 
