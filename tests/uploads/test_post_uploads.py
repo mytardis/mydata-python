@@ -2,6 +2,7 @@
 Test POST uploads
 """
 import os
+import pytest
 
 from string import Template
 from urllib.parse import quote
@@ -22,7 +23,8 @@ from tests.mocks import (
 )
 
 
-def test_post_uploads(set_username_dataset_config):
+@pytest.mark.asyncio
+async def test_post_uploads(set_username_dataset_config):
     """
     Test POST uploads
     """
@@ -129,7 +131,7 @@ def test_post_uploads(set_username_dataset_config):
         for folder in folders:
             mock_dataset_response = created_dataset_response(1, folder.name)
             mocker.post(post_dataset_url, text=mock_dataset_response)
-            upload_folder(
+            await upload_folder(
                 folder, lookup_callback, upload_callback,
                 progress=False, upload_method=UploadMethod.MULTIPART_POST
             )
