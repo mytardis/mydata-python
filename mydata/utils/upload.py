@@ -68,7 +68,8 @@ def get_ssh_session(server, auth):
     return ssh_session
 
 
-def upload_file_ssh(server, auth, file_path, remote_file_path, upload, progress):
+def upload_file_ssh(server, auth, file_path, remote_file_path, upload,
+                    progress, thread_num):
     """
     Upload file using SSH, update progress status, cancel upload if requested
     """
@@ -92,6 +93,7 @@ def upload_file_ssh(server, auth, file_path, remote_file_path, upload, progress)
 
     if progress:
         progress_bar = tqdm(
+            position=thread_num,
             total=file_info.st_size,
             desc=filename,
             unit="B",

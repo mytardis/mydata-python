@@ -109,22 +109,19 @@ async def upload_file_worker(name, queue):
     """
     File upload worker
     """
-    num_threads = settings.advanced.max_upload_threads
+    thread_num = int(name.split("-")[-1])
     while True:
         (folder, lookup, upload_callback,
          progress, upload_method) = await queue.get()
-        upload = Upload(folder, lookup.datafile_index)
-        datafile_path = folder.get_datafile_path(upload.datafile_index)
-        if num_threads > 1:
-            click.echo(f"{name}: {datafile_path}")
         await upload_file(folder, lookup, upload_callback,
-                          progress, upload_method)
+                          progress, thread_num, upload_method)
         queue.task_done()
 
 
 @run_in_executor
 def upload_file(folder, lookup, upload_callback,
-                progress=False, upload_method=UploadMethod.SCP):
+                progress=False, thread_num=0,
+                upload_method=UploadMethod.SCP):
     """
     Upload file
     """
@@ -197,7 +194,8 @@ def upload_file(folder, lookup, upload_callback,
                 remote_file_path,
                 upload,
                 upload_callback,
-                progress
+                progress,
+                thread_num
             )
         except SshException as err:
             logger.error(traceback.format_exc())
@@ -318,7 +316,7 @@ def check_if_all_bytes_uploaded(upload):
 
 def upload_via_scp_with_retries(
     datafile_path, username, host, port, remote_file_path, upload,
-    upload_callback, progress  # pylint: disable=unused-argument
+    upload_callback, progress, thread_num  # pylint: disable=unused-argument
 ):
     """
     Upload via SCP with retries
@@ -333,7 +331,8 @@ def upload_via_scp_with_retries(
                     datafile_path,
                     remote_file_path,
                     upload,
-                    progress)
+                    progress,
+                    thread_num)
             else:
                 upload_with_scp(
                     datafile_path,

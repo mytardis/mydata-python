@@ -224,13 +224,13 @@ def upload_cmd(progress, verbose):
             uploads["failed"].append(upload)
 
         # Only display upload progress after lookups have completed:
-        if (uploads["completed"] or len(lookups) == num_files) and sys.stdout.isatty():
-            print(
-                "Uploaded %s of %s files...        "
-                % (len(uploads["completed"]), num_files),
-                end="\r",
-                flush=True,
-            )
+        # if (uploads["completed"] or len(lookups) == num_files) and sys.stdout.isatty():
+        #     print(
+        #         "Uploaded %s of %s files...        "
+        #         % (len(uploads["completed"]), num_files),
+        #         end="\r",
+        #         flush=True,
+        #     )
 
     for folder in folders:
         # pylint: disable=no-member
