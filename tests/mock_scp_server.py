@@ -296,13 +296,13 @@ class SshRequestHandler(socketserver.BaseRequestHandler):
             if "scp" not in command:
                 # Execute a "remote" command other than scp.
                 logger.info("Executing: %s", command)
-                proc = subprocess.Popen(
+                with subprocess.Popen(
                     command,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     shell=True,
-                )
-                stdout, _ = proc.communicate()
+                ) as proc:
+                    stdout, _ = proc.communicate()
                 self.chan.send(stdout)
                 logger.info("Closing channel.")
                 # self.chan.send_exit_status(proc.returncode)
@@ -315,19 +315,19 @@ class SshRequestHandler(socketserver.BaseRequestHandler):
                 if self.verbose:
                     logger.info("Executing: %s", command)
                 stderr_handle = subprocess.PIPE if self.verbose else None
-                proc = subprocess.Popen(
-                    command,
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=stderr_handle,
-                    shell=True,
-                )
                 # Confirm to the channel that we started the command:
                 logger.info(
                     "Waiting for the 'scp -t' process to "
                     "acknowledge that it has started up OK."
                 )
-                response = proc.stdout.read(1)
+                with subprocess.Popen(
+                    command,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=stderr_handle,
+                    shell=True,
+                ) as proc:
+                    response = proc.stdout.read(1)
                 assert response == b"\0"
                 self.chan.send(response)
 

@@ -251,9 +251,10 @@ def upload_cmd(progress, verbose):
         return uploads_expected == len(uploads["completed"]) + len(uploads["failed"])
 
     for folder in folders:
+        # pylint: disable=no-member
         asyncio.run(
             upload_folder(folder, lookup_callback, upload_callback,
-                          upload_method)
+                          progress, upload_method)
         )
 
     if settings.miscellaneous.cache_datafile_lookups:

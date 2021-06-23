@@ -27,7 +27,7 @@ from ..logs import logger
 
 
 async def upload_folder(folder, lookup_callback, upload_callback,
-                        upload_method=UploadMethod.SCP):
+                        progress=False, upload_method=UploadMethod.SCP):
     """
     Create required MyTardis records and upload
     any files not already uploaded.
@@ -111,7 +111,7 @@ async def upload_file_worker(name, queue):
 
 @run_in_executor
 def upload_file(folder, lookup, upload_callback,
-                upload_method=UploadMethod.SCP):
+                progress=False, upload_method=UploadMethod.SCP):
     """
     Upload file
     """
