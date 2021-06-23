@@ -22,6 +22,7 @@ from ..models.upload import add_uploader_info
 from ..conf import settings
 from ..utils.exceptions import StorageBoxAttributeNotFound, SshException
 from ..utils.openssh import upload_with_scp
+from ..utils.upload import upload_file_ssh
 from ..logs import logger
 
 
@@ -149,6 +150,7 @@ def upload_file(folder, lookup, upload_callback,
             upload_callback=upload_callback,
         )
         return
+
     if upload_method == UploadMethod.SCP:
         datafile_dict = add_uploader_info(datafile_dict)
         df_post_response = None
@@ -182,6 +184,7 @@ def upload_file(folder, lookup, upload_callback,
                 remote_file_path,
                 upload,
                 upload_callback,
+                progress
             )
         except SshException as err:
             logger.error(traceback.format_exc())
@@ -212,6 +215,7 @@ def upload_file(folder, lookup, upload_callback,
                 upload_callback=upload_callback,
             )
         return
+
     raise NotImplementedError("upload_file received unimplemented upload method")
 
 
@@ -300,22 +304,32 @@ def check_if_all_bytes_uploaded(upload):
 
 
 def upload_via_scp_with_retries(
-    datafile_path, username, host, port, remote_file_path, upload, upload_callback  # pylint: disable=unused-argument
+    datafile_path, username, host, port, remote_file_path, upload,
+    upload_callback, progress  # pylint: disable=unused-argument
 ):
-    """Upload via SCP with retries
+    """
+    Upload via SCP with retries
     """
     while True:
         # Upload retries loop:
         try:
-            upload_with_scp(
-                datafile_path,
-                username,
-                settings.uploader.ssh_key_pair.private_key_path,
-                host,
-                port,
-                remote_file_path,
-                upload,
-            )
+            if settings.advanced.upload_method == "SSH2":
+                upload_file_ssh(
+                    (host, int(port)),
+                    [username, settings.uploader.ssh_key_pair.private_key_path],
+                    datafile_path,
+                    remote_file_path,
+                    upload,
+                    progress)
+            else:
+                upload_with_scp(
+                    datafile_path,
+                    username,
+                    settings.uploader.ssh_key_pair.private_key_path,
+                    host,
+                    port,
+                    remote_file_path,
+                    upload)
             # Break out of upload retries loop.
             break
         except SshException as err:

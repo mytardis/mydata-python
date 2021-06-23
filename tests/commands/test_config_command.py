@@ -26,21 +26,16 @@ def test_config_list_command(set_exp_dataset_config):
     assert result.exit_code == 0
     assert result.output == textwrap.dedent(
         """\
-        uuid
-        instrument_name
-        facility_name
-        data_directory
-        contact_name
-        contact_email
-        mytardis_url
-        username
         api_key
-        user_filter
+        cache_datafile_lookups
+        contact_email
+        contact_name
+        data_directory
         dataset_filter
         experiment_filter
+        facility_name
         folder_structure
         group_prefix
-        ignore_old_datasets
         ignore_interval_number
         ignore_interval_unit
         max_upload_threads

@@ -171,17 +171,17 @@ class KeyPair:
 
         cmd_list = [OPENSSH.ssh_keygen, "-E", "md5", "-yl", "-f", self.private_key_path]
         logger.debug(" ".join(cmd_list))
-        proc = subprocess.Popen(
+        with subprocess.Popen(
             cmd_list,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             startupinfo=DEFAULT_STARTUP_INFO,
             creationflags=DEFAULT_CREATION_FLAGS,
-        )
-        stdout, _ = proc.communicate()
-        if proc.returncode != 0:
-            raise SshException(stdout.decode())
+        ) as proc:
+            stdout, _ = proc.communicate()
+            if proc.returncode != 0:
+                raise SshException(stdout.decode())
 
         fingerprint = None
         key_type = None
@@ -264,7 +264,7 @@ def new_key_pair(key_name=None, key_path=None, key_comment=None):
     ]
     cmd = " ".join(cmd_list)
     logger.debug(cmd)
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
@@ -272,8 +272,8 @@ def new_key_pair(key_name=None, key_path=None, key_comment=None):
         shell=True,  # Allows empty passphrase
         startupinfo=DEFAULT_STARTUP_INFO,
         creationflags=DEFAULT_CREATION_FLAGS,
-    )
-    stdout, _ = proc.communicate()
+    ) as proc:
+        stdout, _ = proc.communicate()
 
     if stdout is None or str(stdout).strip() == "":
         raise SshException("Received unexpected EOF from ssh-keygen.")
@@ -371,21 +371,23 @@ def scp_upload(upload, scp_command_list):
     scp_command_string = " ".join(scp_command_list)
     logger.debug(scp_command_string)
     try:
-        scp_upload_process = subprocess.Popen(
+        with subprocess.Popen(
             scp_command_list,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             startupinfo=DEFAULT_STARTUP_INFO,
             creationflags=DEFAULT_CREATION_FLAGS,
-        )
-        upload.scp_upload_process_pid = scp_upload_process.pid
-        wait_for_process_to_complete(scp_upload_process)
-        stdout, _ = scp_upload_process.communicate()
-        if scp_upload_process.returncode != 0:
-            raise ScpException(
-                stdout.decode(), scp_command_string, scp_upload_process.returncode
-            )
+        ) as scp_upload_process:
+            upload.scp_upload_process_pid = scp_upload_process.pid
+            wait_for_process_to_complete(scp_upload_process)
+            stdout, _ = scp_upload_process.communicate()
+            if scp_upload_process.returncode != 0:
+                raise ScpException(
+                    stdout.decode(),
+                    scp_command_string,
+                    scp_upload_process.returncode
+                )
     except (IOError, OSError) as err:
         raise ScpException(err, scp_command_string, returncode=255) from err
 
@@ -421,17 +423,17 @@ def set_remote_file_permissions(
         settings.miscellaneous.connection_timeout
     )
     logger.debug(" ".join(chmod_cmd_and_args))
-    chmod_process = subprocess.Popen(
+    with subprocess.Popen(
         chmod_cmd_and_args,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         startupinfo=DEFAULT_STARTUP_INFO,
         creationflags=DEFAULT_CREATION_FLAGS,
-    )
-    stdout, _ = chmod_process.communicate()
-    if chmod_process.returncode != 0:
-        raise SshException(stdout.decode(), chmod_process.returncode)
+    ) as chmod_process:
+        stdout, _ = chmod_process.communicate()
+        if chmod_process.returncode != 0:
+            raise SshException(stdout.decode(), chmod_process.returncode)
 
 
 def wait_for_process_to_complete(process):
@@ -471,17 +473,18 @@ def create_remote_dir(remote_dir, username, private_key_path, host, port):
         )
         logger.debug(" ".join(mkdir_cmd_and_args))
 
-        mkdir_process = subprocess.Popen(
+        with subprocess.Popen(
             mkdir_cmd_and_args,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             startupinfo=DEFAULT_STARTUP_INFO,
             creationflags=DEFAULT_CREATION_FLAGS,
-        )
-        stdout, _ = mkdir_process.communicate()
-        if mkdir_process.returncode != 0:
-            raise SshException(stdout.decode(), mkdir_process.returncode)
+        ) as mkdir_process:
+            stdout, _ = mkdir_process.communicate()
+            if mkdir_process.returncode != 0:
+                raise SshException(stdout.decode(), mkdir_process.returncode)
+
         REMOTE_DIRS_CREATED[remote_dir] = True
 
 
