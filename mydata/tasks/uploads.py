@@ -67,6 +67,7 @@ async def upload_folder(folder, lookup_callback, upload_callback,
     # Create workers
     workers = []
     for i in range(num_threads):
+        # pylint: disable=no-member
         workers.append(
             asyncio.create_task(
                 upload_file_worker(f"worker-{i}", queue)
@@ -97,6 +98,7 @@ def run_in_executor(func):
     """
     @functools.wraps(func)
     def runner(*args, **kwargs):
+        # pylint: disable=no-member
         loop = asyncio.get_running_loop()
         return loop.run_in_executor(None, lambda: func(*args, **kwargs))
     return runner
