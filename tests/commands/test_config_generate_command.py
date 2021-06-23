@@ -66,22 +66,23 @@ def test_config_generate_command():
         result = runner.invoke(config_cmd, ["generate"], input=stdin)
         if result.exception:
             raise result.exception
-        assert result.output == textwrap.dedent(
+        response = textwrap.dedent(
             """
              MyTardis URL: http://mytardis.example.com
              MyTardis Username: testuser1
              MyTardis API key: api_key1
              Facility Name: Test Facility
              Instrument Name: Test Instrument
-             Data Directory: ./tests/testdata/testdata-email-dataset
+             Data Directory: %s
              Contact Name: Joe Bloggs
              Contact Email: Joe.Bloggs@example.com
 
              Wrote settings to: %s
-
        """
-            % settings.config_path
+            % (os.path.join(".", "tests", "testdata", "testdata-email-dataset"),
+               settings.config_path)
         )
+        assert result.output.strip() == response.strip()
 
         # We need to ensure that changes to settings singleton don't propagate
         # to subsequent tests.
