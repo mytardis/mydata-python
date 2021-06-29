@@ -134,7 +134,7 @@ def load_advanced_settings(config_parser):
     fields = [
         "folder_structure",
         "group_prefix",
-        "max_lookup_threads",
+        "max_upload_threads",
         "max_upload_retries",
         "upload_method",
         "validate_folder_structure",
@@ -157,7 +157,10 @@ def load_advanced_settings(config_parser):
         settings["upload_invalid_user_or_group_folders"] = config_parser.getboolean(
             config_file_section, "upload_invalid_user_folders"
         )
-    int_fields = ["max_lookup_threads", "max_upload_retries"]
+    int_fields = [
+        "max_upload_threads",
+        "max_upload_retries"
+    ]
     for field in int_fields:
         if config_parser.has_option(config_file_section, field):
             settings[field] = config_parser.getint(config_file_section, field)
@@ -245,7 +248,7 @@ def save_settings_to_disk(config_path=None):
             "ignore_new_files_minutes",
             "use_includes_file",
             "use_excludes_file",
-            "max_lookup_threads",
+            "max_upload_threads",
             "max_upload_retries",
             "upload_method",
             "validate_folder_structure",

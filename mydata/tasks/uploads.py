@@ -4,9 +4,12 @@ mydata/tasks/uploads.py
 import mimetypes
 import os
 import traceback
-
+import asyncio
+import functools
 from datetime import datetime
 from http.client import responses
+import click
+import inflect
 
 from ..models.dataset import Dataset
 from ..models.experiment import Experiment
@@ -22,10 +25,8 @@ from ..utils.upload import upload_file_ssh
 from ..logs import logger
 
 
-def upload_folder(
-    folder, lookup_callback, upload_callback,
-    progress=False, upload_method=UploadMethod.SCP
-):
+async def upload_folder(folder, lookup_callback, upload_callback,
+                        progress=False, upload_method=UploadMethod.SCP):
     """
     Create required MyTardis records and upload
     any files not already uploaded.
@@ -55,13 +56,72 @@ def upload_folder(
             LookupStatus.FOUND_UNVERIFIED_NO_DFOS,
             LookupStatus.FOUND_UNVERIFIED_ON_STAGING,
         ):
-            upload_file(folder, lookup, upload_callback, upload_method, progress)
+            queue.put_nowait((folder, lookup, upload_callback,
+                              progress, upload_method))
 
+    num_threads = settings.advanced.max_upload_threads
+
+    # Create a queue
+    queue = asyncio.Queue()
+
+    # Create workers
+    workers = []
+    for i in range(num_threads):
+        # pylint: disable=no-member
+        workers.append(
+            asyncio.create_task(
+                upload_file_worker(f"worker-{i}", queue)
+            )
+        )
+
+    # Start lookup and upload
     FolderLookup(folder, lookup_cb, upload_method).lookup_datafiles()
 
+    if num_threads > 1:
+        click.echo("\n\nUploading in %s %s..." % (
+            num_threads,
+            inflect.engine().plural("thread", num_threads)))
 
+    # Wait for queue to complete
+    await queue.join()
+
+    # Shutdown workers
+    for worker in workers:
+        worker.cancel()
+
+    # Wait for workers shutdown
+    await asyncio.gather(*workers, return_exceptions=True)
+
+
+def run_in_executor(func):
+    """
+    Run function in async wrapper
+    """
+    @functools.wraps(func)
+    def runner(*args, **kwargs):
+        # pylint: disable=no-member
+        loop = asyncio.get_running_loop()
+        return loop.run_in_executor(None, lambda: func(*args, **kwargs))
+    return runner
+
+
+async def upload_file_worker(name, queue):
+    """
+    File upload worker
+    """
+    thread_num = int(name.split("-")[-1])
+    while True:
+        (folder, lookup, upload_callback,
+         progress, upload_method) = await queue.get()
+        await upload_file(folder, lookup, upload_callback,
+                          progress, thread_num, upload_method)
+        queue.task_done()
+
+
+@run_in_executor
 def upload_file(folder, lookup, upload_callback,
-                upload_method=UploadMethod.SCP, progress=False):
+                progress=False, thread_num=0,
+                upload_method=UploadMethod.SCP):
     """
     Upload file
     """
@@ -134,7 +194,8 @@ def upload_file(folder, lookup, upload_callback,
                 remote_file_path,
                 upload,
                 upload_callback,
-                progress
+                progress,
+                thread_num
             )
         except SshException as err:
             logger.error(traceback.format_exc())
@@ -255,7 +316,7 @@ def check_if_all_bytes_uploaded(upload):
 
 def upload_via_scp_with_retries(
     datafile_path, username, host, port, remote_file_path, upload,
-    upload_callback, progress  # pylint: disable=unused-argument
+    upload_callback, progress, thread_num  # pylint: disable=unused-argument
 ):
     """
     Upload via SCP with retries
@@ -270,7 +331,8 @@ def upload_via_scp_with_retries(
                     datafile_path,
                     remote_file_path,
                     upload,
-                    progress)
+                    progress,
+                    thread_num)
             else:
                 upload_with_scp(
                     datafile_path,

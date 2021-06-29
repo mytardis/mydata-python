@@ -16,6 +16,7 @@ from ..logs import logger
 from .localfile import LocalFile
 
 
+# pylint: disable=too-many-instance-attributes
 class Folder:
     """
     Model class representing a data folder which may or may not

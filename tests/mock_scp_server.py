@@ -315,17 +315,17 @@ class SshRequestHandler(socketserver.BaseRequestHandler):
                 if self.verbose:
                     logger.info("Executing: %s", command)
                 stderr_handle = subprocess.PIPE if self.verbose else None
+                # Confirm to the channel that we started the command:
+                logger.info(
+                    "Waiting for the 'scp -t' process to "
+                    "acknowledge that it has started up OK."
+                )
                 proc = subprocess.Popen(
                     command,
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=stderr_handle,
                     shell=True,
-                )
-                # Confirm to the channel that we started the command:
-                logger.info(
-                    "Waiting for the 'scp -t' process to "
-                    "acknowledge that it has started up OK."
                 )
                 response = proc.stdout.read(1)
                 assert response == b"\0"

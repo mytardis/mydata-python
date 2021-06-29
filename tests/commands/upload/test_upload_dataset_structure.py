@@ -56,7 +56,7 @@ def test_upload_dataset_structure(set_dataset_config, mock_key_pair):
         if result.exception:
             raise result.exception
         assert result.exit_code == 0
-        assert result.output == textwrap.dedent(
+        assert result.output.strip() == textwrap.dedent(
             """
                 Using MyData configuration in: %s
 
@@ -97,4 +97,4 @@ def test_upload_dataset_structure(set_dataset_config, mock_key_pair):
 
                 """
             % (settings.config_path, settings.mytardis_url)
-        )
+        ).strip()

@@ -2,8 +2,7 @@
 Commands for uploading data
 """
 import sys
-import time
-
+import asyncio
 import click
 import requests
 
@@ -177,10 +176,17 @@ def upload_cmd(progress, verbose):
     num_files = sum([folder.num_files for folder in folders])
 
     lookups = dict(
-        not_found=[], found_verified=[], unverified=[], unverified_no_dfos=[], failed=[]
+        not_found=[],
+        found_verified=[],
+        unverified=[],
+        unverified_no_dfos=[],
+        failed=[]
     )
 
-    uploads = dict(completed=[], failed=[])
+    uploads = dict(
+        completed=[],
+        failed=[]
+    )
 
     datasets = dict()
 
@@ -218,37 +224,20 @@ def upload_cmd(progress, verbose):
             uploads["failed"].append(upload)
 
         # Only display upload progress after lookups have completed:
-        if (uploads["completed"] or len(lookups) == num_files) and sys.stdout.isatty():
-            print(
-                "Uploaded %s of %s files...        "
-                % (len(uploads["completed"]), num_files),
-                end="\r",
-                flush=True,
-            )
-
-    def check_lookup_completion():
-        """When running in multi-threaded mode, we need to check if we have finished
-        """
-        total_lookups = sum([len(lookups[lookup_status]) for lookup_status in lookups])
-        return total_lookups == num_files
-
-    def check_upload_completion():
-        """When running in multi-threaded mode, we need to check if we have finished
-        """
-        uploads_expected = (
-            len(lookups[LookupStatus.NOT_FOUND])
-            + len(lookups[LookupStatus.FOUND_UNVERIFIED_ON_STAGING])
-            + len(lookups[LookupStatus.FOUND_UNVERIFIED_NO_DFOS])
-        )
-        return uploads_expected == len(uploads["completed"]) + len(uploads["failed"])
+        # if (uploads["completed"] or len(lookups) == num_files) and sys.stdout.isatty():
+        #     print(
+        #         "Uploaded %s of %s files...        "
+        #         % (len(uploads["completed"]), num_files),
+        #         end="\r",
+        #         flush=True,
+        #     )
 
     for folder in folders:
-        upload_folder(folder, lookup_callback, upload_callback,
-                      progress, upload_method)
-
-    if settings.advanced.max_lookup_threads > 1:
-        while not check_lookup_completion() or not check_upload_completion():
-            time.sleep(0.1)
+        # pylint: disable=no-member
+        asyncio.run(
+            upload_folder(folder, lookup_callback, upload_callback,
+                          progress, upload_method)
+        )
 
     if settings.miscellaneous.cache_datafile_lookups:
         settings.save_verified_datafiles_cache()

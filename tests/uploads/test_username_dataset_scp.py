@@ -6,6 +6,7 @@ This module provides the "test_scan_username_dataset_folders" function,
 preceded by a series of helper functions.
 """
 # pylint: disable=unused-import
+import pytest
 
 from string import Template
 from urllib.parse import quote
@@ -307,7 +308,8 @@ def assert_scan_folders_success(settings):
     return folders
 
 
-def assert_upload_folders_success(
+@pytest.mark.asyncio
+async def assert_upload_folders_success(
     folders, settings, mock_scp_server, mock_staging_path
 ):
     """Test uploading folders in the Username / Dataset folder structure
@@ -335,7 +337,7 @@ def assert_upload_folders_success(
             uploads.append(upload)
 
         for folder in folders:
-            upload_folder(
+            await upload_folder(
                 folder, lookup_callback, upload_callback,
                 progress=False, upload_method=UploadMethod.SCP
             )
@@ -344,7 +346,8 @@ def assert_upload_folders_success(
         assert_expected_datafile_uploads(uploads)
 
 
-def test_scan_username_dataset_folders(
+@pytest.mark.asyncio
+async def test_scan_username_dataset_folders(
     set_username_dataset_config, mock_scp_server, mock_key_pair, mock_staging_path
 ):
     """Test ability to scan the Username / Dataset folder structure.

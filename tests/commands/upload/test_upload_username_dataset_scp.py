@@ -87,7 +87,7 @@ def test_upload_username_dataset_scp(
         if result.exception:
             raise result.exception
         assert result.exit_code == 0
-        assert result.output == textwrap.dedent(
+        assert result.output.strip() == textwrap.dedent(
             """
             Using MyData configuration in: %s
 
@@ -143,4 +143,4 @@ def test_upload_username_dataset_scp(
 
            """
             % settings.config_path
-        )
+        ).strip()

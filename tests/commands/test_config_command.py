@@ -26,28 +26,28 @@ def test_config_list_command(set_exp_dataset_config):
     assert result.exit_code == 0
     assert result.output == textwrap.dedent(
         """\
-        api_key
-        cache_datafile_lookups
-        contact_email
-        contact_name
-        data_directory
-        dataset_filter
-        experiment_filter
-        facility_name
-        folder_structure
-        group_prefix
-        ignore_interval_number
-        ignore_interval_unit
-        ignore_new_files
-        ignore_old_datasets
-        instrument_name
-        max_lookup_threads
-        max_upload_retries
-        mytardis_url
-        user_filter
-        username
-        uuid
-        validate_folder_structure
+            api_key
+            cache_datafile_lookups
+            contact_email
+            contact_name
+            data_directory
+            dataset_filter
+            experiment_filter
+            facility_name
+            folder_structure
+            group_prefix
+            ignore_interval_number
+            ignore_interval_unit
+            ignore_new_files
+            ignore_old_datasets
+            instrument_name
+            max_upload_retries
+            max_upload_threads
+            mytardis_url
+            user_filter
+            username
+            uuid
+            validate_folder_structure
         """
     )
 
@@ -64,11 +64,6 @@ def test_config_get_command(set_exp_dataset_config):
     assert result.exit_code == 0
     assert result.output == "tests/testdata/testdata-exp-dataset\n"
 
-
-def test_config_get_command(set_exp_dataset_config):
-    from mydata.commands.config import config_cmd
-
-    runner = CliRunner()
     result = runner.invoke(config_cmd, ["get", "contact_name"])
     assert result.exit_code == 0
     assert result.output == "MyData Tester\n"
