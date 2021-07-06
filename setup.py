@@ -19,6 +19,10 @@ REQUIRED = [
     "python-dotenv>=0.11.0",
     "requests>=2.22",
     "requests-toolbelt>=0.9",
+    "inflect>=5.3.0",
+    "asyncio>=3.4.3",
+    "ssh2-python>=0.26.0",
+    "tqdm>=4.61.1"
 ]
 
 TEST_REQUIRED = [
