@@ -247,7 +247,7 @@ class FiltersSettings(BaseSettings):
         """
         return self.mydata_config["ignore_symlinks"]
 
-    @ignore_new_files.setter
+    @ignore_symlinks.setter
     def ignore_symlinks(self, ignore_symlinks):
         """
         Set this to True if MyData should ignore symlink files
