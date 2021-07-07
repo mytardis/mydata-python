@@ -139,6 +139,10 @@ def upload_file(folder, lookup, upload_callback,
         upload_callback(upload)
         return
 
+    if check_if_file_is_symlink(folder, upload):
+        upload_callback(upload)
+        return
+
     upload.message = "Defining JSON data for POST..."
     datafile_dict = construct_datafile_post_body(folder, upload)
 
@@ -381,6 +385,19 @@ def check_if_file_is_too_new(folder, upload):
         upload.message = message
         upload.status = UploadStatus.FAILED
     return too_new
+
+
+def check_if_file_is_symlink(folder, upload):
+    """
+    Check if we ignore symlinks and the file is a symlink
+    """
+    if settings.filters.ignore_symlinks:
+        absolute_file_path = folder.get_datafile_path(upload.datafile_index)
+        if os.path.islink(absolute_file_path):
+            upload.message = "Not uploading file, ignoring symlinks."
+            upload.status = UploadStatus.FAILED
+            return True
+    return False
 
 
 def get_remote_file_path(location, lookup, df_post_response):
