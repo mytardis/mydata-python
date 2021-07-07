@@ -103,6 +103,7 @@ def load_filter_settings(config_parser):
         "ignore_old_datasets",
         "ignore_new_datasets",
         "ignore_new_files",
+        "ignore_symlinks",
         "use_includes_file",
         "use_excludes_file",
     ]
@@ -246,6 +247,7 @@ def save_settings_to_disk(config_path=None):
             "ignore_new_interval_unit",
             "ignore_new_files",
             "ignore_new_files_minutes",
+            "ignore_symlinks",
             "use_includes_file",
             "use_excludes_file",
             "max_upload_threads",
