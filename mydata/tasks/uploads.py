@@ -131,15 +131,9 @@ def upload_file(folder, lookup, upload_callback,
 
     datafile_path = folder.get_datafile_path(upload.datafile_index)
 
-    if check_if_file_is_missing(upload, datafile_path):
-        upload_callback(upload)
-        return
-
-    if check_if_file_is_too_new(folder, upload):
-        upload_callback(upload)
-        return
-
-    if check_if_file_is_symlink(folder, upload):
+    if check_if_file_is_missing(upload, datafile_path) or \
+            check_if_file_is_too_new(folder, upload) or \
+            check_if_file_is_symlink(folder, upload):
         upload_callback(upload)
         return
 
