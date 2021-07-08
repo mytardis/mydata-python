@@ -52,6 +52,19 @@ def set_dataset_config(request):
 
 
 @pytest.fixture
+def set_symlinks_config(request):
+    os.environ["MYDATA_CONFIG_PATH"] = os.path.abspath(
+        os.path.join(".", "tests", "testdata", "testdata-symlinks.cfg")
+    )
+    assert "mydata.settings" not in sys.modules
+
+    def teardown():
+        unload_modules()
+
+    request.addfinalizer(teardown)
+
+
+@pytest.fixture
 def set_user_exp_dataset_config(request):
     os.environ["MYDATA_CONFIG_PATH"] = os.path.abspath(
         os.path.join(".", "tests", "testdata", "testdata-user-exp-dataset.cfg")

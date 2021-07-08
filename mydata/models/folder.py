@@ -99,6 +99,9 @@ class Folder:
                             "and not matching includes." % filename
                         )
                         continue
+                if settings.filters.ignore_symlinks and \
+                        os.path.islink(os.path.join(dirname, filename)):
+                    continue
                 self.local_files.append(
                     LocalFile(
                         filepath=os.path.join(dirname, filename),
