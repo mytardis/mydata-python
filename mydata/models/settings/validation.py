@@ -205,6 +205,12 @@ def check_filters(set_status_message):
         )
         logger.warning(message)
         log_if_test_run("WARNING: %s" % message)
+    if settings.filters.ignore_symlinks:
+        message = (
+            "Symlink files are being ignored."
+        )
+        logger.warning(message)
+        log_if_test_run("WARNING: %s" % message)
     if settings.filters.use_includes_file and not settings.filters.use_excludes_file:
         message = (
             "Only files matching patterns in includes "

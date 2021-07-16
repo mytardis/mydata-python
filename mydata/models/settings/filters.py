@@ -36,6 +36,7 @@ class FiltersSettings(BaseSettings):
             "ignore_new_interval_unit",
             "ignore_new_files",
             "ignore_new_files_minutes",
+            "ignore_symlinks",
             "use_includes_file",
             "includes_file",
             "use_excludes_file",
@@ -54,6 +55,7 @@ class FiltersSettings(BaseSettings):
             ignore_new_interval_unit="months",
             ignore_new_files=True,
             ignore_new_files_minutes=1,
+            ignore_symlinks=True,
             use_includes_file=False,
             includes_file="",
             use_excludes_file=False,
@@ -237,6 +239,20 @@ class FiltersSettings(BaseSettings):
         Set this to True if MyData should ignore recently modified files
         """
         self.mydata_config["ignore_new_files"] = ignore_new_files
+
+    @property
+    def ignore_symlinks(self):
+        """
+        Returns True if MyData should ignore symlink files
+        """
+        return self.mydata_config["ignore_symlinks"]
+
+    @ignore_symlinks.setter
+    def ignore_symlinks(self, ignore_symlinks):
+        """
+        Set this to True if MyData should ignore symlink files
+        """
+        self.mydata_config["ignore_symlinks"] = ignore_symlinks
 
     @property
     def ignore_new_files_minutes(self):
