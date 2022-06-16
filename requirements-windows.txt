@@ -1,2 +1,2 @@
 pywin32==301
-colorama==0.4.4
+colorama==0.4.5
