@@ -1,6 +1,6 @@
 appdirs==1.4.4
 click==8.0.1
-configparser==5.0.2
+configparser==7.0.0
 netifaces==0.11.0
 paramiko==2.7.2 # Unit tests only
 psutil==5.8.0
